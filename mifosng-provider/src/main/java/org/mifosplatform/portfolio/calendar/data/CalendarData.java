@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.joda.time.LocalDate;
+import org.joda.time.LocalTime; //MifosX-855: import class LocalTime
 import org.mifosplatform.infrastructure.core.data.EnumOptionData;
 import org.mifosplatform.portfolio.calendar.domain.CalendarFrequencyType;
 import org.mifosplatform.portfolio.calendar.domain.CalendarRemindBy;
@@ -31,6 +32,7 @@ public class CalendarData {
     private final String location;
     private final LocalDate startDate;
     private final LocalDate endDate;
+    private final LocalTime startTime; //MifosX-855: added startTime for store a calendar event start time
     private final Integer duration;
     private final EnumOptionData type;
     private final boolean repeating;
@@ -120,6 +122,7 @@ public class CalendarData {
         final String location = null;
         final LocalDate startDate = null;
         final LocalDate endDate = null;
+        final LocalTime startTime = null; //MifosX-855: Initializing default startTime
         final Integer duration = new Integer(0);
         final EnumOptionData type = CalendarEnumerations.calendarType(CalendarType.COLLECTION);
         final boolean repeating = false;
@@ -189,6 +192,7 @@ public class CalendarData {
         this.location = location;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.startTime = new LocalTime(0,0); //MifosX-855: Initializing default startTime; Testing
         this.duration = duration;
         this.type = type;
         this.repeating = repeating;
@@ -236,6 +240,10 @@ public class CalendarData {
         return this.description;
     }
 
+    /**
+     * @desc MifosX-855: Returns Calendar event location
+     * @return String location
+     */
     public String getLocation() {
         return this.location;
     }
@@ -251,7 +259,19 @@ public class CalendarData {
     public LocalDate getCreatedDate() {
         return this.createdDate;
     }
+    
+    /**
+     * @desc MifosX-855: Returns Start Time
+     * @return LocalTime start time
+     */
+    public LocalTime getStartTime() {
+        return this.startTime;
+    }
 
+    /**
+     * @desc MifosX-855: Returns Time Duration
+     * @return Integer - duration in seconds
+     */
     public Integer getDuration() {
         return this.duration;
     }
