@@ -223,6 +223,7 @@ public class CentersApiResource {
 
     }
 
+    //MifosX - 855 this API call will be used to update center meeting
     @PUT
     @Path("{centerId}")
     @Consumes({ MediaType.APPLICATION_JSON })
