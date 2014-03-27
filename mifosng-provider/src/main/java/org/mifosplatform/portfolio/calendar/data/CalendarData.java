@@ -33,7 +33,7 @@ public class CalendarData {
     private final LocalDate startDate;
     private final LocalDate endDate;
     private final LocalTime startTime; //MifosX-855: added startTime for store a calendar event start time
-    private final Integer duration;
+    private final Integer duration; //MifosX-855: duration of the calendar event in seconds
     private final EnumOptionData type;
     private final boolean repeating;
     private final String recurrence;
@@ -80,7 +80,7 @@ public class CalendarData {
         final List<EnumOptionData> frequencyOptions = null;
         final List<EnumOptionData> repeatsOnDayOptions = null;
 
-        return new CalendarData(id, calendarInstanceId, entityId, entityType, title, description, location, startDate, endDate, duration,
+        return new CalendarData(id, calendarInstanceId, entityId, entityType, title, description, location, startDate, endDate, new LocalTime(0,0), duration,
                 type, repeating, recurrence, frequency, interval, repeatsOnDay, remindBy, firstReminder, secondReminder, recurringDates,
                 nextTenRecurringDates, humanReadable, recentEligibleMeetingDate, createdDate, lastUpdatedDate, createdByUserId,
                 createdByUsername, lastUpdatedByUserId, lastUpdatedByUsername, entityTypeOptions, calendarTypeOptions, remindByOptions,
@@ -90,7 +90,7 @@ public class CalendarData {
     public static CalendarData withRecurringDates(final CalendarData calendarData, final Collection<LocalDate> recurringDates,
             final Collection<LocalDate> nextTenRecurringDates, final LocalDate recentEligibleMeetingDate) {
         return new CalendarData(calendarData.id, calendarData.calendarInstanceId, calendarData.entityId, calendarData.entityType,
-                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate,
+                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, new LocalTime(0,0),
                 calendarData.duration, calendarData.type, calendarData.repeating, calendarData.recurrence, calendarData.frequency,
                 calendarData.interval, calendarData.repeatsOnDay, calendarData.remindBy, calendarData.firstReminder,
                 calendarData.secondReminder, recurringDates, nextTenRecurringDates, calendarData.humanReadable, recentEligibleMeetingDate,
@@ -102,7 +102,7 @@ public class CalendarData {
 
     public static CalendarData withRecentEligibleMeetingDate(final CalendarData calendarData, final LocalDate recentEligibleMeetingDate) {
         return new CalendarData(calendarData.id, calendarData.calendarInstanceId, calendarData.entityId, calendarData.entityType,
-                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate,
+                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, new LocalTime(0,0),
                 calendarData.duration, calendarData.type, calendarData.repeating, calendarData.recurrence, calendarData.frequency,
                 calendarData.interval, calendarData.repeatsOnDay, calendarData.remindBy, calendarData.firstReminder,
                 calendarData.secondReminder, calendarData.recurringDates, calendarData.nextTenRecurringDates, calendarData.humanReadable,
@@ -151,7 +151,7 @@ public class CalendarData {
         final Long lastUpdatedByUserId = null;
         final String lastUpdatedByUsername = null;
 
-        return new CalendarData(id, calendarInstanceId, entityId, entityType, title, description, location, startDate, endDate, duration,
+        return new CalendarData(id, calendarInstanceId, entityId, entityType, title, description, location, startDate, endDate, new LocalTime(0,0), duration,
                 type, repeating, recurrence, frequency, interval, repeatsOnDay, remindBy, firstReminder, secondReminder, recurringDates,
                 nextTenRecurringDates, humanReadable, recentEligibleMeetingDate, createdDate, lastUpdatedDate, createdByUserId,
                 createdByUsername, lastUpdatedByUserId, lastUpdatedByUsername, entityTypeOptions, calendarTypeOptions, remindByOptions,
@@ -163,7 +163,7 @@ public class CalendarData {
             final List<EnumOptionData> repeatsOptions, final List<EnumOptionData> repeatsOnDayOptions) {
 
         return new CalendarData(calendarData.id, calendarData.calendarInstanceId, calendarData.entityId, calendarData.entityType,
-                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate,
+                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, new LocalTime(0,0),
                 calendarData.duration, calendarData.type, calendarData.repeating, calendarData.recurrence, calendarData.frequency,
                 calendarData.interval, calendarData.repeatsOnDay, calendarData.remindBy, calendarData.firstReminder,
                 calendarData.secondReminder, calendarData.recurringDates, calendarData.nextTenRecurringDates, calendarData.humanReadable,
@@ -175,7 +175,7 @@ public class CalendarData {
 
     private CalendarData(final Long id, final Long calendarInstanceId, final Long entityId, final EnumOptionData entityType,
             final String title, final String description, final String location, final LocalDate startDate, final LocalDate endDate,
-            final Integer duration, final EnumOptionData type, final boolean repeating, final String recurrence,
+            final LocalTime startTime, final Integer duration, final EnumOptionData type, final boolean repeating, final String recurrence,
             final EnumOptionData frequency, final Integer interval, final EnumOptionData repeatsOnDay, final EnumOptionData remindBy,
             final Integer firstReminder, final Integer secondReminder, final Collection<LocalDate> recurringDates,
             final Collection<LocalDate> nextTenRecurringDates, final String humanReadable, final LocalDate recentEligibleMeetingDate,
@@ -192,7 +192,7 @@ public class CalendarData {
         this.location = location;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.startTime = new LocalTime(0,0); //MifosX-855: Initializing default startTime; Testing
+        this.startTime = startTime; //MifosX-855: Initializing startTime
         this.duration = duration;
         this.type = type;
         this.repeating = repeating;
