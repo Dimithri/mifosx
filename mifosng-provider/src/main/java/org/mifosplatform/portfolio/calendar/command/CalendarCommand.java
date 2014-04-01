@@ -37,7 +37,7 @@ public class CalendarCommand {
     private final Integer secondReminder;
 
     public CalendarCommand(final String title, final String description, final String location, final LocalDate startDate,
-            final LocalDate endDate, final LocalDate createdDate, final Integer StartTime, final Integer duration, final Integer typeId, final boolean repeating,
+            final LocalDate endDate, final LocalDate createdDate, final Integer startTime, final Integer duration, final Integer typeId, final boolean repeating,
             final Integer remindById, final Integer firstReminder, final Integer secondReminder) {
         this.title = title;
         this.description = description;
