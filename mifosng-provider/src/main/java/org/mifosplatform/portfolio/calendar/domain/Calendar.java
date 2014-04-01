@@ -59,6 +59,10 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
     @Column(name = "end_date", nullable = true)
     @Temporal(TemporalType.DATE)
     private Date endDate;
+	
+	//MifosX-855: Capture start time
+	@Column(name = "start_time", nullable = true)
+    private Integer startTime;
 
     @Column(name = "duration", nullable = true)
     private Integer duration;
@@ -90,7 +94,7 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
     }
 
     public Calendar(final String title, final String description, final String location, final LocalDate startDate,
-            final LocalDate endDate, final Integer duration, final Integer typeId, final boolean repeating, final String recurrence,
+            final LocalDate endDate, final Integer startTime, final Integer duration, final Integer typeId, final boolean repeating, final String recurrence,
             final Integer remindById, final Integer firstReminder, final Integer secondReminder) {
 
         final List<ApiParameterError> dataValidationErrors = new ArrayList<ApiParameterError>();
@@ -118,7 +122,8 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
         } else {
             this.endDate = null;
         }
-
+	
+		this.startTime = startTime;
         this.duration = duration;
         this.typeId = typeId;
         this.repeating = repeating;
@@ -138,6 +143,7 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
         final String location = command.stringValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.LOCATION.getValue());
         final LocalDate startDate = command.localDateValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.START_DATE.getValue());
         final LocalDate endDate = command.localDateValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.END_DATE.getValue());
+		final Integer startTime = command.integerValueSansLocaleOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.START_TIME.getValue());
         final Integer duration = command.integerValueSansLocaleOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.DURATION.getValue());
         final Integer typeId = command.integerValueSansLocaleOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.TYPE_ID.getValue());
         final boolean repeating = command.booleanPrimitiveValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.REPEATING.getValue());
@@ -148,7 +154,7 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
                 .getValue());
         final String recurrence = Calendar.constructRecurrence(command, null);
 
-        return new Calendar(title, description, location, startDate, endDate, duration, typeId, repeating, recurrence, remindById,
+        return new Calendar(title, description, location, startDate, endDate, startTime, duration, typeId, repeating, recurrence, remindById,
                 firstReminder, secondReminder);
     }
 
@@ -209,6 +215,13 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
 
             final LocalDate newValue = command.localDateValueOfParameterNamed(endDateParamName);
             this.endDate = newValue.toDate();
+        }
+		
+		final String startTimeParamName = CALENDAR_SUPPORTED_PARAMETERS.START_TIME.getValue();
+        if (command.isChangeInIntegerSansLocaleParameterNamed(startTimeParamName, this.startTime)) {
+            final Integer newValue = command.integerValueSansLocaleOfParameterNamed(startTimeParamName);
+            actualChanges.put(startTimeParamName, newValue);
+            this.startTime = newValue;
         }
 
         final String durationParamName = CALENDAR_SUPPORTED_PARAMETERS.DURATION.getValue();
@@ -310,6 +323,10 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
         return this.description;
     }
 
+	/**
+     * @desc Returns location
+     * @return String location
+     */
     public String getLocation() {
         return this.location;
     }
@@ -321,7 +338,19 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
     public Date getEndDate() {
         return this.endDate;
     }
+	
+	/**
+     * @desc Returns start time (Format HHMM)
+     * @return Integer startTime
+     */
+	public Integer getStartTime() {
+        return this.startTime;
+    }
 
+	/**
+     * @desc Returns duration in minutes
+     * @return Integer duration
+     */
     public Integer getDuration() {
         return this.duration;
     }
