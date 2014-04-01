@@ -86,6 +86,31 @@ public class CalendarData {
                 createdByUsername, lastUpdatedByUserId, lastUpdatedByUsername, entityTypeOptions, calendarTypeOptions, remindByOptions,
                 frequencyOptions, repeatsOnDayOptions);
     }
+    
+    public static CalendarData instance(final Long id, final Long calendarInstanceId, final Long entityId, final EnumOptionData entityType,
+            final String title, final String description, final String location, final LocalDate startDate, final LocalDate endDate,
+            final Integer startTime, final Integer duration, final EnumOptionData type, final boolean repeating, final String recurrence,
+            final EnumOptionData frequency, final Integer interval, final EnumOptionData repeatsOnDay, final EnumOptionData remindBy,
+            final Integer firstReminder, final Integer secondReminder, final String humanReadable, final LocalDate createdDate,
+            final LocalDate lastUpdatedDate, final Long createdByUserId, final String createdByUsername, final Long lastUpdatedByUserId,
+            final String lastUpdatedByUsername) {
+
+        final Collection<LocalDate> recurringDates = null;
+        final Collection<LocalDate> nextTenRecurringDates = null;
+        final LocalDate recentEligibleMeetingDate = null;
+
+        final List<EnumOptionData> entityTypeOptions = null;
+        final List<EnumOptionData> calendarTypeOptions = null;
+        final List<EnumOptionData> remindByOptions = null;
+        final List<EnumOptionData> frequencyOptions = null;
+        final List<EnumOptionData> repeatsOnDayOptions = null;
+
+        return new CalendarData(id, calendarInstanceId, entityId, entityType, title, description, location, startDate, endDate, startTime, duration,
+                type, repeating, recurrence, frequency, interval, repeatsOnDay, remindBy, firstReminder, secondReminder, recurringDates,
+                nextTenRecurringDates, humanReadable, recentEligibleMeetingDate, createdDate, lastUpdatedDate, createdByUserId,
+                createdByUsername, lastUpdatedByUserId, lastUpdatedByUsername, entityTypeOptions, calendarTypeOptions, remindByOptions,
+                frequencyOptions, repeatsOnDayOptions);
+    }
 
     public static CalendarData withRecurringDates(final CalendarData calendarData, final Collection<LocalDate> recurringDates,
             final Collection<LocalDate> nextTenRecurringDates, final LocalDate recentEligibleMeetingDate) {
