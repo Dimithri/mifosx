@@ -21,6 +21,8 @@ public class CalendarCommand {
     private final LocalDate endDate;
     @SuppressWarnings("unused")
     private final LocalDate createdDate;
+	@SuppressWarnings("unused")
+    private final Integer startTime;
     @SuppressWarnings("unused")
     private final Integer duration;
     @SuppressWarnings("unused")
@@ -35,7 +37,7 @@ public class CalendarCommand {
     private final Integer secondReminder;
 
     public CalendarCommand(final String title, final String description, final String location, final LocalDate startDate,
-            final LocalDate endDate, final LocalDate createdDate, final Integer duration, final Integer typeId, final boolean repeating,
+            final LocalDate endDate, final LocalDate createdDate, final Integer StartTime, final Integer duration, final Integer typeId, final boolean repeating,
             final Integer remindById, final Integer firstReminder, final Integer secondReminder) {
         this.title = title;
         this.description = description;
@@ -43,6 +45,7 @@ public class CalendarCommand {
         this.startDate = startDate;
         this.endDate = endDate;
         this.createdDate = createdDate;
+		this.startTime = startTime;
         this.duration = duration;
         this.typeId = typeId;
         this.repeating = repeating;
