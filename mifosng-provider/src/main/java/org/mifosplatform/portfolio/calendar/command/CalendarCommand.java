@@ -21,7 +21,7 @@ public class CalendarCommand {
     private final LocalDate endDate;
     @SuppressWarnings("unused")
     private final LocalDate createdDate;
-	@SuppressWarnings("unused")
+    @SuppressWarnings("unused")
     private final Integer startTime;
     @SuppressWarnings("unused")
     private final Integer duration;

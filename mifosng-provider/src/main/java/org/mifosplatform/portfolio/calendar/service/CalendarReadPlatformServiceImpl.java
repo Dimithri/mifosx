@@ -64,7 +64,7 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
             final String location = rs.getString("location");
             final LocalDate startDate = JdbcSupport.getLocalDate(rs, "startDate");
             final LocalDate endDate = JdbcSupport.getLocalDate(rs, "endDate");
-			final Integer startTime = rs.getInt("startTime");
+            final Integer startTime = rs.getInt("startTime");
             final Integer duration = rs.getInt("duration");
             final Integer typeId = rs.getInt("typeId");
             final EnumOptionData type = CalendarEnumerations.calendarType(typeId);

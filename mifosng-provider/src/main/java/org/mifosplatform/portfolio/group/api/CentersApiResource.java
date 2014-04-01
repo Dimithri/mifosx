@@ -223,7 +223,7 @@ public class CentersApiResource {
 
     }
 
-    //MifosX - 855; this API call will be used to update center data
+    //API call which will be used to update center data
     @PUT
     @Path("{centerId}")
     @Consumes({ MediaType.APPLICATION_JSON })
@@ -231,7 +231,7 @@ public class CentersApiResource {
     public String update(@PathParam("centerId") final Long centerId, final String apiRequestBodyAsJson) {
 
         final CommandWrapper commandRequest = new CommandWrapperBuilder() //
-                .updateCenter(centerId) //MifosX - 855; Update REST action, entity, entity id(center id) and API link for entity
+                .updateCenter(centerId) //Update REST action, entity, entity id(center id) and API link for entity
                 .withJson(apiRequestBodyAsJson) //Update the JSON request data at String  CommandWrapperBuilder.json
                 .build(); //Creates a CommandWrapper Object with exist parameters in created CommandWrapper object
         

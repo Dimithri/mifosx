@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.joda.time.LocalDate;
-import org.joda.time.LocalTime; //MifosX-855: import class LocalTime
 import org.mifosplatform.infrastructure.core.data.EnumOptionData;
 import org.mifosplatform.portfolio.calendar.domain.CalendarFrequencyType;
 import org.mifosplatform.portfolio.calendar.domain.CalendarRemindBy;
@@ -32,8 +31,8 @@ public class CalendarData {
     private final String location;
     private final LocalDate startDate;
     private final LocalDate endDate;
-    private final Integer startTime; //MifosX-855: added startTime for store a calendar event start time
-    private final Integer duration; //MifosX-855: duration of the calendar event in seconds
+    private final Integer startTime; //To store a calendar event start time. Used Integer for better performance( Format HHMM; Ex- 08.31pm --> 2031 ISO-8601)
+    private final Integer duration;  //To store duration of the calendar event in seconds
     private final EnumOptionData type;
     private final boolean repeating;
     private final String recurrence;
@@ -147,7 +146,7 @@ public class CalendarData {
         final String location = null;
         final LocalDate startDate = null;
         final LocalDate endDate = null;
-        final Integer startTime = null; //MifosX-855: Initializing default startTime. Used Integer for better performance( Format HHMM; Ex- 08.31pm --> 2031 ISO-8601)
+        final Integer startTime = null;
         final Integer duration = new Integer(0);
         final EnumOptionData type = CalendarEnumerations.calendarType(CalendarType.COLLECTION);
         final boolean repeating = false;
