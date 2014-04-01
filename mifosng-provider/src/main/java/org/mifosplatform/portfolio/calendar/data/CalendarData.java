@@ -115,7 +115,7 @@ public class CalendarData {
     public static CalendarData withRecurringDates(final CalendarData calendarData, final Collection<LocalDate> recurringDates,
             final Collection<LocalDate> nextTenRecurringDates, final LocalDate recentEligibleMeetingDate) {
         return new CalendarData(calendarData.id, calendarData.calendarInstanceId, calendarData.entityId, calendarData.entityType,
-                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, new Integer(0),
+                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, calendarData.startTime,
                 calendarData.duration, calendarData.type, calendarData.repeating, calendarData.recurrence, calendarData.frequency,
                 calendarData.interval, calendarData.repeatsOnDay, calendarData.remindBy, calendarData.firstReminder,
                 calendarData.secondReminder, recurringDates, nextTenRecurringDates, calendarData.humanReadable, recentEligibleMeetingDate,
@@ -127,7 +127,7 @@ public class CalendarData {
 
     public static CalendarData withRecentEligibleMeetingDate(final CalendarData calendarData, final LocalDate recentEligibleMeetingDate) {
         return new CalendarData(calendarData.id, calendarData.calendarInstanceId, calendarData.entityId, calendarData.entityType,
-                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, new Integer(0),
+                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, calendarData.startTime,
                 calendarData.duration, calendarData.type, calendarData.repeating, calendarData.recurrence, calendarData.frequency,
                 calendarData.interval, calendarData.repeatsOnDay, calendarData.remindBy, calendarData.firstReminder,
                 calendarData.secondReminder, calendarData.recurringDates, calendarData.nextTenRecurringDates, calendarData.humanReadable,
@@ -188,7 +188,7 @@ public class CalendarData {
             final List<EnumOptionData> repeatsOptions, final List<EnumOptionData> repeatsOnDayOptions) {
 
         return new CalendarData(calendarData.id, calendarData.calendarInstanceId, calendarData.entityId, calendarData.entityType,
-                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, new Integer(0),
+                calendarData.title, calendarData.description, calendarData.location, calendarData.startDate, calendarData.endDate, calendarData.startTime,
                 calendarData.duration, calendarData.type, calendarData.repeating, calendarData.recurrence, calendarData.frequency,
                 calendarData.interval, calendarData.repeatsOnDay, calendarData.remindBy, calendarData.firstReminder,
                 calendarData.secondReminder, calendarData.recurringDates, calendarData.nextTenRecurringDates, calendarData.humanReadable,
