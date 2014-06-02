@@ -68,6 +68,7 @@ public class DataImportApiResource {
 		
 		//
 		//return <JSON response> 
+		return "test";
 	}
 	
 	@POST
@@ -82,6 +83,7 @@ public class DataImportApiResource {
 		//this.context.authenticatedUser().validateHasReadPermission();
 		
 		//return <JSON response> 
+		return "test";
 	}
 	
 	@GET
@@ -92,5 +94,6 @@ public class DataImportApiResource {
 			
 		// Testing code 
 		//Handle the data importing from a template..
+		return "test";
 	}
 }

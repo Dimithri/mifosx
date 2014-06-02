@@ -1,0 +1,102 @@
+Listening for transport dt_socket at address: 8005
+The TaskContainer.add() method has been deprecated and is scheduled to be removed in Gradle 2.0. Please use the create() method instead.
+:tasks
+
+------------------------------------------------------------
+All tasks runnable from root project - Run as:
+gradle clean tomcatrunwar
+
+------------------------------------------------------------
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+buildDependents - Assembles and tests this project and all projects that depend on it.
+buildNeeded - Assembles and tests this project and all projects it depends on.
+classes - Assembles classes 'main'.
+clean - Deletes the build directory.
+integrationTestClasses - Assembles classes 'integrationTest'.
+jar - Assembles a jar archive containing the main classes.
+testClasses - Assembles classes 'test'.
+war - Generates a war archive with all the compiled classes, the web-app content and the libraries.
+
+Build Setup tasks
+-----------------
+setupBuild - Initializes a new Gradle build. [incubating]
+wrapper - Generates Gradle wrapper files. [incubating]
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code.
+
+Flyway tasks
+------------
+flywayClean - Drops all objects in the configured schemas.
+flywayInfo - Creates and initializes the metadata table in the schema.
+flywayInit - Creates and initializes the metadata table in the schema.
+flywayMigrate - Migrates the schema to the latest version.
+flywayRepair - Repairs the Flyway metadata table after a failed migration.
+flywayValidate - Validates the applied migrations against the ones available on the classpath.
+
+Help tasks
+----------
+dependencies - Displays all dependencies declared in root project 'mifosng-provider'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'mifosng-provider'.
+help - Displays a help message
+projects - Displays the sub-projects of root project 'mifosng-provider'.
+properties - Displays the properties of root project 'mifosng-provider'.
+tasks - Displays the tasks runnable from root project 'mifosng-provider'.
+
+IDE tasks
+---------
+cleanEclipse - Cleans all Eclipse files.
+cleanIdea - Cleans IDEA project files (IML, IPR)
+eclipse - Generates all Eclipse files.
+idea - Generates IDEA project files (IML, IPR, IWS)
+
+Reporting tasks
+---------------
+projectReport - Generates a report about your project.
+
+Verification tasks
+------------------
+check - Runs all checks.
+test - Runs the unit tests.
+
+Web application tasks
+---------------------
+tomcatJasper - Runs the JSP compiler and turns JSP pages into Java source.
+tomcatRun - Uses your files as and where they are and deploys them to Tomcat.
+tomcatRunWar - Assembles the webapp into a war and deploys it to Tomcat.
+tomcatStop - Stops Tomcat.
+
+Other tasks
+-----------
+cleanIdeaWorkspace
+createDB
+dist
+dropDB
+generateRebel
+integrationTest - Run integration tests (located in src/integrationTest/java). Starts tomcat in daemon mode before executing the tests.
+licenseFormatIntegrationTest - Scanning license on integrationTest files
+licenseFormatMain - Scanning license on main files
+licenseFormatTest - Scanning license on test files
+migrateTenantDB
+migrateTenantListDB
+repairTenantDB
+setBlankPassword
+showTenantDBInfo
+showTenantListDBInfo
+
+Rules
+-----
+Pattern: build<ConfigurationName>: Assembles the artifacts of a configuration.
+Pattern: upload<ConfigurationName>: Assembles and uploads the artifacts belonging to a configuration.
+Pattern: clean<TaskName>: Cleans the output files of a task.
+
+To see all tasks and more detail, run with --all.
+
+BUILD SUCCESSFUL
+
+Total time: 15.196 secs
