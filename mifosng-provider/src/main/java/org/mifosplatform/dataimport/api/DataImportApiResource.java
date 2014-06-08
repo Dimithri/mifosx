@@ -36,6 +36,9 @@ import org.mifosplatform.infrastructure.core.serialization.ApiRequestJsonSeriali
 import org.mifosplatform.infrastructure.core.serialization.FromJsonHelper;
 import org.mifosplatform.infrastructure.core.serialization.ToApiJsonSerializer;
 import org.mifosplatform.infrastructure.core.service.Page;
+import org.mifosplatform.infrastructure.documentmanagement.data.DocumentData;
+import org.mifosplatform.infrastructure.documentmanagement.service.DocumentReadPlatformService;
+import org.mifosplatform.infrastructure.documentmanagement.service.DocumentWritePlatformService;
 import org.mifosplatform.infrastructure.security.service.PlatformSecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -48,10 +51,23 @@ import com.google.gson.JsonElement;
 @Scope("singleton")
 public class DataImportApiResource {
 
+	
+	private final PlatformSecurityContext context;
+    private final DocumentReadPlatformService documentReadPlatformService;
+    private final DocumentWritePlatformService documentWritePlatformService;
+    private final ApiRequestParameterHelper apiRequestParameterHelper;
+    private final ToApiJsonSerializer<DocumentData> toApiJsonSerializer;
+	
     @Autowired
-    public DataImportApiResource() {
+    public DataImportApiResource(final PlatformSecurityContext context,
+            final DocumentReadPlatformService documentReadPlatformService, final DocumentWritePlatformService documentWritePlatformService,
+            final ApiRequestParameterHelper apiRequestParameterHelper, final ToApiJsonSerializer<DocumentData> toApiJsonSerializer) {
         
-		
+    	this.context = context;
+        this.documentReadPlatformService = documentReadPlatformService;
+        this.documentWritePlatformService = documentWritePlatformService;
+        this.apiRequestParameterHelper = apiRequestParameterHelper;
+        this.toApiJsonSerializer = toApiJsonSerializer;
     }
 	
 	@GET

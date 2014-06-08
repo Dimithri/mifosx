@@ -7,5 +7,8 @@ public class DataImportApiConstants {
 	public static String mifosPassword = "password";
 	public static String tenantID = "default";
 
-    
+    public DataImportApiConstants(){
+    	
+    	
+    }
 }
