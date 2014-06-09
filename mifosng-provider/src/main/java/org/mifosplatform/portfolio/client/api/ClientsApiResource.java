@@ -266,4 +266,73 @@ public class ClientsApiResource {
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return this.clientAccountSummaryToApiJsonSerializer.serialize(settings, clientAccount, CLIENT_ACCOUNTS_DATA_PARAMETERS);
     }
+    
+    
+    /**
+     * This methods returns the template for the client importing
+     * @param clientTypeId   1: individual 2: corporate 
+     * @return template for update the data for importing
+     */
+    
+    @GET
+    @Path("import/{clientTypeId}")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getClientImportTemplate(@PathParam("clientTypeId") final int clientTypeId) {
+
+    	//Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+        
+        switch (clientTypeId){
+        
+	        case 0:
+	        	//get the template for individual type
+	        	break;
+        	
+	        case 1:
+	        	//get the template for corporate type client
+	        	break;
+        	
+        	default:
+        		//exception
+        		break;
+        }
+        
+        
+    	return "{here is the template}";
+    }
+    
+    
+    /**
+     * This methods capture the template and update the client information
+     * @param clientTypeId   1: individual 2: corporate 
+     * @return Status message for client importing 
+     */
+    
+    @POST
+    @Path("import/{clientTypeId}")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String importClients(@PathParam("clientTypeId") final int clientTypeId) {
+
+    	//Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+
+        switch (clientTypeId){
+        
+	        case 0:
+	        	//get the template for individual type
+	        	break;
+	    	
+	        case 1:
+	        	//get the template for corporate type client
+	        	break;
+	    	
+	    	default:
+	    		//exception
+	    		break;
+	    }
+        
+    	return "{client are imported}";
+    }
 }
