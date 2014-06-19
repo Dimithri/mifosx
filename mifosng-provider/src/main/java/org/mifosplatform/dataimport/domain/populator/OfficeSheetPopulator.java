@@ -1,7 +1,10 @@
 package org.mifosplatform.dataimport.domain.populator;
 
+//TODO
+//remove unnecessary imports 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
+//import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -9,22 +12,30 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.dataimport.data.Office;
 import org.mifosplatform.dataimport.domain.handler.Result;
-import org.mifosplatform.dataimport.services.http.RestClient;
+//import org.mifosplatform.dataimport.services.http.RestClient;
+//import org.mifosplatform.infrastructure.core.serialization.ApiRequestJsonSerializationSettings;
+import org.mifosplatform.organisation.office.data.OfficeData;
+import org.mifosplatform.organisation.office.service.OfficeReadPlatformService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.stereotype.Service;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+//import com.google.gson.Gson;
+//import com.google.gson.JsonArray;
+//import com.google.gson.JsonElement;
+//import com.google.gson.JsonParser;
 
-public class OfficeSheetPopulator extends AbstractWorkbookPopulator {
+
+//import org.mifosplatform.organisation.office.service.OfficeReadPlatformService;
+
+public class OfficeSheetPopulator extends AbstractWorkbookPopulator{
 	
 	private static final Logger logger = LoggerFactory.getLogger(OfficeSheetPopulator.class);
 	
-	private final RestClient client;
+	//private final RestClient client;
 	
-	private String content;
+	//private String content;
 	
 	private List<Office> offices;
 	private ArrayList<String> officeNames;
@@ -32,19 +43,33 @@ public class OfficeSheetPopulator extends AbstractWorkbookPopulator {
 	private static final int ID_COL = 0;
 	private static final int OFFICE_NAME_COL = 1;
 
-    public OfficeSheetPopulator(RestClient client) {
-        this.client = client;
-    }
+    private final OfficeReadPlatformService officeReadPlatformService;
+
+
+	public OfficeSheetPopulator(final OfficeReadPlatformService officeReadPlatformService){
+
+        this.officeReadPlatformService = officeReadPlatformService;
+	}
     
     @Override
     public Result downloadAndParse() {
     	Result result = new Result();
         try {
-        	client.createAuthToken();
+        	
+        	Collection<OfficeData> officesCollection = this.officeReadPlatformService.retrieveAllOffices(false);
+            
+        	//client.createAuthToken();
         	offices = new ArrayList<Office>();
         	officeNames = new ArrayList<String>();
-            content = client.get("offices?limit=-1");
-            parseOffices();
+            //content = client.get("offices?limit=-1");
+        	
+        	//Parse Offices Data into local variables
+        	for (OfficeData aOfficeData : officesCollection) {
+        		offices.add(new Office(aOfficeData));
+        		officeNames.add(aOfficeData.name());
+            }
+        	
+        	
         } catch (Exception e) {
             result.addError(e.getMessage());
             logger.error(e.getMessage());
@@ -78,6 +103,9 @@ public class OfficeSheetPopulator extends AbstractWorkbookPopulator {
         }
     }
     
+    //TODO
+    //remove the old code
+    /*
     private void parseOffices() {
     	Gson gson = new Gson();
         JsonElement json = new JsonParser().parse(content);
@@ -89,7 +117,7 @@ public class OfficeSheetPopulator extends AbstractWorkbookPopulator {
         	offices.add(office);
         	officeNames.add(office.getName().trim().replaceAll("[ )(]", "_"));
         }
-    }
+    }*/
     
     private void setLayout(Sheet worksheet) {
     	worksheet.setColumnWidth(ID_COL, 2000);

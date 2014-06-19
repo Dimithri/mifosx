@@ -79,4 +79,12 @@ public class StaffData {
     public String getOfficeName() {
         return this.officeName;
     }
+    
+    public Long getOfficeId(){
+    	return this.officeId;
+    }
+    
+    public boolean getIsLoanOfficer(){
+    	return this.isLoanOfficer;
+    }
 }

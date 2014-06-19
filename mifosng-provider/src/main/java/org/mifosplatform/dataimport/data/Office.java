@@ -2,6 +2,10 @@ package org.mifosplatform.dataimport.data;
 
 import java.util.ArrayList;
 
+import org.joda.time.DateTimeFieldType;
+import org.joda.time.LocalDate;
+import org.mifosplatform.organisation.office.data.OfficeData;
+
 public class Office {
     
     private final Integer id;
@@ -23,6 +27,27 @@ public class Office {
         this.externalId = externalId;
         this.openingDate = openingDate;
         this.hierarchy = hierarchy;
+    }
+    
+    public Office(OfficeData officeData){
+    	
+    	//TODO
+    	//need to control the overflow
+    	this.id = officeData.getId() != null ? officeData.getId().intValue() : null;
+        this.name = officeData.name();
+        this.parentName = officeData.getParentName();
+        this.externalId = officeData.getExternalId();
+        
+        //TODO
+        //Convert the openingDate field to LocalDate type
+        LocalDate openingDate = officeData.getOpeningDate();
+        
+        this.openingDate = new ArrayList<Integer>();
+        this.openingDate.add(openingDate.getYear());
+        this.openingDate.add(openingDate.get(DateTimeFieldType.monthOfYear()));
+        this.openingDate.add(openingDate.getDayOfMonth());
+        
+        this.hierarchy = officeData.getHierarchy();
     }
     
     @Override
