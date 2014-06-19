@@ -56,7 +56,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.dataimport.domain.handler.Result;
 import org.mifosplatform.dataimport.domain.populator.WorkbookPopulator;
-import org.mifosplatform.dataimport.domain.populator.WorkbookPopulatorFactory;
+import org.mifosplatform.dataimport.domain.populator.WorkbookPopulatorFactoryService;
 
 @Path("/clients")
 @Component
@@ -71,6 +71,7 @@ public class ClientsApiResource {
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
     private final AccountDetailsReadPlatformService accountDetailsReadPlatformService;
     private final SavingsAccountReadPlatformService savingsAccountReadPlatformService;
+    private final WorkbookPopulatorFactoryService workbookPopulatorFactoryService;
 
     @Autowired
     public ClientsApiResource(final PlatformSecurityContext context, final ClientReadPlatformService readPlatformService,
@@ -79,7 +80,7 @@ public class ClientsApiResource {
             final ApiRequestParameterHelper apiRequestParameterHelper,
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
             final AccountDetailsReadPlatformService accountDetailsReadPlatformService,
-            final SavingsAccountReadPlatformService savingsAccountReadPlatformService) {
+            final SavingsAccountReadPlatformService savingsAccountReadPlatformService, final WorkbookPopulatorFactoryService workbookPopulatorFactoryService) {
         this.context = context;
         this.clientReadPlatformService = readPlatformService;
         this.toApiJsonSerializer = toApiJsonSerializer;
@@ -88,6 +89,7 @@ public class ClientsApiResource {
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
         this.accountDetailsReadPlatformService = accountDetailsReadPlatformService;
         this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
+        this.workbookPopulatorFactoryService = workbookPopulatorFactoryService;
     }
 
     @GET
@@ -308,7 +310,7 @@ public class ClientsApiResource {
 	        	
 	    		try{
 	    			
-	    			WorkbookPopulator populator = WorkbookPopulatorFactory.createWorkbookPopulator(parameter, fileName);
+	    			WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(parameter, fileName);
 	    			Workbook workbook = new HSSFWorkbook();
 	    	        Result result = downloadAndPopulate(workbook, populator);
 	    	        

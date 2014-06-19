@@ -21,13 +21,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class WorkbookPopulatorFactory {
 
+	
 	//private static OfficeSheetPopulator officeSheetPopulator;
 
-	private static OfficeReadPlatformService officeReadPlatformService;
-	private static StaffReadPlatformService staffReadPlatformService;
+	private final OfficeReadPlatformService officeReadPlatformService;
+	private final StaffReadPlatformService staffReadPlatformService;
 
-	@Autowired(required = true)
-	public void setWorkbookPopulatorFactory(
+	@Autowired
+	public WorkbookPopulatorFactory(
 			final OfficeReadPlatformService officeReadPlatformService,
 			final StaffReadPlatformService staffReadPlatformService) {
 
@@ -35,7 +36,7 @@ public class WorkbookPopulatorFactory {
 		this.staffReadPlatformService = staffReadPlatformService;
 	}
 	
-	public static final WorkbookPopulator createWorkbookPopulator(
+	public WorkbookPopulator createWorkbookPopulator(
 			String parameter, String template) throws IOException {
 		// MifosRestClient restClient = new MifosRestClient();
 
