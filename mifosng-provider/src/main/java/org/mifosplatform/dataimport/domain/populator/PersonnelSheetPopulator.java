@@ -70,8 +70,7 @@ public class PersonnelSheetPopulator extends AbstractWorkbookPopulator {
 		Result result = new Result();
 		try {
 			
-			long officeId = 1;
-			final Collection<StaffData> staffCollection = this.staffReadPlatformService.retrieveAllStaffInOfficeAndItsParentOfficeHierarchy(officeId, onlyLoanOfficers);
+			final Collection<StaffData> staffCollection = this.staffReadPlatformService.retrieveAllStaff(null, null, onlyLoanOfficers, "active");
 
 			final Collection<OfficeData>  officesCollection = this.officeReadPlatformService.retrieveAllOffices(false);
             
