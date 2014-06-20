@@ -5,11 +5,15 @@
  */
 package org.mifosplatform.portfolio.client.api;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -22,7 +26,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.commons.lang.StringUtils;
 import org.mifosplatform.commands.domain.CommandWrapper;
@@ -46,6 +52,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.mifosplatform.dataimport.domain.handler.Result;
+import org.mifosplatform.dataimport.domain.populator.WorkbookPopulator;
+import org.mifosplatform.dataimport.domain.populator.WorkbookPopulatorFactoryService;
+
 @Path("/clients")
 @Component
 @Scope("singleton")
@@ -59,6 +71,7 @@ public class ClientsApiResource {
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
     private final AccountDetailsReadPlatformService accountDetailsReadPlatformService;
     private final SavingsAccountReadPlatformService savingsAccountReadPlatformService;
+    private final WorkbookPopulatorFactoryService workbookPopulatorFactoryService;
 
     @Autowired
     public ClientsApiResource(final PlatformSecurityContext context, final ClientReadPlatformService readPlatformService,
@@ -67,7 +80,7 @@ public class ClientsApiResource {
             final ApiRequestParameterHelper apiRequestParameterHelper,
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
             final AccountDetailsReadPlatformService accountDetailsReadPlatformService,
-            final SavingsAccountReadPlatformService savingsAccountReadPlatformService) {
+            final SavingsAccountReadPlatformService savingsAccountReadPlatformService, final WorkbookPopulatorFactoryService workbookPopulatorFactoryService) {
         this.context = context;
         this.clientReadPlatformService = readPlatformService;
         this.toApiJsonSerializer = toApiJsonSerializer;
@@ -76,6 +89,7 @@ public class ClientsApiResource {
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
         this.accountDetailsReadPlatformService = accountDetailsReadPlatformService;
         this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
+        this.workbookPopulatorFactoryService = workbookPopulatorFactoryService;
     }
 
     @GET
@@ -266,4 +280,138 @@ public class ClientsApiResource {
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return this.clientAccountSummaryToApiJsonSerializer.serialize(settings, clientAccount, CLIENT_ACCOUNTS_DATA_PARAMETERS);
     }
+    
+    
+    /**
+     * This methods returns the template for the client importing
+     * @param clientTypeId   1: individual 2: corporate 
+     * @return template for update the data for importing
+     */
+    
+    @GET
+    @Path("import/{clientTypeId}")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response getClientImportTemplate(@PathParam("clientTypeId") final int clientTypeId) {
+
+    	//Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+        
+        Response response = null;
+        String fileName = "client";
+    	String parameter = "";
+        
+        switch (clientTypeId){
+        
+	        case 0:
+	        	//get the template for individual type
+	        	
+	        	parameter = "individual";
+	        	
+	    		try{
+	    			
+	    			WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(parameter, fileName);
+	    			Workbook workbook = new HSSFWorkbook();
+	    	        Result result = downloadAndPopulate(workbook, populator);
+	    	        
+	    	        fileName=fileName+".xls";
+	    			//writeToStream(workbook, result, response, fileName);
+	    	        response = getOutput(workbook, fileName);
+	    			
+	    		}catch(Exception e)
+	    		{
+	    			
+	    		}
+	    		
+	        	break;
+        	
+	        case 1:
+	        	//get the template for corporate type client
+	        	parameter = "corporate";
+	        	
+	        	break;
+        	
+        	default:
+        		//exception
+        		break;
+        }
+        
+        
+    	return response;
+    }
+    
+    
+    /**
+     * This methods capture the template and update the client information
+     * @param clientTypeId   1: individual 2: corporate 
+     * @return Status message for client importing 
+     */
+    
+    @POST
+    @Path("import/{clientTypeId}")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String importClients(@PathParam("clientTypeId") final int clientTypeId) {
+
+    	//Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+
+        switch (clientTypeId){
+        
+	        case 0:
+	        	//get the template for individual type
+	        	break;
+	    	
+	        case 1:
+	        	//get the template for corporate type client
+	        	break;
+	    	
+	    	default:
+	    		//exception
+	    		break;
+	    }
+        
+    	return "{client are imported}";
+    }
+    
+    Result downloadAndPopulate(Workbook workbook, WorkbookPopulator populator) throws IOException {
+        Result result = populator.downloadAndParse();
+        if(result.isSuccess()) {
+          result = populator.populate(workbook);
+        }
+        return result;
+    }
+    
+    Response getOutput(Workbook workbook, String fileName) throws IOException {
+    	
+    	OutputStream stream = null;
+    	workbook.write(stream);
+    	ResponseBuilder response = Response.ok(stream);
+    	
+    	response.header("Content-Disposition", "attachment; filename=\"" +fileName + "\"");
+        response.header("Content-Type", "text/xls");
+
+        return response.build();
+	  }
+	
+	 void writeToStream(Workbook workbook, Result result, HttpServletResponse response, String fileName) throws IOException {
+		 
+		 OutputStream stream = response.getOutputStream();
+		 if(result.isSuccess()) {
+			     response.setContentType("application/vnd.ms-excel");
+				 response.setHeader("Content-Disposition", "attachment;filename="+fileName);
+	             workbook.write(stream);
+	             stream.flush();
+	 	         stream.close();
+		 }
+		 else {
+			 OutputStreamWriter out = new OutputStreamWriter(stream,"UTF-8");
+			 for(String e : result.getErrors()) {
+		            out.write(e);
+		        }
+			 out.flush();
+			 out.close();
+		 }
+	  }
+	 
 }
