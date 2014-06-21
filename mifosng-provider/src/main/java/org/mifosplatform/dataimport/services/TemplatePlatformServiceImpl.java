@@ -13,6 +13,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.dataimport.domain.handler.Result;
 import org.mifosplatform.dataimport.domain.populator.WorkbookPopulator;
 import org.mifosplatform.dataimport.domain.populator.WorkbookPopulatorFactoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
     private final WorkbookPopulatorFactoryService workbookPopulatorFactoryService;
+    private static final Logger logger = LoggerFactory.getLogger(TemplatePlatformServiceImpl.class);
 
     @Autowired
     public TemplatePlatformServiceImpl(final WorkbookPopulatorFactoryService workbookPopulatorFactoryService) {
@@ -52,7 +55,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage());
                 }
 
             break;
