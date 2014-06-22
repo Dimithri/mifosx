@@ -8,23 +8,27 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.mifosplatform.commands.domain.CommandWrapper;
+import org.mifosplatform.commands.service.CommandWrapperBuilder;
 import org.mifosplatform.dataimport.data.client.Client;
 import org.mifosplatform.dataimport.data.client.CorporateClient;
 import org.mifosplatform.dataimport.domain.handler.AbstractDataImportHandler;
 import org.mifosplatform.dataimport.domain.handler.Result;
 import org.mifosplatform.dataimport.services.http.RestClient;
 import org.mifosplatform.dataimport.services.utils.StringUtils;
+import org.mifosplatform.infrastructure.core.data.CommandProcessingResult;
+import org.mifosplatform.portfolio.client.service.ClientWritePlatformService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
 public class ClientDataImportHandler extends AbstractDataImportHandler {
-           
-	private static final Logger logger = LoggerFactory.getLogger(ClientDataImportHandler.class);
-	
-	private static final int FIRST_NAME_COL = 0;
-	private static final int FULL_NAME_COL = 0;
+
+    private static final Logger logger = LoggerFactory.getLogger(ClientDataImportHandler.class);
+
+    private static final int FIRST_NAME_COL = 0;
+    private static final int FULL_NAME_COL = 0;
     private static final int LAST_NAME_COL = 1;
     private static final int MIDDLE_NAME_COL = 2;
     private static final int OFFICE_NAME_COL = 3;
@@ -36,17 +40,19 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
     private List<Client> clients;
     private String clientType;
-    
-    private final RestClient restClient;
-    
-    private final Workbook workbook;
 
-    public ClientDataImportHandler(Workbook workbook, RestClient client) {
+    // private final RestClient restClient;
+
+    private final Workbook workbook;
+    private final ClientWritePlatformService clientWritePlatformService;
+
+    public ClientDataImportHandler(Workbook workbook, ClientWritePlatformService clientWritePlatformService) {
         this.workbook = workbook;
-        this.restClient = client;
+        // this.restClient = client;
+        this.clientWritePlatformService = clientWritePlatformService;
         clients = new ArrayList<Client>();
     }
-    
+
     @Override
     public Result parse() {
         Result result = new Result();
@@ -57,7 +63,7 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
             Row row;
             try {
                 row = clientSheet.getRow(rowIndex);
-                if(isNotImported(row, STATUS_COL)) {
+                if (isNotImported(row, STATUS_COL)) {
                     clients.add(parseAsClient(row));
                 }
             } catch (Exception e) {
@@ -68,67 +74,70 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
         return result;
     }
 
-	private String getClientType(Sheet clientSheet) {
-		if(readAsString(FIRST_NAME_COL, clientSheet.getRow(0)).equals("First Name*"))
-        	return "Individual";
+    private String getClientType(Sheet clientSheet) {
+        if (readAsString(FIRST_NAME_COL, clientSheet.getRow(0)).equals("First Name*"))
+            return "Individual";
         else
-        	return "Corporate";
-	}
-
+            return "Corporate";
+    }
 
     private Client parseAsClient(Row row) {
-    	String officeName = readAsString(OFFICE_NAME_COL, row);
+        String officeName = readAsString(OFFICE_NAME_COL, row);
         String officeId = getIdByName(workbook.getSheet("Offices"), officeName).toString();
         String staffName = readAsString(STAFF_NAME_COL, row);
         String staffId = getIdByName(workbook.getSheet("Staff"), staffName).toString();
         String externalId = readAsString(EXTERNAL_ID_COL, row);
         String activationDate = readAsDate(ACTIVATION_DATE_COL, row);
         String active = readAsBoolean(ACTIVE_COL, row).toString();
-        if(clientType.equals("Individual")) {
+        if (clientType.equals("Individual")) {
             String firstName = readAsString(FIRST_NAME_COL, row);
             String lastName = readAsString(LAST_NAME_COL, row);
             String middleName = readAsString(MIDDLE_NAME_COL, row);
-            if(StringUtils.isBlank(firstName)) {
-            	throw new IllegalArgumentException("Name is blank");
-            }
+            if (StringUtils.isBlank(firstName)) { throw new IllegalArgumentException("Name is blank"); }
             return new Client(firstName, lastName, middleName, activationDate, active, externalId, officeId, staffId, row.getRowNum());
         } else {
             String fullName = readAsString(FULL_NAME_COL, row);
-            if(StringUtils.isBlank(fullName)) {
-            	throw new IllegalArgumentException("Name is blank");
-            }
+            if (StringUtils.isBlank(fullName)) { throw new IllegalArgumentException("Name is blank"); }
             return new CorporateClient(fullName, activationDate, active, externalId, officeId, staffId, row.getRowNum());
         }
-	}
+    }
 
-	@Override
+    @Override
     public Result upload() {
         Result result = new Result();
         Sheet clientSheet = workbook.getSheet("Clients");
-        restClient.createAuthToken();
+        //restClient.createAuthToken();
         for (Client client : clients) {
             try {
                 Gson gson = new Gson();
                 String payload = gson.toJson(client);
                 logger.info(payload);
-                restClient.post("clients", payload);
+                //restClient.post("clients", payload);
                 
+                //create client
+                /*final CommandWrapper commandRequest = new CommandWrapperBuilder() //
+                .createClient()
+                .withJson(payload);
+                .build(); //
+
+                final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);*/
+
                 Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
             } catch (RuntimeException e) {
-            	String message = parseStatus(e.getMessage());
-            	Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
-            	statusCell.setCellValue(message);
+                String message = parseStatus(e.getMessage());
+                Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
+                statusCell.setCellValue(message);
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.RED));
                 result.addError("Row = " + client.getRowIndex() + " ," + message);
             }
         }
         clientSheet.setColumnWidth(STATUS_COL, 15000);
-    	writeString(STATUS_COL, clientSheet.getRow(0), "Status");
+        writeString(STATUS_COL, clientSheet.getRow(0), "Status");
         return result;
     }
-    
+
     public List<Client> getClients() {
         return clients;
     }

@@ -5,6 +5,7 @@
  */
 package org.mifosplatform.portfolio.client.api;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,6 +49,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import org.mifosplatform.dataimport.services.TemplatePlatformService;
+
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
 
 @Path("/clients")
 @Component
@@ -283,6 +287,7 @@ public class ClientsApiResource {
     @Path("import/{clientTypeId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    // @Produces( "application/vnd.ms-excel" )
     public Response getClientImportTemplate(@PathParam("clientTypeId") final int clientTypeId) {
 
         // Authenticate the user
@@ -301,27 +306,15 @@ public class ClientsApiResource {
 
     @POST
     @Path("import/{clientTypeId}")
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String importClients(@PathParam("clientTypeId") final int clientTypeId) {
+    public String importClients(@PathParam("clientTypeId") final int clientTypeId, @FormDataParam("file") InputStream uploadedInputStream,
+            @FormDataParam("file") FormDataContentDisposition fileDetail) {
 
         // Authenticate the user
         this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
 
-        switch (clientTypeId) {
-
-            case 0:
-            // get the template for individual type
-            break;
-
-            case 1:
-            // get the template for corporate type client
-            break;
-
-            default:
-            // exception
-            break;
-        }
+        this.templatePlatformService.importClientsFromTemplate(clientTypeId, uploadedInputStream, fileDetail);
 
         return "{client are imported}";
     }
