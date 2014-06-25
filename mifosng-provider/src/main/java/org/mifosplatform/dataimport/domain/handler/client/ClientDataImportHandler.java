@@ -10,6 +10,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.commands.domain.CommandWrapper;
 import org.mifosplatform.commands.service.CommandWrapperBuilder;
+import org.mifosplatform.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.mifosplatform.dataimport.data.client.Client;
 import org.mifosplatform.dataimport.data.client.CorporateClient;
 import org.mifosplatform.dataimport.domain.handler.AbstractDataImportHandler;
@@ -44,12 +45,16 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
     // private final RestClient restClient;
 
     private final Workbook workbook;
+    @SuppressWarnings("unused")
     private final ClientWritePlatformService clientWritePlatformService;
+    private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
 
-    public ClientDataImportHandler(Workbook workbook, ClientWritePlatformService clientWritePlatformService) {
+    public ClientDataImportHandler(Workbook workbook, final ClientWritePlatformService clientWritePlatformService,
+            final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
         this.workbook = workbook;
         // this.restClient = client;
         this.clientWritePlatformService = clientWritePlatformService;
+        this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
         clients = new ArrayList<Client>();
     }
 
@@ -106,22 +111,21 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
     public Result upload() {
         Result result = new Result();
         Sheet clientSheet = workbook.getSheet("Clients");
-        //restClient.createAuthToken();
+        // restClient.createAuthToken();
         for (Client client : clients) {
             try {
                 Gson gson = new Gson();
                 String payload = gson.toJson(client);
                 logger.info(payload);
-                //restClient.post("clients", payload);
-                
-                //create client
-                /*final CommandWrapper commandRequest = new CommandWrapperBuilder() //
-                .createClient()
-                .withJson(payload);
-                .build(); //
+                // restClient.post("clients", payload);
 
-                final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);*/
+                // create client
+                final CommandWrapper commandRequest = new CommandWrapperBuilder().createClient().withJson(payload).build();
 
+                @SuppressWarnings("unused")
+                final CommandProcessingResult commandProcessingResult = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+
+                //Log the results
                 Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));

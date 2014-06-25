@@ -125,7 +125,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
     }
 
     @Override
-    public String importClientsFromTemplate(int clientTypeId, InputStream content, FormDataContentDisposition fileDetail) {
+    public String importClientsFromTemplate(@SuppressWarnings("unused") int clientTypeId, InputStream content, @SuppressWarnings("unused") FormDataContentDisposition fileDetail) {
 
         /*
          * switch (clientTypeId) {
@@ -137,11 +137,21 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
          * default: // exception break; }
          */
 
-        Workbook workbook = new HSSFWorkbook(content);
-        DataImportHandler handler = ImportHandlerFactory.createImportHandler(workbook);
-        Result result = parseAndUpload(handler);
-        writeResult(workbook, result, response);
-        return null;
+        Workbook workbook;
+        //Result result;
+        try {
+            workbook = new HSSFWorkbook(content);
+            DataImportHandler handler = ImportHandlerFactory.createImportHandler(workbook);
+            Result result = parseAndUpload(handler);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+        
+        //if(result.isSuccess()){
+        // writeResult(workbook, result, response);
+        //}
+        
+        return "{clients are imported}";
     }
 
     private Result parseAndUpload(DataImportHandler handler) throws IOException {
