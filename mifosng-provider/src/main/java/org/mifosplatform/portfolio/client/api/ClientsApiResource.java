@@ -305,16 +305,15 @@ public class ClientsApiResource {
      */
 
     @POST
-    @Path("import/{clientTypeId}")
-    @Consumes({ MediaType.MULTIPART_FORM_DATA })
+    @Path("import")
+    @Consumes({ "application/vnd.ms-excel" })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String importClients(@PathParam("clientTypeId") final int clientTypeId, @FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetail) {
+    public String importClients(@FormDataParam("file") InputStream uploadedInputStream) {
 
         // Authenticate the user
         this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
 
-        this.templatePlatformService.importClientsFromTemplate(clientTypeId, uploadedInputStream, fileDetail);
+        this.templatePlatformService.importClientsFromTemplate(uploadedInputStream);
 
         return "{client are imported}";
     }

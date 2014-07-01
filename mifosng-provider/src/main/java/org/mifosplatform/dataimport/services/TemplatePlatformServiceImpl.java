@@ -125,17 +125,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
     }
 
     @Override
-    public String importClientsFromTemplate(@SuppressWarnings("unused") int clientTypeId, InputStream content, @SuppressWarnings("unused") FormDataContentDisposition fileDetail) {
-
-        /*
-         * switch (clientTypeId) {
-         * 
-         * case 0: // get the template for individual type break;
-         * 
-         * case 1: // get the template for corporate type client break;
-         * 
-         * default: // exception break; }
-         */
+    public String importClientsFromTemplate(InputStream content) {
 
         Workbook workbook;
         //Result result;

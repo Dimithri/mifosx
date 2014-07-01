@@ -10,5 +10,5 @@ public interface TemplatePlatformService {
 
     public Response getClientImportTemplate(int clientTypeId);
 
-    public String importClientsFromTemplate(int clientTypeId, InputStream content, FormDataContentDisposition fileDetail);
+    public String importClientsFromTemplate(InputStream content);
 }
