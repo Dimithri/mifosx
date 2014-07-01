@@ -51,6 +51,7 @@ import org.springframework.stereotype.Component;
 import org.mifosplatform.dataimport.services.TemplatePlatformService;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 
 @Path("/clients")
@@ -299,20 +300,25 @@ public class ClientsApiResource {
     /**
      * This methods capture the template and update the client information
      * 
-     * @param clientTypeId
-     *            1: individual 2: corporate
+     * @param 
      * @return Status message for client importing
      */
 
     @POST
     @Path("import")
-    @Consumes({ "application/vnd.ms-excel" })
+    @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String importClients(@FormDataParam("file") InputStream uploadedInputStream) {
+    public String importClients(@FormDataParam("file") final InputStream uploadedInputStream,
+            @SuppressWarnings("unused") @FormDataParam("file") final FormDataContentDisposition fileDetails, 
+            @SuppressWarnings("unused") @FormDataParam("file") final FormDataBodyPart bodyPart,
+            @SuppressWarnings("unused") @FormDataParam("clientTypeId") final int clientTypeId) {
 
         // Authenticate the user
         this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
 
+        //validate the input file
+        
+        //import clients
         this.templatePlatformService.importClientsFromTemplate(uploadedInputStream);
 
         return "{client are imported}";
