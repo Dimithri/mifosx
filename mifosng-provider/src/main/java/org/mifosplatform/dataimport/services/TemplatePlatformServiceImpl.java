@@ -1,5 +1,7 @@
 package org.mifosplatform.dataimport.services;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -95,7 +97,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
         // TODO
         // check the stream initializing
-        OutputStream stream = null;
+        OutputStream stream = new FileOutputStream("cache/clients.xls");
         workbook.write(stream);
         ResponseBuilder response = Response.ok(stream);
 
@@ -131,7 +133,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         //Result result;
         try {
             workbook = new HSSFWorkbook(content);
-            DataImportHandler handler = ImportHandlerFactory.createImportHandler(workbook);
+            DataImportHandler handler = importHandlerFactoryService.createImportHandler(workbook);
             Result result = parseAndUpload(handler);
         } catch (IOException e) {
             logger.error(e.getMessage());
