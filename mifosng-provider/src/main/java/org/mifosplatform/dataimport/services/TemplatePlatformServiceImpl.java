@@ -1,20 +1,16 @@
 package org.mifosplatform.dataimport.services;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.dataimport.domain.handler.DataImportHandler;
-import org.mifosplatform.dataimport.domain.handler.ImportHandlerFactory;
 import org.mifosplatform.dataimport.domain.handler.ImportHandlerFactoryService;
 import org.mifosplatform.dataimport.domain.handler.Result;
 import org.mifosplatform.dataimport.domain.populator.WorkbookPopulator;
@@ -23,8 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.sun.jersey.core.header.FormDataContentDisposition;
 
 @Service
 public class TemplatePlatformServiceImpl implements TemplatePlatformService {
@@ -50,36 +44,33 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
             case 0:
                 // get the template for individual type
-
                 parameter = "individual";
-
-                try {
-
-                    WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(parameter, fileName);
-                    Workbook workbook = new HSSFWorkbook();
-                    Result result = downloadAndPopulate(workbook, populator);
-
-                    if (result.isSuccess()) {
-                        fileName = fileName + ".xls";
-                        // writeToStream(workbook, result, response, fileName);
-                        response = getOutput(workbook, fileName);
-                    }
-
-                } catch (Exception e) {
-                    logger.error(e.getMessage());
-                }
-
             break;
 
             case 1:
                 // get the template for corporate type client
                 parameter = "corporate";
-
             break;
 
             default:
-            // exception
+                // default parameter
+                parameter = "individual";
             break;
+        }
+
+        try {
+
+            WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(parameter, fileName);
+            Workbook workbook = new HSSFWorkbook();
+            Result result = downloadAndPopulate(workbook, populator);
+
+            if (result.isSuccess()) {
+                fileName = fileName + ".xls";
+                response = getOutput(workbook, fileName);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
         }
 
         return response;
@@ -95,55 +86,39 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
     Response getOutput(Workbook workbook, String fileName) throws IOException {
 
-        // TODO
-        // check the stream initializing
-        OutputStream stream = new FileOutputStream("cache/clients.xls");
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
         workbook.write(stream);
-        ResponseBuilder response = Response.ok(stream);
+        ResponseBuilder response = Response.ok(new ByteArrayInputStream(stream.toByteArray()));
 
         response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-        response.header("Content-Type", "text/xls");
+        response.header("Content-Type", "application/vnd.ms-excel");
 
+        // stream.close();
         return response.build();
     }
 
-    void writeToStream(Workbook workbook, Result result, HttpServletResponse response, String fileName) throws IOException {
-
-        OutputStream stream = response.getOutputStream();
-        if (result.isSuccess()) {
-            response.setContentType("application/vnd.ms-excel");
-            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
-            workbook.write(stream);
-            stream.flush();
-            stream.close();
-        } else {
-            OutputStreamWriter out = new OutputStreamWriter(stream, "UTF-8");
-            for (String e : result.getErrors()) {
-                out.write(e);
-            }
-            out.flush();
-            out.close();
-        }
-    }
-
     @Override
-    public String importClientsFromTemplate(InputStream content) {
-
+    public Response importClientsFromTemplate(InputStream content) {
+        Response response = null;
         Workbook workbook;
-        //Result result;
+        // Result result;
         try {
             workbook = new HSSFWorkbook(content);
             DataImportHandler handler = importHandlerFactoryService.createImportHandler(workbook);
             Result result = parseAndUpload(handler);
+            if(result.isSuccess()){
+                response = writeResult(workbook, result);
+            }
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
-        
-        //if(result.isSuccess()){
+
+        // if(result.isSuccess()){
         // writeResult(workbook, result, response);
-        //}
-        
-        return "{clients are imported}";
+        // }
+
+        //return "{clients are imported}";
+        return response;
     }
 
     private Result parseAndUpload(DataImportHandler handler) throws IOException {
@@ -154,26 +129,43 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         return result;
     }
 
-    private Response getResultOutput(Workbook workbook, String fileName) throws IOException {
+    private Response writeResult(Workbook workbook, Result result) throws IOException {
 
-        return null;
-    }
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        //OutputStreamWriter out = new OutputStreamWriter(stream, "UTF-8");
+        ResponseBuilder response = null;
 
-    private void writeResult(Workbook workbook, Result result, HttpServletResponse response) throws IOException {
-
-        OutputStream stream = response.getOutputStream();
-        OutputStreamWriter out = new OutputStreamWriter(stream, "UTF-8");
         if (result.isSuccess()) {
-            out.write("Import complete");
+            //out.write("Import complete");
+            //response = Response.ok(new ByteArrayInputStream(stream.toByteArray()));
+            //response.header("Success", "true");
+            
+            String fileName = "Results.xls";
+
+            workbook.write(stream);
+
+            response = Response.ok(new ByteArrayInputStream(stream.toByteArray()));
+            response.header("Success", "true");
+            response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+            
         } else {
             for (String e : result.getErrors())
                 logger.debug("Failed: " + e);
+
             String fileName = "Re-Upload.xls";
-            response.setContentType("application/vnd.ms-excel");
-            response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+
             workbook.write(stream);
+
+            response = Response.ok(new ByteArrayInputStream(stream.toByteArray()));
+            response.header("Success", "false");
+            response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+            response.header("Access-Control-Expose-Headers", "Success");
         }
-        out.flush();
-        out.close();
+        
+        response.header("Content-Type", "application/vnd.ms-excel");
+
+        //out.flush();
+        //out.close();
+        return response.build();
     }
 }

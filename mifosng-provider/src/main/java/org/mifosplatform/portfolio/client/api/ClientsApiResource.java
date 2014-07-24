@@ -307,8 +307,8 @@ public class ClientsApiResource {
     @POST
     @Path("import")
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
-    @Produces({ MediaType.APPLICATION_JSON })
-    public String importClients(@FormDataParam("file") final InputStream uploadedInputStream,
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response importClients(@FormDataParam("file") final InputStream uploadedInputStream,
             @SuppressWarnings("unused") @FormDataParam("file") final FormDataContentDisposition fileDetails, 
             @SuppressWarnings("unused") @FormDataParam("file") final FormDataBodyPart bodyPart,
             @SuppressWarnings("unused") @FormDataParam("clientTypeId") final int clientTypeId) {
@@ -319,9 +319,9 @@ public class ClientsApiResource {
         //validate the input file
         
         //import clients
-        this.templatePlatformService.importClientsFromTemplate(uploadedInputStream);
+        return this.templatePlatformService.importClientsFromTemplate(uploadedInputStream);
 
-        return "{client are imported}";
+        //return "{client are imported}";
     }
 
 }

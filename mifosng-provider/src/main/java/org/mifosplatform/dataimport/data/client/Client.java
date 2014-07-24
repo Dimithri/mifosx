@@ -20,6 +20,8 @@ public class Client {
     
     private final String lastname;
     
+    private String gender; 
+    
     private final String externalId;
     
     private final String active;
@@ -51,6 +53,10 @@ public class Client {
     
     public String getMiddleName() {
         return this.middlename;
+    }
+    
+    public String getGender() {
+        return this.gender;
     }
     
     public String getActivationDate() {

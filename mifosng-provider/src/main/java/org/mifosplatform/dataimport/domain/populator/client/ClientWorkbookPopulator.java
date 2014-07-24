@@ -31,7 +31,11 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     private static final int ACTIVATION_DATE_COL = 6;
     private static final int ACTIVE_COL = 7;
     private static final int WARNING_COL = 9;
-    private static final int RELATIONAL_OFFICE_NAME_COL = 16;
+    private static final int GENDER_COL = 10;
+    private static final int DATE_OF_BIRTH_COL = 11;
+    private static final int CLIENT_TYPE_COL = 12;
+    private static final int CLIENT_CLASSIFICATION_COL = 13;
+    private static final int RELATIONAL_OFFICE_NAME_COL = 14;
     private static final int RELATIONAL_OFFICE_OPENING_DATE_COL = 17;
 
     private final String clientType;
@@ -91,6 +95,10 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         worksheet.setColumnWidth(ACTIVE_COL, 2000);
         worksheet.setColumnWidth(RELATIONAL_OFFICE_NAME_COL, 6000);
         worksheet.setColumnWidth(RELATIONAL_OFFICE_OPENING_DATE_COL, 4000);
+        worksheet.setColumnWidth(GENDER_COL, 4000);
+        worksheet.setColumnWidth(DATE_OF_BIRTH_COL, 6000);
+        worksheet.setColumnWidth(CLIENT_TYPE_COL, 4000);
+        worksheet.setColumnWidth(CLIENT_CLASSIFICATION_COL, 6000);
         writeString(OFFICE_NAME_COL, rowHeader, "Office Name*");
         writeString(STAFF_NAME_COL, rowHeader, "Staff Name*");
         writeString(EXTERNAL_ID_COL, rowHeader, "External ID");
@@ -99,6 +107,10 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         writeString(WARNING_COL, rowHeader, "All * marked fields are compulsory.");
         writeString(RELATIONAL_OFFICE_NAME_COL, rowHeader, "Office Name");
         writeString(RELATIONAL_OFFICE_OPENING_DATE_COL, rowHeader, "Opening Date");
+        writeString(GENDER_COL, rowHeader, "Gender");
+        writeString(DATE_OF_BIRTH_COL, rowHeader, "Date of Birth");
+        writeString(CLIENT_TYPE_COL, rowHeader, "Client Type");
+        writeString(CLIENT_CLASSIFICATION_COL, rowHeader, "Client Classification");
 
     }
 
@@ -113,6 +125,12 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
                     ACTIVATION_DATE_COL);
             CellRangeAddressList activeRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), ACTIVE_COL,
                     ACTIVE_COL);
+            CellRangeAddressList genderRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), GENDER_COL,
+            		GENDER_COL);
+            CellRangeAddressList clientTypeRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), CLIENT_TYPE_COL,
+            		CLIENT_TYPE_COL);
+            CellRangeAddressList clientClassificationRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), CLIENT_CLASSIFICATION_COL,
+            		CLIENT_CLASSIFICATION_COL);
 
             DataValidationHelper validationHelper = new HSSFDataValidationHelper((HSSFSheet) worksheet);
 
@@ -126,13 +144,23 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
                     DataValidationConstraint.OperatorType.BETWEEN, "=VLOOKUP($D1,$Q$2:$R" + (offices.size() + 1) + ",2,FALSE)", "=TODAY()",
                     "dd/mm/yy");
             DataValidationConstraint activeConstraint = validationHelper.createExplicitListConstraint(new String[] { "True", "False" });
+            //new values
+            DataValidationConstraint genderConstraint = validationHelper.createExplicitListConstraint(new String[] { "Male", "Female", "xxx" });
+            DataValidationConstraint clientTypeConstraint = validationHelper.createExplicitListConstraint(new String[] { "Individual Person", "Very Small Enterprise", "Small/Medium Enterprise" });
+            DataValidationConstraint clientClassificationConstraint = validationHelper.createExplicitListConstraint(new String[] { "Empty" });
 
             DataValidation officeValidation = validationHelper.createValidation(officeNameConstraint, officeNameRange);
             DataValidation staffValidation = validationHelper.createValidation(staffNameConstraint, staffNameRange);
             DataValidation activationDateValidation = validationHelper.createValidation(activationDateConstraint, dateRange);
             DataValidation activeValidation = validationHelper.createValidation(activeConstraint, activeRange);
+            DataValidation genderValidation = validationHelper.createValidation(genderConstraint, genderRange);
+            DataValidation clientTypeValidation = validationHelper.createValidation(clientTypeConstraint, clientTypeRange);
+            DataValidation clientClassificationValidation = validationHelper.createValidation(clientClassificationConstraint, clientClassificationRange);
 
             worksheet.addValidationData(activeValidation);
+            worksheet.addValidationData(genderValidation);
+            worksheet.addValidationData(clientTypeValidation);
+            worksheet.addValidationData(clientClassificationValidation);
             worksheet.addValidationData(officeValidation);
             worksheet.addValidationData(staffValidation);
             worksheet.addValidationData(activationDateValidation);
