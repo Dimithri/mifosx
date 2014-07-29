@@ -11,6 +11,8 @@ import java.util.HashSet;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.mifosplatform.dataimport.data.Status;
+import org.mifosplatform.dataimport.data.savings.SavingsTimeline;
 import org.mifosplatform.infrastructure.core.data.EnumOptionData;
 import org.mifosplatform.organisation.monetary.data.CurrencyData;
 import org.mifosplatform.organisation.staff.data.StaffData;
@@ -462,5 +464,29 @@ public class SavingsAccountData {
 
     public Collection<SavingsAccountChargeData> charges() {
         return (this.charges == null) ? new HashSet<SavingsAccountChargeData>() : this.charges;
+    }
+
+    public SavingsAccountApplicationTimelineData getTimeline() {
+        return this.timeline;
+    }
+
+    public SavingsAccountStatusEnumData getStatus() {
+        return this.status;
+    }
+
+    public String getAccountNo() {
+        return this.accountNo;
+    }
+
+    public String getClientName() {
+        return this.clientName;
+    }
+
+    public String getSavingsProductName() {
+        return this.savingsProductName;
+    }
+
+    public BigDecimal getMinRequiredOpeningBalance() {
+        return this.minRequiredOpeningBalance;
     }
 }

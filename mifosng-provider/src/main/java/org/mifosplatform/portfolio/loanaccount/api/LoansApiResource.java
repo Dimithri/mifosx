@@ -5,6 +5,7 @@
  */
 package org.mifosplatform.portfolio.loanaccount.api;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,12 +25,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang.StringUtils;
 import org.mifosplatform.commands.domain.CommandWrapper;
 import org.mifosplatform.commands.service.CommandWrapperBuilder;
 import org.mifosplatform.commands.service.PortfolioCommandSourceWritePlatformService;
+import org.mifosplatform.dataimport.services.TemplatePlatformService;
 import org.mifosplatform.infrastructure.codes.data.CodeValueData;
 import org.mifosplatform.infrastructure.codes.service.CodeValueReadPlatformService;
 import org.mifosplatform.infrastructure.core.api.ApiParameterHelper;
@@ -54,6 +57,7 @@ import org.mifosplatform.portfolio.calendar.service.CalendarReadPlatformService;
 import org.mifosplatform.portfolio.charge.data.ChargeData;
 import org.mifosplatform.portfolio.charge.domain.ChargeTimeType;
 import org.mifosplatform.portfolio.charge.service.ChargeReadPlatformService;
+import org.mifosplatform.portfolio.client.api.ClientApiConstants;
 import org.mifosplatform.portfolio.client.data.ClientData;
 import org.mifosplatform.portfolio.collateral.data.CollateralData;
 import org.mifosplatform.portfolio.collateral.service.CollateralReadPlatformService;
@@ -93,6 +97,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import com.google.gson.JsonElement;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataParam;
 
 @Path("/loans")
 @Component
@@ -136,6 +143,7 @@ public class LoansApiResource {
     private final NoteReadPlatformServiceImpl noteReadPlatformService;
     private final PortfolioAccountReadPlatformService portfolioAccountReadPlatformService;
     private final AccountAssociationsReadPlatformService accountAssociationsReadPlatformService;
+    private final TemplatePlatformService templatePlatformService;
 
     @Autowired
     public LoansApiResource(final PlatformSecurityContext context, final LoanReadPlatformService loanReadPlatformService,
@@ -152,7 +160,7 @@ public class LoansApiResource {
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
             final CalendarReadPlatformService calendarReadPlatformService, final NoteReadPlatformServiceImpl noteReadPlatformService,
             final PortfolioAccountReadPlatformService portfolioAccountReadPlatformServiceImpl,
-            final AccountAssociationsReadPlatformService accountAssociationsReadPlatformService) {
+            final AccountAssociationsReadPlatformService accountAssociationsReadPlatformService, final TemplatePlatformService templatePlatformService) {
         this.context = context;
         this.loanReadPlatformService = loanReadPlatformService;
         this.loanProductReadPlatformService = loanProductReadPlatformService;
@@ -174,6 +182,7 @@ public class LoansApiResource {
         this.noteReadPlatformService = noteReadPlatformService;
         this.portfolioAccountReadPlatformService = portfolioAccountReadPlatformServiceImpl;
         this.accountAssociationsReadPlatformService = accountAssociationsReadPlatformService;
+        this.templatePlatformService = templatePlatformService;
     }
 
     @GET
@@ -581,5 +590,98 @@ public class LoansApiResource {
 
     private boolean is(final String commandParam, final String commandValue) {
         return StringUtils.isNotBlank(commandParam) && commandParam.trim().equalsIgnoreCase(commandValue);
+    }
+
+    
+    /**
+     * This methods returns the template for the loan importing
+     * 
+     * @return template for update the data for importing
+     */
+
+    @GET
+    @Path("import")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    // @Produces( "application/vnd.ms-excel" )
+    public Response getLoanImportTemplate() {
+
+        // Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+
+        return templatePlatformService.getLoanImportTemplate();
+    }
+
+    /**
+     * This methods capture the template and update the loan information
+     * 
+     * @param
+     * @return Status message for loan importing
+     */
+
+    @POST
+    @Path("import")
+    @Consumes({ MediaType.MULTIPART_FORM_DATA })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response importLoans(@FormDataParam("file") final InputStream uploadedInputStream,
+            @SuppressWarnings("unused") @FormDataParam("file") final FormDataContentDisposition fileDetails,
+            @SuppressWarnings("unused") @FormDataParam("file") final FormDataBodyPart bodyPart,
+            @SuppressWarnings("unused") @FormDataParam("clientTypeId") final int clientTypeId) {
+
+        // Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+
+        // validate the input file
+
+        // import clients
+        return this.templatePlatformService.importLoansFromTemplate(uploadedInputStream);
+
+        // return "{loan are imported}";
+    }
+    
+    /**
+     * This methods returns the template for the loan repayments importing
+     * 
+     * @return template for update the data for importing
+     */
+
+    @GET
+    @Path("importrepayments")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    // @Produces( "application/vnd.ms-excel" )
+    public Response getLoanRepaymentImportTemplate() {
+
+        // Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+
+        return templatePlatformService.getLoanRepaymentImportTemplate();
+    }
+
+    /**
+     * This methods capture the template and update the loan repayments information
+     * 
+     * @param
+     * @return Status message for loan importing
+     */
+
+    @POST
+    @Path("importrepayments")
+    @Consumes({ MediaType.MULTIPART_FORM_DATA })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response importLoanRepayments(@FormDataParam("file") final InputStream uploadedInputStream,
+            @SuppressWarnings("unused") @FormDataParam("file") final FormDataContentDisposition fileDetails,
+            @SuppressWarnings("unused") @FormDataParam("file") final FormDataBodyPart bodyPart,
+            @SuppressWarnings("unused") @FormDataParam("clientTypeId") final int clientTypeId) {
+
+        // Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+
+        // validate the input file
+
+        // import clients
+        return this.templatePlatformService.importLoansFromTemplate(uploadedInputStream);
+
+        // return "{loan repayments are imported}";
     }
 }

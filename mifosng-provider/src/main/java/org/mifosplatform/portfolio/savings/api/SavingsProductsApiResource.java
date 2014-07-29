@@ -5,6 +5,7 @@
  */
 package org.mifosplatform.portfolio.savings.api;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +21,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.mifosplatform.accounting.common.AccountingDropdownReadPlatformService;
@@ -32,6 +34,7 @@ import org.mifosplatform.accounting.producttoaccountmapping.service.ProductToGLA
 import org.mifosplatform.commands.domain.CommandWrapper;
 import org.mifosplatform.commands.service.CommandWrapperBuilder;
 import org.mifosplatform.commands.service.PortfolioCommandSourceWritePlatformService;
+import org.mifosplatform.dataimport.services.TemplatePlatformService;
 import org.mifosplatform.infrastructure.codes.data.CodeValueData;
 import org.mifosplatform.infrastructure.codes.service.CodeValueReadPlatformService;
 import org.mifosplatform.infrastructure.core.api.ApiRequestParameterHelper;
@@ -44,6 +47,7 @@ import org.mifosplatform.organisation.monetary.data.CurrencyData;
 import org.mifosplatform.organisation.monetary.service.CurrencyReadPlatformService;
 import org.mifosplatform.portfolio.charge.data.ChargeData;
 import org.mifosplatform.portfolio.charge.service.ChargeReadPlatformService;
+import org.mifosplatform.portfolio.client.api.ClientApiConstants;
 import org.mifosplatform.portfolio.paymentdetail.PaymentDetailConstants;
 import org.mifosplatform.portfolio.savings.SavingsApiConstants;
 import org.mifosplatform.portfolio.savings.SavingsCompoundingInterestPeriodType;
@@ -58,6 +62,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataParam;
 
 @Path("/savingsproducts")
 @Component
@@ -75,6 +83,7 @@ public class SavingsProductsApiResource {
     private final CodeValueReadPlatformService codeValueReadPlatformService;
     private final ProductToGLAccountMappingReadPlatformService accountMappingReadPlatformService;
     private final ChargeReadPlatformService chargeReadPlatformService;
+    private final TemplatePlatformService templatePlatformService;
 
     @Autowired
     public SavingsProductsApiResource(final SavingsProductReadPlatformService savingProductReadPlatformService,
@@ -85,7 +94,7 @@ public class SavingsProductsApiResource {
             final ApiRequestParameterHelper apiRequestParameterHelper, final CodeValueReadPlatformService codeValueReadPlatformService,
             final AccountingDropdownReadPlatformService accountingDropdownReadPlatformService,
             final ProductToGLAccountMappingReadPlatformService accountMappingReadPlatformService,
-            final ChargeReadPlatformService chargeReadPlatformService) {
+            final ChargeReadPlatformService chargeReadPlatformService, final TemplatePlatformService templatePlatformService) {
         this.savingProductReadPlatformService = savingProductReadPlatformService;
         this.dropdownReadPlatformService = dropdownReadPlatformService;
         this.currencyReadPlatformService = currencyReadPlatformService;
@@ -97,6 +106,7 @@ public class SavingsProductsApiResource {
         this.accountingDropdownReadPlatformService = accountingDropdownReadPlatformService;
         this.accountMappingReadPlatformService = accountMappingReadPlatformService;
         this.chargeReadPlatformService = chargeReadPlatformService;
+        this.templatePlatformService = templatePlatformService;
     }
 
     @POST
@@ -273,5 +283,50 @@ public class SavingsProductsApiResource {
 
         return this.toApiJsonSerializer.serialize(result);
 
+    }
+    
+    /**
+     * This methods returns the template for the savings importing
+     * 
+     * @return template for update the data for importing
+     */
+
+    @GET
+    @Path("import")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response getClientImportTemplate() {
+
+        // Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+
+        return templatePlatformService.getSavingImportTemplate();
+    }
+
+    /**
+     * This methods capture the template and update the savings information
+     * 
+     * @param
+     * @return Status message for savings importing
+     */
+
+    @POST
+    @Path("import")
+    @Consumes({ MediaType.MULTIPART_FORM_DATA })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response importClients(@FormDataParam("file") final InputStream uploadedInputStream,
+            @SuppressWarnings("unused") @FormDataParam("file") final FormDataContentDisposition fileDetails,
+            @SuppressWarnings("unused") @FormDataParam("file") final FormDataBodyPart bodyPart,
+            @SuppressWarnings("unused") @FormDataParam("clientTypeId") final int clientTypeId) {
+
+        // Authenticate the user
+        this.context.authenticatedUser().validateHasReadPermission(ClientApiConstants.CLIENT_RESOURCE_NAME);
+
+        // validate the input file
+
+        // import clients
+        return this.templatePlatformService.importSavingsFromTemplate(uploadedInputStream);
+
+        // return "{loan are imported}";
     }
 }

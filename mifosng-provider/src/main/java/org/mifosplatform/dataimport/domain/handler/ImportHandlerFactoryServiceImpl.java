@@ -5,6 +5,11 @@ import java.io.IOException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.mifosplatform.dataimport.domain.handler.client.ClientDataImportHandler;
+import org.mifosplatform.dataimport.domain.handler.client.GroupDataImportHandler;
+import org.mifosplatform.dataimport.domain.handler.loan.LoanDataImportHandler;
+import org.mifosplatform.dataimport.domain.handler.loan.LoanRepaymentDataImportHandler;
+import org.mifosplatform.dataimport.domain.handler.savings.SavingsDataImportHandler;
+import org.mifosplatform.dataimport.domain.handler.savings.SavingsTransactionDataImportHandler;
 import org.mifosplatform.dataimport.services.http.MifosRestClient;
 import org.mifosplatform.portfolio.client.service.ClientWritePlatformService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +31,17 @@ public class ImportHandlerFactoryServiceImpl implements ImportHandlerFactoryServ
     @Override
     public DataImportHandler createImportHandler(Workbook workbook) throws IOException {
 
-        if (workbook.getSheetIndex("Clients") == 0) { return new ClientDataImportHandler(workbook, clientWritePlatformService,
+        if (workbook.getSheetIndex("Clients") == 0) {
+            return new ClientDataImportHandler(workbook, clientWritePlatformService, commandsSourceWritePlatformService);
+        } else if (workbook.getSheetIndex("Groups") == 0) {
+            return new GroupDataImportHandler(workbook, commandsSourceWritePlatformService);
+        } else if (workbook.getSheetIndex("Loans") == 0) {
+            return new LoanDataImportHandler(workbook, commandsSourceWritePlatformService);
+        } else if (workbook.getSheetIndex("LoanRepayment") == 0) {
+            return new LoanRepaymentDataImportHandler(workbook, commandsSourceWritePlatformService);
+        } else if (workbook.getSheetIndex("Savings") == 0) {
+            return new SavingsDataImportHandler(workbook, commandsSourceWritePlatformService);
+        } else if (workbook.getSheetIndex("SavingsTransaction") == 0) { return new SavingsTransactionDataImportHandler(workbook,
                 commandsSourceWritePlatformService); }
 
         throw new IllegalArgumentException("No work sheet found for processing : active sheet " + workbook.getSheetName(0));

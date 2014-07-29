@@ -76,27 +76,6 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         return response;
     }
 
-    Result downloadAndPopulate(Workbook workbook, WorkbookPopulator populator) throws IOException {
-        Result result = populator.downloadAndParse();
-        if (result.isSuccess()) {
-            result = populator.populate(workbook);
-        }
-        return result;
-    }
-
-    Response getOutput(Workbook workbook, String fileName) throws IOException {
-
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        workbook.write(stream);
-        ResponseBuilder response = Response.ok(new ByteArrayInputStream(stream.toByteArray()));
-
-        response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-        response.header("Content-Type", "application/vnd.ms-excel");
-
-        // stream.close();
-        return response.build();
-    }
-
     @Override
     public Response importClientsFromTemplate(InputStream content) {
         Response response = null;
@@ -120,6 +99,154 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         //return "{clients are imported}";
         return response;
     }
+
+
+    @Override
+    public Response getGroupImportTemplate() {
+
+        Response response = null;
+        String fileName = "groups";
+
+        try {
+
+            WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(null, fileName);
+            Workbook workbook = new HSSFWorkbook();
+            Result result = downloadAndPopulate(workbook, populator);
+
+            if (result.isSuccess()) {
+                fileName = fileName + ".xls";
+                response = getOutput(workbook, fileName);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        return response;
+    }
+
+    @Override
+    public Response importGroupsFromTemplate(InputStream content) {
+        
+        return importFromTemplate(content);
+    }
+
+    @Override
+    public Response getLoanImportTemplate() {
+        Response response = null;
+        String fileName = "loan";
+
+        try {
+
+            WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(null, fileName);
+            Workbook workbook = new HSSFWorkbook();
+            Result result = downloadAndPopulate(workbook, populator);
+
+            if (result.isSuccess()) {
+                fileName = fileName + ".xls";
+                response = getOutput(workbook, fileName);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        return response;
+    }
+
+    @Override
+    public Response importLoansFromTemplate(InputStream content) {
+        
+        return importFromTemplate(content);
+    }
+    
+    @Override
+    public Response getLoanRepaymentImportTemplate() {
+        Response response = null;
+        String fileName = "loanRepaymentHistory";
+
+        try {
+
+            WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(null, fileName);
+            Workbook workbook = new HSSFWorkbook();
+            Result result = downloadAndPopulate(workbook, populator);
+
+            if (result.isSuccess()) {
+                fileName = fileName + ".xls";
+                response = getOutput(workbook, fileName);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        return response;
+    }
+
+    @Override
+    public Response importLoanRepaymentFromTemplate(InputStream content) {
+        
+        return importFromTemplate(content);
+    }
+
+    @Override
+    public Response getSavingImportTemplate() {
+        Response response = null;
+        String fileName = "savings";
+
+        try {
+
+            WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(null, fileName);
+            Workbook workbook = new HSSFWorkbook();
+            Result result = downloadAndPopulate(workbook, populator);
+
+            if (result.isSuccess()) {
+                fileName = fileName + ".xls";
+                response = getOutput(workbook, fileName);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        return response;
+    }
+
+    @Override
+    public Response importSavingsFromTemplate(InputStream content) {
+        
+        return importFromTemplate(content);
+    }
+
+    @Override
+    public Response getSavingsTransactionImportTemplate() {
+        Response response = null;
+        String fileName = "savingsTransactionHistory";
+
+        try {
+
+            WorkbookPopulator populator = workbookPopulatorFactoryService.createWorkbookPopulator(null, fileName);
+            Workbook workbook = new HSSFWorkbook();
+            Result result = downloadAndPopulate(workbook, populator);
+
+            if (result.isSuccess()) {
+                fileName = fileName + ".xls";
+                response = getOutput(workbook, fileName);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        return response;
+    }
+
+    @Override
+    public Response importSavingsTransactionFromTemplate(InputStream content) {
+        
+        return importFromTemplate(content);
+    }
+
 
     private Result parseAndUpload(DataImportHandler handler) throws IOException {
         Result result = handler.parse();
@@ -168,4 +295,50 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         //out.close();
         return response.build();
     }
+    
+    private Result downloadAndPopulate(Workbook workbook, WorkbookPopulator populator) throws IOException {
+        Result result = populator.downloadAndParse();
+        if (result.isSuccess()) {
+            result = populator.populate(workbook);
+        }
+        return result;
+    }
+
+    private Response getOutput(Workbook workbook, String fileName) throws IOException {
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        workbook.write(stream);
+        ResponseBuilder response = Response.ok(new ByteArrayInputStream(stream.toByteArray()));
+
+        response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+        response.header("Content-Type", "application/vnd.ms-excel");
+
+        // stream.close();
+        return response.build();
+    }
+
+    
+    private Response importFromTemplate(InputStream content){
+        Response response = null;
+        Workbook workbook;
+        // Result result;
+        try {
+            workbook = new HSSFWorkbook(content);
+            DataImportHandler handler = importHandlerFactoryService.createImportHandler(workbook);
+            Result result = parseAndUpload(handler);
+            if(result.isSuccess()){
+                response = writeResult(workbook, result);
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+
+        // if(result.isSuccess()){
+        // writeResult(workbook, result, response);
+        // }
+
+        //return "{clients are imported}";
+        return response;
+    }
+    
 }

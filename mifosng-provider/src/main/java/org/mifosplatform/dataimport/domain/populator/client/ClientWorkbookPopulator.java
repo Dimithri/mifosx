@@ -41,7 +41,6 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     private final String clientType;
 
     private OfficeSheetPopulator officeSheetPopulator;
-
     private PersonnelSheetPopulator personnelSheetPopulator;
 
     public ClientWorkbookPopulator(String clientType, OfficeSheetPopulator officeSheetPopulator,
