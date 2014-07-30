@@ -38,6 +38,10 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
     private static final int ACTIVATION_DATE_COL = 6;
     private static final int ACTIVE_COL = 7;
     private static final int STATUS_COL = 8;
+    private static final int GENDER_COL = 10;
+    private static final int DATE_OF_BIRTH_COL = 11;
+    private static final int CLIENT_TYPE_COL = 12;
+    private static final int CLIENT_CLASSIFICATION_COL = 13;
 
     private List<Client> clients;
     private String clientType;
@@ -87,6 +91,9 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
     }
 
     private Client parseAsClient(Row row) {
+
+        Client client = null;
+
         String officeName = readAsString(OFFICE_NAME_COL, row);
         String officeId = getIdByName(workbook.getSheet("Offices"), officeName).toString();
         String staffName = readAsString(STAFF_NAME_COL, row);
@@ -94,17 +101,32 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
         String externalId = readAsString(EXTERNAL_ID_COL, row);
         String activationDate = readAsDate(ACTIVATION_DATE_COL, row);
         String active = readAsBoolean(ACTIVE_COL, row).toString();
+        String gender = getGenderId(readAsString(GENDER_COL, row));
+        
+        String clientTypeName = readAsString(CLIENT_TYPE_COL, row);
+        Integer clientTypeIdInt = getIdByName(workbook.getSheet("ClientType"), clientTypeName);
+        String clientTypeId = clientTypeIdInt !=0 ? clientTypeIdInt.toString() : "";
+        
+        String clientClassificationName = readAsString(CLIENT_CLASSIFICATION_COL, row);
+        Integer clientClassificationIdInt = getIdByName(workbook.getSheet("ClientClassification"), clientClassificationName);
+        String clientClassificationId = clientClassificationIdInt !=0 ? clientClassificationIdInt.toString() : "";
+
         if (clientType.equals("Individual")) {
+
             String firstName = readAsString(FIRST_NAME_COL, row);
             String lastName = readAsString(LAST_NAME_COL, row);
             String middleName = readAsString(MIDDLE_NAME_COL, row);
             if (StringUtils.isBlank(firstName)) { throw new IllegalArgumentException("Name is blank"); }
-            return new Client(firstName, lastName, middleName, activationDate, active, externalId, officeId, staffId, row.getRowNum());
+            client = new Client(firstName, lastName, middleName, gender, clientTypeId, clientClassificationId, activationDate, active,
+                    externalId, officeId, staffId, row.getRowNum());
+
         } else {
+
             String fullName = readAsString(FULL_NAME_COL, row);
             if (StringUtils.isBlank(fullName)) { throw new IllegalArgumentException("Name is blank"); }
-            return new CorporateClient(fullName, activationDate, active, externalId, officeId, staffId, row.getRowNum());
+            client = new CorporateClient(fullName, activationDate, active, externalId, officeId, staffId, row.getRowNum());
         }
+        return client;
     }
 
     @Override
@@ -123,9 +145,10 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
                 final CommandWrapper commandRequest = new CommandWrapperBuilder().createClient().withJson(payload).build();
 
                 @SuppressWarnings("unused")
-                final CommandProcessingResult commandProcessingResult = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+                final CommandProcessingResult commandProcessingResult = this.commandsSourceWritePlatformService
+                        .logCommandSource(commandRequest);
 
-                //Log the results
+                // Log the results
                 Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
@@ -136,7 +159,7 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
                 statusCell.setCellValue(message);
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.RED));
                 result.addError("Row = " + client.getRowIndex() + " ," + message);
-            } catch (Exception e){
+            } catch (Exception e) {
                 logger.error(e.getMessage());
             }
         }
@@ -147,5 +170,20 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
     public List<Client> getClients() {
         return clients;
+    }
+
+    private String getGenderId(String type) {
+        String id = "null";
+        type = type.trim();
+        switch (type) {
+            case "Male":
+                id = "22";
+            break;
+            case "Female":
+                id = "24";
+            break;
+
+        }
+        return id;
     }
 }

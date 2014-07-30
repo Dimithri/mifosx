@@ -40,12 +40,12 @@ public class WorkbookPopulatorFactory {
 			String parameter, String template) throws IOException {
 		// MifosRestClient restClient = new MifosRestClient();
 
-		if (template.trim().equals("client")) // auto-wiring
+		/*if (template.trim().equals("client")) // auto-wiring
 												// OfficereadPlatformService
 			return new ClientWorkbookPopulator(
 					parameter,
 					new OfficeSheetPopulator(officeReadPlatformService),
-					new PersonnelSheetPopulator(Boolean.FALSE, officeReadPlatformService, staffReadPlatformService));
+					new PersonnelSheetPopulator(Boolean.FALSE, officeReadPlatformService, staffReadPlatformService));*/
 	        /*else if(template.trim().equals("groups"))
 	        	 return new GroupWorkbookPopulator(new OfficeSheetPopulator(restClient), new PersonnelSheetPopulator(Boolean.FALSE, restClient),
 	        			 new ClientSheetPopulator(restClient));

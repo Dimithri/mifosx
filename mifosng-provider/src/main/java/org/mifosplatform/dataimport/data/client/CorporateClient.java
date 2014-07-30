@@ -7,7 +7,7 @@ public class CorporateClient extends Client {
 	    
 	    
 	    public CorporateClient(String fullname, String activationDate, String active, String externalId, String officeId, String staffId, Integer rowIndex ) {
-	        super(null, null, null, activationDate, active, externalId, officeId, staffId, rowIndex);
+	        super(null, null, null, null, null, null, activationDate, active, externalId, officeId, staffId, rowIndex);
 	    	this.fullname = fullname;
 	    }
 	    

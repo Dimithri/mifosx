@@ -16,6 +16,7 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.mifosplatform.dataimport.data.Office;
 import org.mifosplatform.dataimport.domain.handler.Result;
 import org.mifosplatform.dataimport.domain.populator.AbstractWorkbookPopulator;
+import org.mifosplatform.dataimport.domain.populator.CodeSheetPopulator;
 import org.mifosplatform.dataimport.domain.populator.OfficeSheetPopulator;
 import org.mifosplatform.dataimport.domain.populator.PersonnelSheetPopulator;
 
@@ -40,34 +41,46 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
 
     private final String clientType;
 
-    private OfficeSheetPopulator officeSheetPopulator;
-    private PersonnelSheetPopulator personnelSheetPopulator;
+    private final OfficeSheetPopulator officeSheetPopulator;
+    private final PersonnelSheetPopulator personnelSheetPopulator;
+    private final CodeSheetPopulator codeSheetPopulatorClientType;
+    private final CodeSheetPopulator codeSheetPopulatorClientClassification;
 
-    public ClientWorkbookPopulator(String clientType, OfficeSheetPopulator officeSheetPopulator,
-            PersonnelSheetPopulator personnelSheetPopulator) {
+    public ClientWorkbookPopulator(String clientType, final OfficeSheetPopulator officeSheetPopulator,
+            final PersonnelSheetPopulator personnelSheetPopulator, final CodeSheetPopulator codeSheetPopulatorClientType,
+            final CodeSheetPopulator codeSheetPopulatorClientClassification) {
         this.clientType = clientType;
         this.officeSheetPopulator = officeSheetPopulator;
         this.personnelSheetPopulator = personnelSheetPopulator;
+        this.codeSheetPopulatorClientType = codeSheetPopulatorClientType;
+        this.codeSheetPopulatorClientClassification = codeSheetPopulatorClientClassification;
     }
 
     @Override
     public Result downloadAndParse() {
+
         Result result = officeSheetPopulator.downloadAndParse();
-        if (result.isSuccess()) {
-            result = personnelSheetPopulator.downloadAndParse();
-        }
+        if (result.isSuccess()) result = personnelSheetPopulator.downloadAndParse();
+        if (result.isSuccess()) result = codeSheetPopulatorClientType.downloadAndParse();
+        if (result.isSuccess()) result = codeSheetPopulatorClientClassification.downloadAndParse();
+
         return result;
     }
 
     @Override
     public Result populate(Workbook workbook) {
+
         Sheet clientSheet = workbook.createSheet("Clients");
         Result result = personnelSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = officeSheetPopulator.populate(workbook);
+        if (result.isSuccess()) result = codeSheetPopulatorClientType.populate(workbook);
+        if (result.isSuccess()) result = codeSheetPopulatorClientClassification.populate(workbook);
+
         setLayout(clientSheet);
         setOfficeDateLookupTable(clientSheet, officeSheetPopulator.getOffices(), RELATIONAL_OFFICE_NAME_COL,
                 RELATIONAL_OFFICE_OPENING_DATE_COL);
         if (result.isSuccess()) result = setRules(clientSheet);
+
         return result;
     }
 
@@ -125,11 +138,11 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
             CellRangeAddressList activeRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), ACTIVE_COL,
                     ACTIVE_COL);
             CellRangeAddressList genderRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), GENDER_COL,
-            		GENDER_COL);
-            CellRangeAddressList clientTypeRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), CLIENT_TYPE_COL,
-            		CLIENT_TYPE_COL);
-            CellRangeAddressList clientClassificationRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), CLIENT_CLASSIFICATION_COL,
-            		CLIENT_CLASSIFICATION_COL);
+                    GENDER_COL);
+            CellRangeAddressList clientTypeRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
+                    CLIENT_TYPE_COL, CLIENT_TYPE_COL);
+            CellRangeAddressList clientClassificationRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
+                    CLIENT_CLASSIFICATION_COL, CLIENT_CLASSIFICATION_COL);
 
             DataValidationHelper validationHelper = new HSSFDataValidationHelper((HSSFSheet) worksheet);
 
@@ -143,10 +156,16 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
                     DataValidationConstraint.OperatorType.BETWEEN, "=VLOOKUP($D1,$Q$2:$R" + (offices.size() + 1) + ",2,FALSE)", "=TODAY()",
                     "dd/mm/yy");
             DataValidationConstraint activeConstraint = validationHelper.createExplicitListConstraint(new String[] { "True", "False" });
-            //new values
-            DataValidationConstraint genderConstraint = validationHelper.createExplicitListConstraint(new String[] { "Male", "Female", "xxx" });
-            DataValidationConstraint clientTypeConstraint = validationHelper.createExplicitListConstraint(new String[] { "Individual Person", "Very Small Enterprise", "Small/Medium Enterprise" });
-            DataValidationConstraint clientClassificationConstraint = validationHelper.createExplicitListConstraint(new String[] { "Empty" });
+            
+            DataValidationConstraint genderConstraint = validationHelper.createExplicitListConstraint(new String[] { "Male", "Female" });
+
+            List<String> clientTypeNames = codeSheetPopulatorClientType.getCodeNames();
+            DataValidationConstraint clientTypeConstraint = validationHelper.createExplicitListConstraint(clientTypeNames
+                    .toArray(new String[clientTypeNames.size()]));
+
+            List<String> clientClassificationNames = codeSheetPopulatorClientClassification.getCodeNames();
+            DataValidationConstraint clientClassificationConstraint = validationHelper
+                    .createExplicitListConstraint(clientClassificationNames.toArray(new String[clientClassificationNames.size()]));
 
             DataValidation officeValidation = validationHelper.createValidation(officeNameConstraint, officeNameRange);
             DataValidation staffValidation = validationHelper.createValidation(staffNameConstraint, staffNameRange);
@@ -154,7 +173,8 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
             DataValidation activeValidation = validationHelper.createValidation(activeConstraint, activeRange);
             DataValidation genderValidation = validationHelper.createValidation(genderConstraint, genderRange);
             DataValidation clientTypeValidation = validationHelper.createValidation(clientTypeConstraint, clientTypeRange);
-            DataValidation clientClassificationValidation = validationHelper.createValidation(clientClassificationConstraint, clientClassificationRange);
+            DataValidation clientClassificationValidation = validationHelper.createValidation(clientClassificationConstraint,
+                    clientClassificationRange);
 
             worksheet.addValidationData(activeValidation);
             worksheet.addValidationData(genderValidation);
@@ -185,5 +205,4 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
             }
         }
     }
-
 }

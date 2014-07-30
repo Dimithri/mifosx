@@ -62,7 +62,8 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
 
         if (template.trim().equals("client"))
             return new ClientWorkbookPopulator(parameter, new OfficeSheetPopulator(officeReadPlatformService), new PersonnelSheetPopulator(
-                    Boolean.FALSE, officeReadPlatformService, staffReadPlatformService));
+                    Boolean.FALSE, officeReadPlatformService, staffReadPlatformService), new CodeSheetPopulator("ClientType",
+                    codeValueReadPlatformService), new CodeSheetPopulator("ClientClassification", codeValueReadPlatformService));
         else if (template.trim().equals("groups"))
             return new GroupWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService), new PersonnelSheetPopulator(
                     Boolean.FALSE, officeReadPlatformService, staffReadPlatformService), new ClientSheetPopulator(
