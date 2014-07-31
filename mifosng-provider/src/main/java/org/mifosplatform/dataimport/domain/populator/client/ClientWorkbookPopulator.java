@@ -17,6 +17,7 @@ import org.mifosplatform.dataimport.data.Office;
 import org.mifosplatform.dataimport.domain.handler.Result;
 import org.mifosplatform.dataimport.domain.populator.AbstractWorkbookPopulator;
 import org.mifosplatform.dataimport.domain.populator.CodeSheetPopulator;
+import org.mifosplatform.dataimport.domain.populator.GroupSheetPopulator;
 import org.mifosplatform.dataimport.domain.populator.OfficeSheetPopulator;
 import org.mifosplatform.dataimport.domain.populator.PersonnelSheetPopulator;
 
@@ -25,7 +26,6 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     private static final int OFFICE_NAME_COL = 0;
     private static final int STAFF_NAME_COL = 1;
     private static final int FIRST_NAME_COL = 2;
-    private static final int FULL_NAME_COL = 2;
     private static final int MIDDLE_NAME_COL = 3;
     private static final int LAST_NAME_COL = 4;
     private static final int MOBILE_NO_COL = 5;
@@ -36,6 +36,7 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     private static final int EXTERNAL_ID_COL = 10;
     private static final int ACTIVE_COL = 11;
     private static final int ACTIVATION_DATE_COL = 12;
+    private static final int GROUP_NAME_COL = 13;
     @SuppressWarnings("unused")
     private static final int STATUS_COL = 14;
     private static final int WARNING_COL = 15;
@@ -48,15 +49,17 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     private final PersonnelSheetPopulator personnelSheetPopulator;
     private final CodeSheetPopulator codeSheetPopulatorClientType;
     private final CodeSheetPopulator codeSheetPopulatorClientClassification;
+    private final GroupSheetPopulator groupSheetPopulator;
 
     public ClientWorkbookPopulator(String clientType, final OfficeSheetPopulator officeSheetPopulator,
             final PersonnelSheetPopulator personnelSheetPopulator, final CodeSheetPopulator codeSheetPopulatorClientType,
-            final CodeSheetPopulator codeSheetPopulatorClientClassification) {
+            final CodeSheetPopulator codeSheetPopulatorClientClassification, final GroupSheetPopulator groupSheetPopulator) {
         this.clientType = clientType;
         this.officeSheetPopulator = officeSheetPopulator;
         this.personnelSheetPopulator = personnelSheetPopulator;
         this.codeSheetPopulatorClientType = codeSheetPopulatorClientType;
         this.codeSheetPopulatorClientClassification = codeSheetPopulatorClientClassification;
+        this.groupSheetPopulator = groupSheetPopulator;
     }
 
     @Override
@@ -67,6 +70,9 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         if (result.isSuccess()) result = codeSheetPopulatorClientType.downloadAndParse();
         if (result.isSuccess()) result = codeSheetPopulatorClientClassification.downloadAndParse();
 
+        if (!clientType.equals("individual")) {
+            if (result.isSuccess()) result = groupSheetPopulator.downloadAndParse();
+        }
         return result;
     }
 
@@ -78,6 +84,10 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         if (result.isSuccess()) result = officeSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = codeSheetPopulatorClientType.populate(workbook);
         if (result.isSuccess()) result = codeSheetPopulatorClientClassification.populate(workbook);
+
+        if (!clientType.equals("individual")) {
+            if (result.isSuccess()) result = groupSheetPopulator.populate(workbook);
+        }
 
         setLayout(clientSheet);
         setOfficeDateLookupTable(clientSheet, officeSheetPopulator.getOffices(), RELATIONAL_OFFICE_NAME_COL,
@@ -91,18 +101,14 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
         if (clientType.equals("individual")) {
-            worksheet.setColumnWidth(FIRST_NAME_COL, 6000);
-            worksheet.setColumnWidth(LAST_NAME_COL, 6000);
-            worksheet.setColumnWidth(MIDDLE_NAME_COL, 6000);
-            writeString(FIRST_NAME_COL, rowHeader, "First Name*");
-            writeString(LAST_NAME_COL, rowHeader, "Last Name*");
-            writeString(MIDDLE_NAME_COL, rowHeader, "Middle Name");
+
         } else {
-            worksheet.setColumnWidth(FULL_NAME_COL, 10000);
-            worksheet.setColumnWidth(LAST_NAME_COL, 0);
-            worksheet.setColumnWidth(MIDDLE_NAME_COL, 0);
-            writeString(FULL_NAME_COL, rowHeader, "Full/Business Name*");
+            worksheet.setColumnWidth(GROUP_NAME_COL, 6000);
+            writeString(GROUP_NAME_COL, rowHeader, "Associated Group");
         }
+        worksheet.setColumnWidth(FIRST_NAME_COL, 6000);
+        worksheet.setColumnWidth(LAST_NAME_COL, 6000);
+        worksheet.setColumnWidth(MIDDLE_NAME_COL, 6000);
         worksheet.setColumnWidth(OFFICE_NAME_COL, 5000);
         worksheet.setColumnWidth(STAFF_NAME_COL, 5000);
         worksheet.setColumnWidth(MOBILE_NO_COL, 5000);
@@ -115,6 +121,10 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         worksheet.setColumnWidth(DATE_OF_BIRTH_COL, 6000);
         worksheet.setColumnWidth(CLIENT_TYPE_COL, 6000);
         worksheet.setColumnWidth(CLIENT_CLASSIFICATION_COL, 6000);
+
+        writeString(FIRST_NAME_COL, rowHeader, "First Name*");
+        writeString(LAST_NAME_COL, rowHeader, "Last Name*");
+        writeString(MIDDLE_NAME_COL, rowHeader, "Middle Name");
         writeString(OFFICE_NAME_COL, rowHeader, "Office Name*");
         writeString(STAFF_NAME_COL, rowHeader, "Staff Name*");
         writeString(MOBILE_NO_COL, rowHeader, "Mobile No");
@@ -128,7 +138,6 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         writeString(DATE_OF_BIRTH_COL, rowHeader, "Date of Birth");
         writeString(CLIENT_TYPE_COL, rowHeader, "Client Type");
         writeString(CLIENT_CLASSIFICATION_COL, rowHeader, "Client Classification");
-
     }
 
     private Result setRules(Sheet worksheet) {
@@ -140,8 +149,8 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
                     STAFF_NAME_COL);
             CellRangeAddressList mobileNoRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), MOBILE_NO_COL,
                     MOBILE_NO_COL);
-            CellRangeAddressList dateOfBirthRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), DATE_OF_BIRTH_COL,
-                    DATE_OF_BIRTH_COL);
+            CellRangeAddressList dateOfBirthRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
+                    DATE_OF_BIRTH_COL, DATE_OF_BIRTH_COL);
             CellRangeAddressList dateRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), ACTIVATION_DATE_COL,
                     ACTIVATION_DATE_COL);
             CellRangeAddressList activeRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), ACTIVE_COL,
@@ -169,7 +178,7 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
                     DataValidationConstraint.OperatorType.BETWEEN, "=VLOOKUP($D1,$T$2:$U" + (offices.size() + 1) + ",2,FALSE)", "=TODAY()",
                     "dd/mm/yy");
             DataValidationConstraint activeConstraint = validationHelper.createExplicitListConstraint(new String[] { "True", "False" });
-            
+
             DataValidationConstraint genderConstraint = validationHelper.createExplicitListConstraint(new String[] { "Male", "Female" });
 
             List<String> clientTypeNames = codeSheetPopulatorClientType.getCodeNames();
@@ -200,6 +209,16 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
             worksheet.addValidationData(officeValidation);
             worksheet.addValidationData(staffValidation);
             worksheet.addValidationData(activationDateValidation);
+            
+            if (!clientType.equals("individual")) {
+                CellRangeAddressList groupfNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), GROUP_NAME_COL,
+                        GROUP_NAME_COL);
+                DataValidationConstraint groupNameConstraint = validationHelper
+                        .createFormulaListConstraint("INDIRECT(CONCATENATE(\"Group_\",$A1))");
+                DataValidation groupValidation = validationHelper.createValidation(groupNameConstraint, groupfNameRange);
+                worksheet.addValidationData(groupValidation);
+            }
+            
         } catch (RuntimeException re) {
             result.addError(re.getMessage());
         }
@@ -219,6 +238,18 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
                 name.setNameName("Staff_" + offices.get(i).getName().trim().replaceAll("[ )(]", "_"));
                 name.setRefersToFormula("Staff!$B$" + officeNameToBeginEndIndexesOfStaff[0] + ":$B$"
                         + officeNameToBeginEndIndexesOfStaff[1]);
+            }
+        }
+
+        if (!clientType.equals("individual")) {
+            for (Integer i = 0; i < offices.size(); i++) {
+                Integer[] officeNameToBeginEndIndexesOfGroup = groupSheetPopulator.getOfficeNameToBeginEndIndexesOfGroups().get(i);
+                if (officeNameToBeginEndIndexesOfGroup != null) {
+                    Name name = clientWorkbook.createName();
+                    name.setNameName("Group_" + offices.get(i).getName().trim().replaceAll("[ )(]", "_"));
+                    name.setRefersToFormula("Groups!$B$" + officeNameToBeginEndIndexesOfGroup[0] + ":$B$"
+                            + officeNameToBeginEndIndexesOfGroup[1]);
+                }
             }
         }
     }

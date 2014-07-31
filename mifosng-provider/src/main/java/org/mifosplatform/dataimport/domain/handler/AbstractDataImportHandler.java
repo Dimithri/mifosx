@@ -22,146 +22,139 @@ public abstract class AbstractDataImportHandler implements DataImportHandler {
         Integer noOfEntries = 1;
         // getLastRowNum and getPhysicalNumberOfRows showing false values
         // sometimes
-           while (sheet.getRow(noOfEntries) !=null && sheet.getRow(noOfEntries).getCell(primaryColumn) != null) {
-               noOfEntries++;
-           }
-        	
+        while (sheet.getRow(noOfEntries) != null && sheet.getRow(noOfEntries).getCell(primaryColumn) != null) {
+            noOfEntries++;
+        }
+
         return noOfEntries;
     }
-    
+
     protected boolean isNotImported(Row row, int statusColumn) {
-		return !readAsString(statusColumn, row).equals("Imported");
-	}
+        return !readAsString(statusColumn, row).equals("Imported");
+    }
 
     protected String readAsInt(int colIndex, Row row) {
         try {
-        	Cell c = row.getCell(colIndex);
-        	if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK)
-        		return "";
-        	return ((Double) c.getNumericCellValue()).intValue() + "";
+            Cell c = row.getCell(colIndex);
+            if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) return "";
+            return ((Double) c.getNumericCellValue()).intValue() + "";
         } catch (RuntimeException re) {
             return row.getCell(colIndex).getStringCellValue();
         }
     }
-    
+
     protected String readAsLong(int colIndex, Row row) {
         try {
-        	Cell c = row.getCell(colIndex);
-        	if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK)
-        		return "";
-        	return ((Double) c.getNumericCellValue()).longValue() + "";
+            Cell c = row.getCell(colIndex);
+            if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) return "";
+            return ((Double) c.getNumericCellValue()).longValue() + "";
         } catch (RuntimeException re) {
             return row.getCell(colIndex).getStringCellValue();
         }
     }
-    
+
     protected Double readAsDouble(int colIndex, Row row) {
-    	Cell c = row.getCell(colIndex);
-    	if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK)
-    		return 0.0;
-    	return row.getCell(colIndex).getNumericCellValue();
+        Cell c = row.getCell(colIndex);
+        if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) return 0.0;
+        return row.getCell(colIndex).getNumericCellValue();
     }
 
     protected String readAsString(int colIndex, Row row) {
         try {
-        	Cell c = row.getCell(colIndex);
-        	if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK)
-        		return "";
+            Cell c = row.getCell(colIndex);
+            if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) return "";
             return c.getStringCellValue().trim();
         } catch (Exception e) {
-            return ((Double)row.getCell(colIndex).getNumericCellValue()).intValue() + "";
+            return ((Double) row.getCell(colIndex).getNumericCellValue()).intValue() + "";
         }
     }
 
     protected String readAsDate(int colIndex, Row row) {
-    	try{
-    		Cell c = row.getCell(colIndex);
-    		if(c == null || c.getCellType() == Cell.CELL_TYPE_BLANK)
-    			return "";
-    		DateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy");
+        try {
+            Cell c = row.getCell(colIndex);
+            if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) return "";
+            DateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy");
             return dateFormat.format(c.getDateCellValue());
-    	}  catch  (Exception e) {
-    		return "";
-    	}
+        } catch (Exception e) {
+            return "";
+        }
     }
-    
+
     protected String readAsDateWithoutYear(int colIndex, Row row) {
-    	try{
-    		Cell c = row.getCell(colIndex);
-    		if(c == null || c.getCellType() == Cell.CELL_TYPE_BLANK)
-    			return "";
-    		DateFormat dateFormat = new SimpleDateFormat("dd MMMM");
+        try {
+            Cell c = row.getCell(colIndex);
+            if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) return "";
+            DateFormat dateFormat = new SimpleDateFormat("dd MMMM");
             return dateFormat.format(c.getDateCellValue());
-    	}  catch  (Exception e) {
-    		return "";
-    	}
+        } catch (Exception e) {
+            return "";
+        }
     }
-    
+
     protected Boolean readAsBoolean(int colIndex, Row row) {
-    	try{
-    	    Cell c = row.getCell(colIndex);
-		    if(c == null || c.getCellType() == Cell.CELL_TYPE_BLANK)
-			    return false;
-    	    return c.getBooleanCellValue();
-    	} catch (Exception e) {
-    		String booleanString = row.getCell(colIndex).getStringCellValue().trim();
-    		if(booleanString.equalsIgnoreCase("TRUE"))
-    			return true;
-    		else
-    			return false;
-    	}
+        try {
+            Cell c = row.getCell(colIndex);
+            if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) return false;
+            return c.getBooleanCellValue();
+        } catch (Exception e) {
+            String booleanString = row.getCell(colIndex).getStringCellValue().trim();
+            if (booleanString.equalsIgnoreCase("TRUE"))
+                return true;
+            else
+                return false;
+        }
     }
-    
+
     protected void writeString(int colIndex, Row row, String value) {
         row.createCell(colIndex).setCellValue(value);
     }
-    
+
     protected CellStyle getCellStyle(Workbook workbook, IndexedColors color) {
-    	CellStyle style = workbook.createCellStyle();
+        CellStyle style = workbook.createCellStyle();
         style.setFillForegroundColor(color.getIndex());
         style.setFillPattern(CellStyle.SOLID_FOREGROUND);
         return style;
     }
-    
+
     protected String parseStatus(String errorMessage) {
-    	StringBuffer message = new StringBuffer();
-    	JsonObject obj = new JsonParser().parse(errorMessage.trim()).getAsJsonObject();
+        StringBuffer message = new StringBuffer();
+        JsonObject obj = new JsonParser().parse(errorMessage.trim()).getAsJsonObject();
         JsonArray array = obj.getAsJsonArray("errors");
         Iterator<JsonElement> iterator = array.iterator();
-        while(iterator.hasNext()) {
-        	JsonObject json = iterator.next().getAsJsonObject();
-        	String parameterName = json.get("parameterName").toString();
-        	String defaultUserMessage = json.get("defaultUserMessage").toString();
-        	message = message.append(parameterName.substring(1, parameterName.length() - 1) + ":" + defaultUserMessage.substring(1, defaultUserMessage.length() - 1) + "\t");
-         }
-    	 return message.toString();
+        while (iterator.hasNext()) {
+            JsonObject json = iterator.next().getAsJsonObject();
+            String parameterName = json.get("parameterName").toString();
+            String defaultUserMessage = json.get("defaultUserMessage").toString();
+            message = message.append(parameterName.substring(1, parameterName.length() - 1) + ":"
+                    + defaultUserMessage.substring(1, defaultUserMessage.length() - 1) + "\t");
+        }
+        return message.toString();
     }
-    
-    protected Integer getIdByName (Sheet sheet, String name) {
-    	String sheetName = sheet.getSheetName();
-    	if(!sheetName.equals("Products")) {
-    	for (Row row : sheet) {
-            for (Cell cell : row) {
-                if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim().equals(name)) {
-                    	if(sheetName.equals("Offices") || sheetName.equals("ClientType") || sheetName.equals("ClientClassification"))
-                            return ((Double)row.getCell(cell.getColumnIndex() - 1).getNumericCellValue()).intValue(); 
-                    	else if(sheetName.equals("Extras"))
-                    		return ((Double)row.getCell(cell.getColumnIndex() - 1).getNumericCellValue()).intValue();
-                    	else if(sheetName.equals("Clients") || sheetName.equals("Groups") || sheetName.equals("Staff")) 
-                    		return ((Double)row.getCell(cell.getColumnIndex() + 1).getNumericCellValue()).intValue();
+
+    protected Integer getIdByName(Sheet sheet, String name) {
+        String sheetName = sheet.getSheetName();
+        if (!sheetName.equals("Products")) {
+            for (Row row : sheet) {
+                for (Cell cell : row) {
+                    if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim().equals(name)) {
+                        if (sheetName.equals("Offices") || sheetName.equals("ClientType") || sheetName.equals("ClientClassification"))
+                            return ((Double) row.getCell(cell.getColumnIndex() - 1).getNumericCellValue()).intValue();
+                        else if (sheetName.equals("Extras"))
+                            return ((Double) row.getCell(cell.getColumnIndex() - 1).getNumericCellValue()).intValue();
+                        else if (sheetName.equals("Clients") || sheetName.equals("Groups") || sheetName.equals("Staff"))
+                            return ((Double) row.getCell(cell.getColumnIndex() + 1).getNumericCellValue()).intValue();
                     }
+                }
             }
-          }
-    	} else if (sheetName.equals("Products")) {
-    		for(Row row : sheet) {
-    			for(int i = 0; i < 2; i++) {
-    				Cell cell = row.getCell(i);
-    				if(cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim().equals(name)) {
-    						return ((Double)row.getCell(cell.getColumnIndex() - 1).getNumericCellValue()).intValue();
-    				}
-    			}
-    		}
-    	}
+        } else if (sheetName.equals("Products")) {
+            for (Row row : sheet) {
+                for (int i = 0; i < 2; i++) {
+                    Cell cell = row.getCell(i);
+                    if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim().equals(name)) { return ((Double) row
+                            .getCell(cell.getColumnIndex() - 1).getNumericCellValue()).intValue(); }
+                }
+            }
+        }
         return 0;
     }
 

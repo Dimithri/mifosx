@@ -12,10 +12,8 @@ import org.mifosplatform.commands.domain.CommandWrapper;
 import org.mifosplatform.commands.service.CommandWrapperBuilder;
 import org.mifosplatform.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.mifosplatform.dataimport.data.client.Client;
-import org.mifosplatform.dataimport.data.client.CorporateClient;
 import org.mifosplatform.dataimport.domain.handler.AbstractDataImportHandler;
 import org.mifosplatform.dataimport.domain.handler.Result;
-import org.mifosplatform.dataimport.services.http.RestClient;
 import org.mifosplatform.dataimport.services.utils.StringUtils;
 import org.mifosplatform.infrastructure.core.data.CommandProcessingResult;
 import org.mifosplatform.portfolio.client.service.ClientWritePlatformService;
@@ -31,7 +29,6 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
     private static final int OFFICE_NAME_COL = 0;
     private static final int STAFF_NAME_COL = 1;
     private static final int FIRST_NAME_COL = 2;
-    private static final int FULL_NAME_COL = 2;
     private static final int MIDDLE_NAME_COL = 3;
     private static final int LAST_NAME_COL = 4;
     private static final int MOBILE_NO_COL = 5;
@@ -42,18 +39,17 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
     private static final int EXTERNAL_ID_COL = 10;
     private static final int ACTIVE_COL = 11;
     private static final int ACTIVATION_DATE_COL = 12;
+    private static final int GROUP_NAME_COL = 13;
     private static final int STATUS_COL = 14;
     @SuppressWarnings("unused")
     private static final int WARNING_COL = 15;
     @SuppressWarnings("unused")
     private static final int RELATIONAL_OFFICE_NAME_COL = 18;
     @SuppressWarnings("unused")
-    private static final int RELATIONAL_OFFICE_OPENING_DATE_COL = 19;
+    private static final int RELATIONAL_OFFICE_OPENING_DATE_COL = 20;
 
     private List<Client> clients;
     private String clientType;
-
-    // private final RestClient restClient;
 
     private final Workbook workbook;
     @SuppressWarnings("unused")
@@ -62,8 +58,9 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
     public ClientDataImportHandler(Workbook workbook, final ClientWritePlatformService clientWritePlatformService,
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
+
         this.workbook = workbook;
-        // this.restClient = client;
+
         this.clientWritePlatformService = clientWritePlatformService;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
         clients = new ArrayList<Client>();
@@ -71,10 +68,13 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
     @Override
     public Result parse() {
+
         Result result = new Result();
+
         Sheet clientSheet = workbook.getSheet("Clients");
         Integer noOfEntries = getNumberOfRows(clientSheet, 0);
-        clientType = getClientType(clientSheet);
+        clientType = getClientType();
+
         for (int rowIndex = 1; rowIndex < noOfEntries; rowIndex++) {
             Row row;
             try {
@@ -87,14 +87,20 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
                 result.addError("Row = " + rowIndex + " , " + e.getMessage());
             }
         }
+
         return result;
     }
 
-    private String getClientType(Sheet clientSheet) {
-        if (readAsString(FIRST_NAME_COL, clientSheet.getRow(0)).equals("First Name*"))
-            return "Individual";
+    private String getClientType() {
+
+        String clientType = null;
+
+        if (workbook.getSheet("Groups") == null)
+            clientType = "Individual";
         else
-            return "Corporate";
+            clientType = "Corporate";
+
+        return clientType;
     }
 
     private Client parseAsClient(Row row) {
@@ -111,30 +117,30 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
         String activationDate = readAsDate(ACTIVATION_DATE_COL, row);
         String active = readAsBoolean(ACTIVE_COL, row).toString();
         String gender = getGenderId(readAsString(GENDER_COL, row));
-        
+
         String clientTypeName = readAsString(CLIENT_TYPE_COL, row);
         Integer clientTypeIdInt = getIdByName(workbook.getSheet("ClientType"), clientTypeName);
-        String clientTypeId = clientTypeIdInt !=0 ? clientTypeIdInt.toString() : "";
-        
+        String clientTypeId = clientTypeIdInt != 0 ? clientTypeIdInt.toString() : "";
+
         String clientClassificationName = readAsString(CLIENT_CLASSIFICATION_COL, row);
         Integer clientClassificationIdInt = getIdByName(workbook.getSheet("ClientClassification"), clientClassificationName);
-        String clientClassificationId = clientClassificationIdInt !=0 ? clientClassificationIdInt.toString() : "";
+        String clientClassificationId = clientClassificationIdInt != 0 ? clientClassificationIdInt.toString() : "";
 
-        if (clientType.equals("Individual")) {
+        String firstName = readAsString(FIRST_NAME_COL, row);
+        String lastName = readAsString(LAST_NAME_COL, row);
+        String middleName = readAsString(MIDDLE_NAME_COL, row);
+        if (StringUtils.isBlank(firstName)) { throw new IllegalArgumentException("Name is blank"); }
 
-            String firstName = readAsString(FIRST_NAME_COL, row);
-            String lastName = readAsString(LAST_NAME_COL, row);
-            String middleName = readAsString(MIDDLE_NAME_COL, row);
-            if (StringUtils.isBlank(firstName)) { throw new IllegalArgumentException("Name is blank"); }
-            client = new Client(firstName, lastName, middleName, mobileNo, gender, dateOfBirth, clientTypeId, clientClassificationId, activationDate, active,
-                    externalId, officeId, staffId, row.getRowNum());
+        client = new Client(firstName, lastName, middleName, mobileNo, gender, dateOfBirth, clientTypeId, clientClassificationId,
+                activationDate, active, externalId, officeId, staffId, row.getRowNum());
 
-        } else {
+        if (!clientType.equals("Individual")) {
 
-            String fullName = readAsString(FULL_NAME_COL, row);
-            if (StringUtils.isBlank(fullName)) { throw new IllegalArgumentException("Name is blank"); }
-            client = new CorporateClient(fullName, activationDate, active, externalId, officeId, staffId, row.getRowNum());
+            String groupName = readAsString(GROUP_NAME_COL, row);
+            Integer groupId = getIdByName(workbook.getSheet("Groups"), groupName);
+            client.setGruopID(groupId);
         }
+
         return client;
     }
 
@@ -148,7 +154,6 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
                 Gson gson = new Gson();
                 String payload = gson.toJson(client);
                 logger.info(payload);
-                // restClient.post("clients", payload);
 
                 // create client
                 final CommandWrapper commandRequest = new CommandWrapperBuilder().createClient().withJson(payload).build();
@@ -157,6 +162,25 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
                 final CommandProcessingResult commandProcessingResult = this.commandsSourceWritePlatformService
                         .logCommandSource(commandRequest);
 
+                if (!clientType.equals("Individual")) {
+
+                    // Add client to group
+                    Integer groupId = client.getGroupId();
+
+                    if (groupId != 0) {
+
+                        Long clientId = commandProcessingResult.getClientId().longValue();
+                        String[] clientIdAsArray = { clientId.toString() };
+                        String payloadJson = gson.toJson(clientIdAsArray);
+                        payloadJson = "{\"clientMembers\":"+payloadJson+"}";
+                                
+                        final CommandWrapper commandRequestForGroupAssociation = new CommandWrapperBuilder().withJson(payloadJson)
+                                .associateClientsToGroup(groupId.longValue()).build();
+                        @SuppressWarnings("unused")
+                        final CommandProcessingResult commandProcessingResultForGroupAssociation = this.commandsSourceWritePlatformService
+                                .logCommandSource(commandRequestForGroupAssociation);
+                    }
+                }
                 // Log the results
                 Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue("Imported");
@@ -182,7 +206,7 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
     }
 
     private String getGenderId(String type) {
-        String id = "null";
+        String id = "";
         type = type.trim();
         switch (type) {
             case "Male":
@@ -194,5 +218,20 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
         }
         return id;
+    }
+
+    private class CommandResultForClientCreation {
+
+        private Integer officeId;
+        private Integer clientId;
+        private Integer resourceId;
+
+        public CommandResultForClientCreation() {
+
+        }
+
+        public Integer getClientId() {
+            return clientId;
+        }
     }
 }

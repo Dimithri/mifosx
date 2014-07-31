@@ -3,43 +3,29 @@ package org.mifosplatform.dataimport.domain.populator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.mifosplatform.dataimport.data.Office;
 import org.mifosplatform.dataimport.data.client.CompactGroup;
 import org.mifosplatform.dataimport.domain.handler.Result;
-import org.mifosplatform.dataimport.services.http.RestClient;
 import org.mifosplatform.infrastructure.core.data.PaginationParameters;
 import org.mifosplatform.organisation.office.data.OfficeData;
 import org.mifosplatform.organisation.office.service.OfficeReadPlatformService;
-import org.mifosplatform.organisation.staff.service.StaffReadPlatformService;
-import org.mifosplatform.portfolio.client.service.ClientReadPlatformService;
 import org.mifosplatform.portfolio.group.data.GroupGeneralData;
 import org.mifosplatform.portfolio.group.service.GroupReadPlatformService;
 import org.mifosplatform.portfolio.group.service.SearchParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 public class GroupSheetPopulator extends AbstractWorkbookPopulator {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupSheetPopulator.class);
 
-    // private final RestClient restClient;
     private final OfficeReadPlatformService officeReadPlatformService;
     private final GroupReadPlatformService groupReadPlatformService;
-
-    private String content;
 
     private List<CompactGroup> groups;
     private ArrayList<String> officeNames;
@@ -54,7 +40,7 @@ public class GroupSheetPopulator extends AbstractWorkbookPopulator {
 
     public GroupSheetPopulator(final OfficeReadPlatformService officeReadPlatformService,
             final GroupReadPlatformService groupReadPlatformService) {
-        // this.restClient = restClient;
+        
         this.officeReadPlatformService = officeReadPlatformService;
         this.groupReadPlatformService = groupReadPlatformService;
     }

@@ -36,6 +36,8 @@ public class Client {
 
     private final String activationDate;
 
+    private transient Integer groupId;
+
     public Client(final String firstname, final String lastname, final String middlename, final String mobileNo, final String genderId,
             final String dateOfBirth, final String clientTypeId, final String clientClassificationId, final String activationDate,
             final String active, final String externalId, final String officeId, final String staffId, Integer rowIndex) {
@@ -68,7 +70,7 @@ public class Client {
     public String getMiddleName() {
         return this.middlename;
     }
-    
+
     public String getMobileNo() {
         return this.mobileNo;
     }
@@ -110,14 +112,22 @@ public class Client {
     }
 
     public Locale getLocale() {
-        return locale;
+        return this.locale;
     }
 
     public String getDateFormat() {
-        return dateFormat;
+        return this.dateFormat;
     }
 
     public Integer getRowIndex() {
-        return rowIndex;
+        return this.rowIndex;
+    }
+
+    public Integer getGroupId() {
+        return this.groupId;
+    }
+
+    public void setGruopID(Integer groupId) {
+        this.groupId = groupId;
     }
 }
