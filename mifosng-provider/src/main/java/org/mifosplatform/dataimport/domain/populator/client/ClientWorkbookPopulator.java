@@ -22,22 +22,25 @@ import org.mifosplatform.dataimport.domain.populator.PersonnelSheetPopulator;
 
 public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
 
-    private static final int FIRST_NAME_COL = 0;
-    private static final int LAST_NAME_COL = 1;
-    private static final int MIDDLE_NAME_COL = 2;
-    private static final int FULL_NAME_COL = 0;
-    private static final int OFFICE_NAME_COL = 3;
-    private static final int STAFF_NAME_COL = 4;
-    private static final int EXTERNAL_ID_COL = 5;
-    private static final int ACTIVATION_DATE_COL = 6;
-    private static final int ACTIVE_COL = 7;
-    private static final int WARNING_COL = 9;
-    private static final int GENDER_COL = 10;
-    private static final int DATE_OF_BIRTH_COL = 11;
-    private static final int CLIENT_TYPE_COL = 12;
-    private static final int CLIENT_CLASSIFICATION_COL = 13;
-    private static final int RELATIONAL_OFFICE_NAME_COL = 14;
-    private static final int RELATIONAL_OFFICE_OPENING_DATE_COL = 17;
+    private static final int OFFICE_NAME_COL = 0;
+    private static final int STAFF_NAME_COL = 1;
+    private static final int FIRST_NAME_COL = 2;
+    private static final int FULL_NAME_COL = 2;
+    private static final int MIDDLE_NAME_COL = 3;
+    private static final int LAST_NAME_COL = 4;
+    private static final int MOBILE_NO_COL = 5;
+    private static final int DATE_OF_BIRTH_COL = 6;
+    private static final int GENDER_COL = 7;
+    private static final int CLIENT_TYPE_COL = 8;
+    private static final int CLIENT_CLASSIFICATION_COL = 9;
+    private static final int EXTERNAL_ID_COL = 10;
+    private static final int ACTIVE_COL = 11;
+    private static final int ACTIVATION_DATE_COL = 12;
+    @SuppressWarnings("unused")
+    private static final int STATUS_COL = 14;
+    private static final int WARNING_COL = 15;
+    private static final int RELATIONAL_OFFICE_NAME_COL = 18;
+    private static final int RELATIONAL_OFFICE_OPENING_DATE_COL = 20;
 
     private final String clientType;
 
@@ -102,6 +105,7 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         }
         worksheet.setColumnWidth(OFFICE_NAME_COL, 5000);
         worksheet.setColumnWidth(STAFF_NAME_COL, 5000);
+        worksheet.setColumnWidth(MOBILE_NO_COL, 5000);
         worksheet.setColumnWidth(EXTERNAL_ID_COL, 3500);
         worksheet.setColumnWidth(ACTIVATION_DATE_COL, 4000);
         worksheet.setColumnWidth(ACTIVE_COL, 2000);
@@ -109,10 +113,11 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
         worksheet.setColumnWidth(RELATIONAL_OFFICE_OPENING_DATE_COL, 4000);
         worksheet.setColumnWidth(GENDER_COL, 4000);
         worksheet.setColumnWidth(DATE_OF_BIRTH_COL, 6000);
-        worksheet.setColumnWidth(CLIENT_TYPE_COL, 4000);
+        worksheet.setColumnWidth(CLIENT_TYPE_COL, 6000);
         worksheet.setColumnWidth(CLIENT_CLASSIFICATION_COL, 6000);
         writeString(OFFICE_NAME_COL, rowHeader, "Office Name*");
         writeString(STAFF_NAME_COL, rowHeader, "Staff Name*");
+        writeString(MOBILE_NO_COL, rowHeader, "Mobile No");
         writeString(EXTERNAL_ID_COL, rowHeader, "External ID");
         writeString(ACTIVATION_DATE_COL, rowHeader, "Activation Date*");
         writeString(ACTIVE_COL, rowHeader, "Active*");
@@ -133,6 +138,10 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
                     OFFICE_NAME_COL, OFFICE_NAME_COL);
             CellRangeAddressList staffNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), STAFF_NAME_COL,
                     STAFF_NAME_COL);
+            CellRangeAddressList mobileNoRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), MOBILE_NO_COL,
+                    MOBILE_NO_COL);
+            CellRangeAddressList dateOfBirthRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), DATE_OF_BIRTH_COL,
+                    DATE_OF_BIRTH_COL);
             CellRangeAddressList dateRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), ACTIVATION_DATE_COL,
                     ACTIVATION_DATE_COL);
             CellRangeAddressList activeRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), ACTIVE_COL,
@@ -151,9 +160,13 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
 
             DataValidationConstraint officeNameConstraint = validationHelper.createFormulaListConstraint("Office");
             DataValidationConstraint staffNameConstraint = validationHelper
-                    .createFormulaListConstraint("INDIRECT(CONCATENATE(\"Staff_\",$D1))");
+                    .createFormulaListConstraint("INDIRECT(CONCATENATE(\"Staff_\",$A1))");
+            DataValidationConstraint mobileNoConstraint = validationHelper.createNumericConstraint(
+                    DataValidationConstraint.ValidationType.INTEGER, DataValidationConstraint.OperatorType.BETWEEN, "=0", "=99999999999");
+            DataValidationConstraint dateOfBirthConstraint = validationHelper.createDateConstraint(
+                    DataValidationConstraint.OperatorType.BETWEEN, "=TODAY()-73000", "=TODAY()", "dd/mm/yy");
             DataValidationConstraint activationDateConstraint = validationHelper.createDateConstraint(
-                    DataValidationConstraint.OperatorType.BETWEEN, "=VLOOKUP($D1,$Q$2:$R" + (offices.size() + 1) + ",2,FALSE)", "=TODAY()",
+                    DataValidationConstraint.OperatorType.BETWEEN, "=VLOOKUP($D1,$T$2:$U" + (offices.size() + 1) + ",2,FALSE)", "=TODAY()",
                     "dd/mm/yy");
             DataValidationConstraint activeConstraint = validationHelper.createExplicitListConstraint(new String[] { "True", "False" });
             
@@ -169,6 +182,8 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
 
             DataValidation officeValidation = validationHelper.createValidation(officeNameConstraint, officeNameRange);
             DataValidation staffValidation = validationHelper.createValidation(staffNameConstraint, staffNameRange);
+            DataValidation mobileNoValidation = validationHelper.createValidation(mobileNoConstraint, mobileNoRange);
+            DataValidation dateOfBirthValidation = validationHelper.createValidation(dateOfBirthConstraint, dateOfBirthRange);
             DataValidation activationDateValidation = validationHelper.createValidation(activationDateConstraint, dateRange);
             DataValidation activeValidation = validationHelper.createValidation(activeConstraint, activeRange);
             DataValidation genderValidation = validationHelper.createValidation(genderConstraint, genderRange);
@@ -176,6 +191,8 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
             DataValidation clientClassificationValidation = validationHelper.createValidation(clientClassificationConstraint,
                     clientClassificationRange);
 
+            worksheet.addValidationData(dateOfBirthValidation);
+            worksheet.addValidationData(mobileNoValidation);
             worksheet.addValidationData(activeValidation);
             worksheet.addValidationData(genderValidation);
             worksheet.addValidationData(clientTypeValidation);

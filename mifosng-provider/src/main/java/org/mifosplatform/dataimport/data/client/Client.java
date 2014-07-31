@@ -20,9 +20,11 @@ public class Client {
 
     private final String lastname;
 
+    private final String mobileNo;
+
     private final String genderId;
 
-    private String dateOfBirth;
+    private final String dateOfBirth;
 
     private final String clientTypeId;
 
@@ -34,13 +36,15 @@ public class Client {
 
     private final String activationDate;
 
-    public Client(final String firstname, final String lastname, final String middlename, final String genderId, final String clientTypeId,
-            final String clientClassificationId, final String activationDate, final String active, final String externalId,
-            final String officeId, final String staffId, Integer rowIndex) {
+    public Client(final String firstname, final String lastname, final String middlename, final String mobileNo, final String genderId,
+            final String dateOfBirth, final String clientTypeId, final String clientClassificationId, final String activationDate,
+            final String active, final String externalId, final String officeId, final String staffId, Integer rowIndex) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.middlename = middlename;
+        this.mobileNo = mobileNo;
         this.genderId = genderId;
+        this.dateOfBirth = dateOfBirth;
         this.clientTypeId = clientTypeId;
         this.clientClassificationId = clientClassificationId;
         this.activationDate = activationDate;
@@ -63,6 +67,10 @@ public class Client {
 
     public String getMiddleName() {
         return this.middlename;
+    }
+    
+    public String getMobileNo() {
+        return this.mobileNo;
     }
 
     public String getGender() {

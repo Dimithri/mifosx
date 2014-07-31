@@ -28,20 +28,27 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientDataImportHandler.class);
 
-    private static final int FIRST_NAME_COL = 0;
-    private static final int FULL_NAME_COL = 0;
-    private static final int LAST_NAME_COL = 1;
-    private static final int MIDDLE_NAME_COL = 2;
-    private static final int OFFICE_NAME_COL = 3;
-    private static final int STAFF_NAME_COL = 4;
-    private static final int EXTERNAL_ID_COL = 5;
-    private static final int ACTIVATION_DATE_COL = 6;
-    private static final int ACTIVE_COL = 7;
-    private static final int STATUS_COL = 8;
-    private static final int GENDER_COL = 10;
-    private static final int DATE_OF_BIRTH_COL = 11;
-    private static final int CLIENT_TYPE_COL = 12;
-    private static final int CLIENT_CLASSIFICATION_COL = 13;
+    private static final int OFFICE_NAME_COL = 0;
+    private static final int STAFF_NAME_COL = 1;
+    private static final int FIRST_NAME_COL = 2;
+    private static final int FULL_NAME_COL = 2;
+    private static final int MIDDLE_NAME_COL = 3;
+    private static final int LAST_NAME_COL = 4;
+    private static final int MOBILE_NO_COL = 5;
+    private static final int DATE_OF_BIRTH_COL = 6;
+    private static final int GENDER_COL = 7;
+    private static final int CLIENT_TYPE_COL = 8;
+    private static final int CLIENT_CLASSIFICATION_COL = 9;
+    private static final int EXTERNAL_ID_COL = 10;
+    private static final int ACTIVE_COL = 11;
+    private static final int ACTIVATION_DATE_COL = 12;
+    private static final int STATUS_COL = 14;
+    @SuppressWarnings("unused")
+    private static final int WARNING_COL = 15;
+    @SuppressWarnings("unused")
+    private static final int RELATIONAL_OFFICE_NAME_COL = 18;
+    @SuppressWarnings("unused")
+    private static final int RELATIONAL_OFFICE_OPENING_DATE_COL = 19;
 
     private List<Client> clients;
     private String clientType;
@@ -98,6 +105,8 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
         String officeId = getIdByName(workbook.getSheet("Offices"), officeName).toString();
         String staffName = readAsString(STAFF_NAME_COL, row);
         String staffId = getIdByName(workbook.getSheet("Staff"), staffName).toString();
+        String mobileNo = readAsString(MOBILE_NO_COL, row);
+        String dateOfBirth = readAsDate(DATE_OF_BIRTH_COL, row);
         String externalId = readAsString(EXTERNAL_ID_COL, row);
         String activationDate = readAsDate(ACTIVATION_DATE_COL, row);
         String active = readAsBoolean(ACTIVE_COL, row).toString();
@@ -117,7 +126,7 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
             String lastName = readAsString(LAST_NAME_COL, row);
             String middleName = readAsString(MIDDLE_NAME_COL, row);
             if (StringUtils.isBlank(firstName)) { throw new IllegalArgumentException("Name is blank"); }
-            client = new Client(firstName, lastName, middleName, gender, clientTypeId, clientClassificationId, activationDate, active,
+            client = new Client(firstName, lastName, middleName, mobileNo, gender, dateOfBirth, clientTypeId, clientClassificationId, activationDate, active,
                     externalId, officeId, staffId, row.getRowNum());
 
         } else {
