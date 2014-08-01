@@ -78,6 +78,7 @@ public class LoanRepaymentDataImportHandler extends AbstractDataImportHandler {
         String repaymentDate = readAsDate(REPAID_ON_DATE_COL, row);
         String repaymentType = readAsString(REPAYMENT_TYPE_COL, row);
         String repaymentTypeId = getIdByName(workbook.getSheet("Extras"), repaymentType).toString();
+        if (repaymentTypeId.equals("0")) repaymentTypeId = "";
         String accountNumber = readAsLong(ACCOUNT_NO_COL, row);
         String checkNumber = readAsLong(CHECK_NO_COL, row);
         String routingCode = readAsLong(ROUTING_CODE_COL, row);
@@ -99,9 +100,6 @@ public class LoanRepaymentDataImportHandler extends AbstractDataImportHandler {
                 Gson gson = new Gson();
                 String payload = gson.toJson(loanRepayment);
                 logger.info("ID: " + loanRepayment.getAccountId() + " : " + payload);
-
-                // restClient.post("loans/" + loanRepayment.getAccountId() +
-                // "/transactions?command=repayment", payload);
 
                 final CommandWrapper commandRequest = new CommandWrapperBuilder().withJson(payload)
                         .loanRepaymentTransaction(new Long(loanRepayment.getAccountId())).build();

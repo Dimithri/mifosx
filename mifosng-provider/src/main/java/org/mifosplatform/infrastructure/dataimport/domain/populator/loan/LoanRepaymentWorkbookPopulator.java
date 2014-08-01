@@ -268,12 +268,11 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
 
         ArrayList<String> officeNames = new ArrayList<>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
         Workbook loanRepaymentWorkbook = worksheet.getWorkbook();
-        // Office Names
+
         Name officeGroup = loanRepaymentWorkbook.createName();
         officeGroup.setNameName("Office");
         officeGroup.setRefersToFormula("Offices!$B$2:$B$" + (officeNames.size() + 1));
 
-        // Clients Named after Offices
         for (Integer i = 0; i < officeNames.size(); i++) {
             Integer[] officeNameToBeginEndIndexesOfClients = clientSheetPopulator.getOfficeNameToBeginEndIndexesOfClients().get(i);
             Name name = loanRepaymentWorkbook.createName();
@@ -284,8 +283,6 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
             }
         }
 
-        // Counting clients with active loans and starting and end addresses of
-        // cells
         HashMap<String, Integer[]> clientNameToBeginEndIndexes = new HashMap<>();
         ArrayList<String> clientsWithActiveLoans = new ArrayList<>();
         ArrayList<String> clientIdsWithActiveLoans = new ArrayList<>();
@@ -308,7 +305,6 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
             }
         }
 
-        // Account Number Named after Clients
         for (int j = 0; j < clientsWithActiveLoans.size(); j++) {
             Name name = loanRepaymentWorkbook.createName();
             name.setNameName("Account_" + clientsWithActiveLoans.get(j).replaceAll(" ", "_") + "_" + clientIdsWithActiveLoans.get(j) + "_");
@@ -316,10 +312,9 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
                     + clientNameToBeginEndIndexes.get(clientsWithActiveLoans.get(j))[1]);
         }
 
-        // Payment Type Name
         Name paymentTypeGroup = loanRepaymentWorkbook.createName();
         paymentTypeGroup.setNameName("PaymentTypes");
-        paymentTypeGroup.setRefersToFormula("Extras!$D$2:$D$" + (extrasSheetPopulator.getPaymentTypesSize() + 1));
+        paymentTypeGroup.setRefersToFormula("Extras!$D$2:$D$" + Math.max((extrasSheetPopulator.getPaymentTypesSize() + 1), 2));
     }
 
 }

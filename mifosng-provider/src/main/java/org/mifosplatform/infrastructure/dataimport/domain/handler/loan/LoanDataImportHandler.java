@@ -219,7 +219,7 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         String disbursedDate = readAsDate(DISBURSED_DATE_COL, row);
         String paymentType = readAsString(DISBURSED_PAYMENT_TYPE_COL, row);
         String paymentTypeId = getIdByName(workbook.getSheet("Extras"), paymentType).toString();
-
+        if (paymentTypeId.equals("0")) paymentTypeId = "";
         if (!disbursedDate.equals("")) return new LoanDisbursal(disbursedDate, paymentTypeId, row.getRowNum());
 
         return null;
@@ -231,7 +231,7 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         String lastRepaymentDate = readAsDate(LAST_REPAYMENT_DATE_COL, row);
         String repaymentType = readAsString(REPAYMENT_TYPE_COL, row);
         String repaymentTypeId = getIdByName(workbook.getSheet("Extras"), repaymentType).toString();
-
+        if (repaymentTypeId.equals("0")) repaymentTypeId = "";
         if (!repaymentAmount.equals("0.0")) return new Transaction(repaymentAmount, lastRepaymentDate, repaymentTypeId, row.getRowNum());
 
         return null;
