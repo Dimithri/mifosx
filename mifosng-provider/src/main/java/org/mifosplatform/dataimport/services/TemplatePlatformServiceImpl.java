@@ -274,6 +274,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
             response = Response.ok(new ByteArrayInputStream(stream.toByteArray()));
             response.header("Success", "true");
             response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+            response.header("Access-Control-Expose-Headers", "Success");
             
         } else {
             for (String e : result.getErrors())

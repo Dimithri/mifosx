@@ -174,13 +174,13 @@ public class SavingsDataImportHandler extends AbstractDataImportHandler {
             Cell errorReportCell = row.createCell(FAILURE_REPORT_COL);
             savingsId = "";
             try {
-                String response = "";
+                
                 String status = savings.get(i).getStatus();
                 progressLevel = getProgressLevel(status);
 
                 if (progressLevel == 0) {
-                    response = uploadSavings(i);
-                    savingsId = getSavingsId(response);
+                    
+                    savingsId = uploadSavings(i).getSavingsId().toString();
                     progressLevel = 1;
                 } else
                     savingsId = readAsInt(SAVINGS_ID_COL, savingsSheet.getRow(savings.get(i).getRowIndex()));
@@ -222,7 +222,7 @@ public class SavingsDataImportHandler extends AbstractDataImportHandler {
         return 0;
     }
 
-    private String uploadSavings(int rowIndex) {
+    private CommandProcessingResult uploadSavings(int rowIndex) {
         Gson gson = new Gson();
         String payload = gson.toJson(savings.get(rowIndex));
         logger.info(payload);
@@ -232,14 +232,14 @@ public class SavingsDataImportHandler extends AbstractDataImportHandler {
 
         final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         
-        return result.toString();
+        return result;
     }
 
-    private String getSavingsId(String response) {
+    /*private String getSavingsId(String response) {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(response).getAsJsonObject();
         return obj.get("savingsId").getAsString();
-    }
+    }*/
 
     private Integer uploadSavingsApproval(String savingsId, int rowIndex) {
         Gson gson = new Gson();

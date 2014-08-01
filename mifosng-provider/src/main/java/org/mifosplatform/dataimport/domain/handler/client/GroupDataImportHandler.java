@@ -137,13 +137,13 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
             Cell errorReportCell = row.createCell(FAILURE_COL);
             Cell statusCell = row.createCell(STATUS_COL);
             try {
-                String response = "";
+                
                 String status = groups.get(i).getStatus();
                 progressLevel = getProgressLevel(status);
 
                 if (progressLevel == 0) {
-                    response = uploadGroup(i);
-                    groupId = getGroupId(response);
+                    
+                    groupId = uploadGroup(i).getGroupId().toString();
                     progressLevel = 1;
                 } else
                     groupId = readAsInt(GROUP_ID_COL, groupSheet.getRow(groups.get(i).getRowIndex()));
@@ -179,7 +179,7 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
         return 0;
     }
 
-    private String uploadGroup(int rowIndex) {
+    private CommandProcessingResult uploadGroup(int rowIndex) {
         String payload = new Gson().toJson(groups.get(rowIndex));
         logger.info(payload);
         // String response = restClient.post("groups", payload);
@@ -190,14 +190,14 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
                 .build(); //
         final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
 
-        return result.toString();
+        return result;
     }
 
-    private String getGroupId(String response) {
+    /*private String getGroupId(String response) {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(response).getAsJsonObject();
         return obj.get("groupId").getAsString();
-    }
+    }*/
 
     private Integer uploadGroupMeeting(String groupId, int rowIndex) {
         Meeting meeting = meetings.get(rowIndex);

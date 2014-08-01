@@ -232,13 +232,13 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
             Cell statusCell = row.createCell(STATUS_COL);
             loanId = "";
             try {
-                String response = "";
+                
                 String status = loans.get(i).getStatus();
                 progressLevel = getProgressLevel(status);
 
                 if (progressLevel == 0) {
-                    response = uploadLoan(i);
-                    loanId = getLoanId(response);
+                    
+                    loanId = uploadLoan(i).getLoanId().toString();
                     progressLevel = 1;
                 } else
                     loanId = readAsInt(LOAN_ID_COL, loanSheet.getRow(loans.get(i).getRowIndex()));
@@ -287,7 +287,7 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         return 0;
     }
 
-    private String uploadLoan(int rowIndex) {
+    private CommandProcessingResult uploadLoan(int rowIndex) {
         Gson gson = new Gson();
         String payload = gson.toJson(loans.get(rowIndex));
         logger.info(payload);
@@ -296,14 +296,14 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         final CommandWrapper commandRequest = new CommandWrapperBuilder().createLoanApplication().withJson(payload).build();
 
         final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        return result.toString();
+        return result;
     }
 
-    private String getLoanId(String response) {
+    /*private String getLoanId(String response) {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(response).getAsJsonObject();
         return obj.get("loanId").getAsString();
-    }
+    }*/
 
     private Integer uploadLoanApproval(String loanId, int rowIndex) {
         if (approvalDates.get(rowIndex) != null) {
