@@ -9,12 +9,14 @@ public class Fund {
     private final String name;
 
     public Fund(Integer id, String name) {
+
         this.id = id;
         this.name = name;
     }
 
     public Fund(FundData aFundData) {
-        this.id = aFundData.getId().intValue();
+
+        this.id = aFundData.getId() != null ? aFundData.getId().intValue() : null;
         this.name = aFundData.getName();
     }
 

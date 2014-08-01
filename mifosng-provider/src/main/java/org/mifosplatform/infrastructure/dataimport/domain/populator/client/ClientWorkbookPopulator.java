@@ -54,6 +54,7 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     public ClientWorkbookPopulator(String clientType, final OfficeSheetPopulator officeSheetPopulator,
             final PersonnelSheetPopulator personnelSheetPopulator, final CodeSheetPopulator codeSheetPopulatorClientType,
             final CodeSheetPopulator codeSheetPopulatorClientClassification, final GroupSheetPopulator groupSheetPopulator) {
+
         this.clientType = clientType;
         this.officeSheetPopulator = officeSheetPopulator;
         this.personnelSheetPopulator = personnelSheetPopulator;
@@ -80,6 +81,7 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     public Result populate(Workbook workbook) {
 
         Sheet clientSheet = workbook.createSheet("Clients");
+
         Result result = personnelSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = officeSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = codeSheetPopulatorClientType.populate(workbook);
@@ -98,14 +100,17 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setLayout(Sheet worksheet) {
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         if (clientType.equals("individual")) {
 
         } else {
             worksheet.setColumnWidth(GROUP_NAME_COL, 6000);
             writeString(GROUP_NAME_COL, rowHeader, "Associated Group");
         }
+
         worksheet.setColumnWidth(FIRST_NAME_COL, 6000);
         worksheet.setColumnWidth(LAST_NAME_COL, 6000);
         worksheet.setColumnWidth(MIDDLE_NAME_COL, 6000);
@@ -141,7 +146,9 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private Result setRules(Sheet worksheet) {
+
         Result result = new Result();
+
         try {
             CellRangeAddressList officeNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
                     OFFICE_NAME_COL, OFFICE_NAME_COL);
@@ -209,16 +216,16 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
             worksheet.addValidationData(officeValidation);
             worksheet.addValidationData(staffValidation);
             worksheet.addValidationData(activationDateValidation);
-            
+
             if (!clientType.equals("individual")) {
-                CellRangeAddressList groupfNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(), GROUP_NAME_COL,
-                        GROUP_NAME_COL);
+                CellRangeAddressList groupfNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
+                        GROUP_NAME_COL, GROUP_NAME_COL);
                 DataValidationConstraint groupNameConstraint = validationHelper
                         .createFormulaListConstraint("INDIRECT(CONCATENATE(\"Group_\",$A1))");
                 DataValidation groupValidation = validationHelper.createValidation(groupNameConstraint, groupfNameRange);
                 worksheet.addValidationData(groupValidation);
             }
-            
+
         } catch (RuntimeException re) {
             result.addError(re.getMessage());
         }
@@ -226,6 +233,7 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setNames(Sheet worksheet, List<Office> offices) {
+
         Workbook clientWorkbook = worksheet.getWorkbook();
         Name officeGroup = clientWorkbook.createName();
         officeGroup.setNameName("Office");

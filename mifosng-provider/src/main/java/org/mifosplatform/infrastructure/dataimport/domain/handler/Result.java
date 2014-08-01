@@ -3,15 +3,14 @@ package org.mifosplatform.infrastructure.dataimport.domain.handler;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Result {
-	  
-    private List<String> errors = new ArrayList<String>();
-    
+
+    private List<String> errors = new ArrayList<>();
+
     public void addError(String message) {
         errors.add(message);
     }
-    
+
     public List<String> getErrors() {
         return errors;
     }

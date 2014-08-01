@@ -18,7 +18,7 @@ public class SavingsTimeline {
 
         LocalDate activatedOnDate = timeline.getActivatedOnDate();
 
-        this.activatedOnDate = new ArrayList<Integer>();
+        this.activatedOnDate = new ArrayList<>();
 
         if (activatedOnDate != null) {
             this.activatedOnDate.add(activatedOnDate.getYear());

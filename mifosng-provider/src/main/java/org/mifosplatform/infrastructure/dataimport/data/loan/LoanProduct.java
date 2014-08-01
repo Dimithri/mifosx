@@ -68,6 +68,7 @@ public class LoanProduct {
             Type interestCalculationPeriodType, Integer inArrearsTolerance, String transactionProcessingStrategyName,
             Integer graceOnPrincipalPayment, Integer graceOnInterestPayment, Integer graceOnInterestCharged, ArrayList<Integer> startDate,
             ArrayList<Integer> closeDate) {
+
         this.id = id;
         this.name = name;
         this.fundName = fundName;
@@ -128,7 +129,7 @@ public class LoanProduct {
         this.graceOnInterestCharged = aLoanProductData.getGraceOnInterestCharged();
 
         LocalDate startDate = aLoanProductData.getStartDate();
-        this.startDate = new ArrayList<Integer>();
+        this.startDate = new ArrayList<>();
         if (startDate != null) {
             this.startDate.add(startDate.getYear());
             this.startDate.add(startDate.get(DateTimeFieldType.monthOfYear()));
@@ -136,7 +137,7 @@ public class LoanProduct {
         }
 
         LocalDate closeDate = aLoanProductData.getCloseDate();
-        this.closeDate = new ArrayList<Integer>();
+        this.closeDate = new ArrayList<>();
         if (closeDate != null) {
             this.closeDate.add(closeDate.getYear());
             this.closeDate.add(closeDate.get(DateTimeFieldType.monthOfYear()));

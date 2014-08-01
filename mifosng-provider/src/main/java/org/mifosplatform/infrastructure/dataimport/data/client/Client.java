@@ -41,6 +41,7 @@ public class Client {
     public Client(final String firstname, final String lastname, final String middlename, final String mobileNo, final String genderId,
             final String dateOfBirth, final String clientTypeId, final String clientClassificationId, final String activationDate,
             final String active, final String externalId, final String officeId, final String staffId, Integer rowIndex) {
+
         this.firstname = firstname;
         this.lastname = lastname;
         this.middlename = middlename;

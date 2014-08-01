@@ -26,7 +26,7 @@ public class SavingsTransactionDataImportHandler extends AbstractDataImportHandl
     private static final Logger logger = LoggerFactory.getLogger(SavingsTransactionDataImportHandler.class);
 
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
-    
+
     private final Workbook workbook;
 
     private List<Transaction> savingsTransactions;
@@ -46,16 +46,19 @@ public class SavingsTransactionDataImportHandler extends AbstractDataImportHandl
 
     public SavingsTransactionDataImportHandler(Workbook workbook,
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
+
         this.workbook = workbook;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
-        savingsTransactions = new ArrayList<Transaction>();
+        savingsTransactions = new ArrayList<>();
     }
 
     @Override
     public Result parse() {
+
         Result result = new Result();
         Sheet savingsTransactionSheet = workbook.getSheet("SavingsTransaction");
         Integer noOfEntries = getNumberOfRows(savingsTransactionSheet, AMOUNT_COL);
+
         for (int rowIndex = 1; rowIndex < noOfEntries; rowIndex++) {
             Row row;
             try {
@@ -70,6 +73,7 @@ public class SavingsTransactionDataImportHandler extends AbstractDataImportHandl
     }
 
     private Transaction parseAsTransaction(Row row) {
+
         String savingsAccountIdCheck = readAsInt(SAVINGS_ACCOUNT_NO_COL, row);
         if (!savingsAccountIdCheck.equals("")) savingsAccountId = savingsAccountIdCheck;
         String transactionType = readAsString(TRANSACTION_TYPE_COL, row);
@@ -82,26 +86,28 @@ public class SavingsTransactionDataImportHandler extends AbstractDataImportHandl
         String routingCode = readAsLong(ROUTING_CODE_COL, row);
         String receiptNumber = readAsLong(RECEIPT_NO_COL, row);
         String bankNumber = readAsLong(BANK_NO_COL, row);
+
         return new Transaction(amount, transactionDate, paymentTypeId, accountNumber, checkNumber, routingCode, receiptNumber, bankNumber,
                 Integer.parseInt(savingsAccountId), transactionType, row.getRowNum());
     }
 
     @Override
     public Result upload() {
+
         Result result = new Result();
         Sheet savingsTransactionSheet = workbook.getSheet("SavingsTransaction");
-        //restClient.createAuthToken();
+
         for (Transaction transaction : savingsTransactions) {
             try {
                 Gson gson = new Gson();
                 String payload = gson.toJson(transaction);
                 logger.info("ID: " + transaction.getAccountId() + " : " + payload);
-                
-                // restClient.post( "savingsaccounts/" + transaction.getAccountId() + "/transactions?command=" + transaction.getTransactionType(), payload);
+
                 final CommandWrapperBuilder builder = new CommandWrapperBuilder().withJson(payload);
 
                 String commandParam = transaction.getTransactionType();
                 Long accountId = new Long(transaction.getAccountId());
+
                 CommandProcessingResult commandProcessingResult = null;
                 if (StringUtils.isNotBlank(commandParam) && commandParam.trim().equalsIgnoreCase("deposit")) {
                     final CommandWrapper commandRequest = builder.savingsAccountDeposit(accountId).build();
@@ -115,7 +121,9 @@ public class SavingsTransactionDataImportHandler extends AbstractDataImportHandl
                 Cell statusCell = savingsTransactionSheet.getRow(transaction.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
+
             } catch (Exception e) {
+
                 Cell savingsAccountIdCell = savingsTransactionSheet.getRow(transaction.getRowIndex()).createCell(SAVINGS_ACCOUNT_NO_COL);
                 savingsAccountIdCell.setCellValue(transaction.getAccountId());
                 String message = parseStatus(e.getMessage());
@@ -128,6 +136,7 @@ public class SavingsTransactionDataImportHandler extends AbstractDataImportHandl
         }
         savingsTransactionSheet.setColumnWidth(STATUS_COL, 15000);
         writeString(STATUS_COL, savingsTransactionSheet.getRow(0), "Status");
+
         return result;
     }
 

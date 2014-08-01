@@ -25,7 +25,7 @@ public class LoanRepaymentDataImportHandler extends AbstractDataImportHandler {
     private static final Logger logger = LoggerFactory.getLogger(LoanRepaymentDataImportHandler.class);
 
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
-    
+
     private final Workbook workbook;
 
     private List<Transaction> loanRepayments;
@@ -44,16 +44,19 @@ public class LoanRepaymentDataImportHandler extends AbstractDataImportHandler {
 
     public LoanRepaymentDataImportHandler(Workbook workbook,
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
+
         this.workbook = workbook;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
-        loanRepayments = new ArrayList<Transaction>();
+        loanRepayments = new ArrayList<>();
     }
 
     @Override
     public Result parse() {
+
         Result result = new Result();
         Sheet loanRepaymentSheet = workbook.getSheet("LoanRepayment");
         Integer noOfEntries = getNumberOfRows(loanRepaymentSheet, AMOUNT_COL);
+
         for (int rowIndex = 1; rowIndex < noOfEntries; rowIndex++) {
             Row row;
             try {
@@ -68,6 +71,7 @@ public class LoanRepaymentDataImportHandler extends AbstractDataImportHandler {
     }
 
     private Transaction parseAsLoanRepayment(Row row) {
+
         String loanAccountIdCheck = readAsInt(LOAN_ACCOUNT_NO_COL, row);
         if (!loanAccountIdCheck.equals("")) loanAccountId = loanAccountIdCheck;
         String repaymentAmount = readAsDouble(AMOUNT_COL, row).toString();
@@ -79,23 +83,26 @@ public class LoanRepaymentDataImportHandler extends AbstractDataImportHandler {
         String routingCode = readAsLong(ROUTING_CODE_COL, row);
         String receiptNumber = readAsLong(RECEIPT_NO_COL, row);
         String bankNumber = readAsLong(BANK_NO_COL, row);
+
         return new Transaction(repaymentAmount, repaymentDate, repaymentTypeId, accountNumber, checkNumber, routingCode, receiptNumber,
                 bankNumber, Integer.parseInt(loanAccountId), "", row.getRowNum());
     }
 
     @Override
     public Result upload() {
+
         Result result = new Result();
         Sheet loanRepaymentSheet = workbook.getSheet("LoanRepayment");
-        //restClient.createAuthToken();
+
         for (Transaction loanRepayment : loanRepayments) {
             try {
                 Gson gson = new Gson();
                 String payload = gson.toJson(loanRepayment);
                 logger.info("ID: " + loanRepayment.getAccountId() + " : " + payload);
-                
-                //restClient.post("loans/" + loanRepayment.getAccountId() + "/transactions?command=repayment", payload);
-                
+
+                // restClient.post("loans/" + loanRepayment.getAccountId() +
+                // "/transactions?command=repayment", payload);
+
                 final CommandWrapper commandRequest = new CommandWrapperBuilder().withJson(payload)
                         .loanRepaymentTransaction(new Long(loanRepayment.getAccountId())).build();
                 @SuppressWarnings("unused")
@@ -105,7 +112,9 @@ public class LoanRepaymentDataImportHandler extends AbstractDataImportHandler {
                 Cell statusCell = loanRepaymentSheet.getRow(loanRepayment.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
+
             } catch (Exception e) {
+
                 Cell loanAccountIdCell = loanRepaymentSheet.getRow(loanRepayment.getRowIndex()).createCell(LOAN_ACCOUNT_NO_COL);
                 loanAccountIdCell.setCellValue(loanRepayment.getAccountId());
                 String message = parseStatus(e.getMessage());
@@ -117,6 +126,7 @@ public class LoanRepaymentDataImportHandler extends AbstractDataImportHandler {
         }
         loanRepaymentSheet.setColumnWidth(STATUS_COL, 15000);
         writeString(STATUS_COL, loanRepaymentSheet.getRow(0), "Status");
+
         return result;
     }
 

@@ -4,85 +4,87 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class Group {
-	
-	    private final transient Integer rowIndex;
-	    
-	    private final transient String status;
-	    
-	    private final String dateFormat;
-	    
-	    private final Locale locale;
-	    
-	    private final String name;
-	    
-	    private final ArrayList<String> clientMembers;
-	    
-	    private final String officeId;
-	    
-	    private final String staffId;
-	    
-	    private final String externalId;
-	    
-	    private final String active;
-	    
-	    private final String activationDate;
-	    
-	    public Group(String name, ArrayList<String> clientMembers, String activationDate, String active, String externalId, String officeId, String staffId, Integer rowIndex, String status) {
-	        this.name = name;
-	        this.clientMembers = clientMembers;
-	        this.activationDate = activationDate;
-	        this.active = active;
-	        this.externalId = externalId;
-	        this.officeId = officeId;
-	        this.staffId = staffId;
-	        this.rowIndex = rowIndex;
-	        this.status = status;
-	        this.dateFormat = "dd MMMM yyyy";
-	        this.locale = Locale.ENGLISH;
-	    }
 
-		public Integer getRowIndex() {
-			return rowIndex;
-		}
+    private final transient Integer rowIndex;
 
-		public String getDateFormat() {
-			return dateFormat;
-		}
+    private final transient String status;
 
-		public Locale getLocale() {
-			return locale;
-		}
+    private final String dateFormat;
 
-		public String getName() {
-			return name;
-		}
+    private final Locale locale;
 
-		public ArrayList<String> getClientMembers() {
-			return clientMembers;
-		}
+    private final String name;
 
-		public String getOfficeId() {
-			return officeId;
-		}
+    private final ArrayList<String> clientMembers;
 
-		public String getStaffId() {
-			return staffId;
-		}
+    private final String officeId;
 
-		public String getExternalId() {
-			return externalId;
-		}
+    private final String staffId;
 
-		public String isActive() {
-			return active;
-		}
+    private final String externalId;
 
-		public String getActivationDate() {
-			return activationDate;
-		}
+    private final String active;
 
-		public String getStatus() {
-			return status;
-		}
+    private final String activationDate;
+
+    public Group(String name, ArrayList<String> clientMembers, String activationDate, String active, String externalId, String officeId,
+            String staffId, Integer rowIndex, String status) {
+
+        this.name = name;
+        this.clientMembers = clientMembers;
+        this.activationDate = activationDate;
+        this.active = active;
+        this.externalId = externalId;
+        this.officeId = officeId;
+        this.staffId = staffId;
+        this.rowIndex = rowIndex;
+        this.status = status;
+        this.dateFormat = "dd MMMM yyyy";
+        this.locale = Locale.ENGLISH;
+    }
+
+    public Integer getRowIndex() {
+        return rowIndex;
+    }
+
+    public String getDateFormat() {
+        return dateFormat;
+    }
+
+    public Locale getLocale() {
+        return locale;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ArrayList<String> getClientMembers() {
+        return clientMembers;
+    }
+
+    public String getOfficeId() {
+        return officeId;
+    }
+
+    public String getStaffId() {
+        return staffId;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public String isActive() {
+        return active;
+    }
+
+    public String getActivationDate() {
+        return activationDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
 
 }

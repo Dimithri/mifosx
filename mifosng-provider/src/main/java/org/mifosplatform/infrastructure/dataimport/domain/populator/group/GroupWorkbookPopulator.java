@@ -22,7 +22,6 @@ import org.mifosplatform.infrastructure.dataimport.domain.populator.PersonnelShe
 
 public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
 
-    @SuppressWarnings("CPD-START")
     private static final int NAME_COL = 0;
     private static final int OFFICE_NAME_COL = 1;
     private static final int STAFF_NAME_COL = 2;
@@ -44,13 +43,14 @@ public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
     private static final int LOOKUP_REPEAT_NORMAL_COL = 253;
     private static final int LOOKUP_REPEAT_MONTHLY_COL = 254;
     private static final int LOOKUP_IF_REPEAT_WEEKLY_COL = 255;
-    @SuppressWarnings("CPD-END")
+
     private OfficeSheetPopulator officeSheetPopulator;
     private PersonnelSheetPopulator personnelSheetPopulator;
     private ClientSheetPopulator clientSheetPopulator;
 
     public GroupWorkbookPopulator(OfficeSheetPopulator officeSheetPopulator, PersonnelSheetPopulator personnelSheetPopulator,
             ClientSheetPopulator clientSheetPopulator) {
+
         this.officeSheetPopulator = officeSheetPopulator;
         this.personnelSheetPopulator = personnelSheetPopulator;
         this.clientSheetPopulator = clientSheetPopulator;
@@ -58,6 +58,7 @@ public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result downloadAndParse() {
+
         Result result = officeSheetPopulator.downloadAndParse();
         if (result.isSuccess()) {
             result = personnelSheetPopulator.downloadAndParse();
@@ -70,19 +71,25 @@ public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result populate(Workbook workbook) {
+
         Sheet groupSheet = workbook.createSheet("Groups");
+
         Result result = personnelSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = officeSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = clientSheetPopulator.populate(workbook);
+
         setLayout(groupSheet);
         setLookupTable(groupSheet);
+
         if (result.isSuccess()) result = setRules(groupSheet);
         return result;
     }
 
     private void setLayout(Sheet worksheet) {
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         worksheet.setColumnWidth(NAME_COL, 4000);
         worksheet.setColumnWidth(OFFICE_NAME_COL, 5000);
         worksheet.setColumnWidth(STAFF_NAME_COL, 5000);
@@ -103,6 +110,7 @@ public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
         worksheet.setColumnWidth(LOOKUP_REPEAT_NORMAL_COL, 3000);
         worksheet.setColumnWidth(LOOKUP_REPEAT_MONTHLY_COL, 3000);
         worksheet.setColumnWidth(LOOKUP_IF_REPEAT_WEEKLY_COL, 3000);
+
         writeString(NAME_COL, rowHeader, "Group Name*");
         writeString(OFFICE_NAME_COL, rowHeader, "Office Name*");
         writeString(STAFF_NAME_COL, rowHeader, "Staff Name*");
@@ -124,22 +132,29 @@ public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setLookupTable(Sheet groupSheet) {
+
         setOfficeDateLookupTable(groupSheet, officeSheetPopulator.getOffices(), LOOKUP_OFFICE_NAME_COL, LOOKUP_OFFICE_OPENING_DATE_COL);
+
         int rowIndex;
         for (rowIndex = 1; rowIndex <= 11; rowIndex++) {
             Row row = groupSheet.getRow(rowIndex);
             if (row == null) row = groupSheet.createRow(rowIndex);
             writeInt(LOOKUP_REPEAT_MONTHLY_COL, row, rowIndex);
         }
+
         for (rowIndex = 1; rowIndex <= 3; rowIndex++)
             writeInt(LOOKUP_REPEAT_NORMAL_COL, groupSheet.getRow(rowIndex), rowIndex);
+
         String[] days = new String[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
         for (rowIndex = 1; rowIndex <= 7; rowIndex++)
             writeString(LOOKUP_IF_REPEAT_WEEKLY_COL, groupSheet.getRow(rowIndex), days[rowIndex - 1]);
     }
 
     private Result setRules(Sheet worksheet) {
+
         Result result = new Result();
+
         try {
             CellRangeAddressList officeNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
                     OFFICE_NAME_COL, OFFICE_NAME_COL);
@@ -163,7 +178,7 @@ public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
                     CLIENT_NAMES_STARTING_COL, CLIENT_NAMES_ENDING_COL);
 
             DataValidationHelper validationHelper = new HSSFDataValidationHelper((HSSFSheet) worksheet);
-            ArrayList<String> officeNames = new ArrayList<String>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
+            ArrayList<String> officeNames = new ArrayList<>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
             setNames(worksheet, officeNames);
 
             DataValidationConstraint officeNameConstraint = validationHelper.createFormulaListConstraint("Office");
@@ -205,6 +220,7 @@ public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
             worksheet.addValidationData(repeatsEveryValidation);
             worksheet.addValidationData(repeatsOnValidation);
             worksheet.addValidationData(clientValidation);
+
         } catch (RuntimeException re) {
             result.addError(re.getMessage());
         }
@@ -212,34 +228,40 @@ public class GroupWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setNames(Sheet worksheet, ArrayList<String> officeNames) {
+
         Workbook groupWorkbook = worksheet.getWorkbook();
         Name officeGroup = groupWorkbook.createName();
         officeGroup.setNameName("Office");
         officeGroup.setRefersToFormula("Offices!$B$2:$B$" + (officeNames.size() + 1));
 
-        // Repeat constraint names
         Name repeatsDaily = groupWorkbook.createName();
         repeatsDaily.setNameName("Daily");
         repeatsDaily.setRefersToFormula("Groups!$IT$2:$IT$4");
+
         Name repeatsWeekly = groupWorkbook.createName();
         repeatsWeekly.setNameName("Weekly");
         repeatsWeekly.setRefersToFormula("Groups!$IT$2:$IT$4");
+
         Name repeatYearly = groupWorkbook.createName();
         repeatYearly.setNameName("Yearly");
         repeatYearly.setRefersToFormula("Groups!$IT$2:$IT$4");
+
         Name repeatsMonthly = groupWorkbook.createName();
         repeatsMonthly.setNameName("Monthly");
         repeatsMonthly.setRefersToFormula("Groups!$IU$2:$IU$12");
+
         Name repeatsOnWeekly = groupWorkbook.createName();
         repeatsOnWeekly.setNameName("Weekly_Days");
         repeatsOnWeekly.setRefersToFormula("Groups!$IV$2:$IV$8");
 
-        // Client and Staff Names for each office
         for (Integer i = 0; i < officeNames.size(); i++) {
+
             Integer[] officeNameToBeginEndIndexesOfClients = clientSheetPopulator.getOfficeNameToBeginEndIndexesOfClients().get(i);
             Integer[] officeNameToBeginEndIndexesOfStaff = personnelSheetPopulator.getOfficeNameToBeginEndIndexesOfStaff().get(i);
+
             Name clientName = groupWorkbook.createName();
             Name loanOfficerName = groupWorkbook.createName();
+
             if (officeNameToBeginEndIndexesOfClients != null) {
                 clientName.setNameName("Client_" + officeNames.get(i));
                 clientName.setRefersToFormula("Clients!$B$" + officeNameToBeginEndIndexesOfClients[0] + ":$B$"

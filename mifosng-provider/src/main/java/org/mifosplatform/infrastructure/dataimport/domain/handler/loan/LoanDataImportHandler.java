@@ -24,14 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 public class LoanDataImportHandler extends AbstractDataImportHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanDataImportHandler.class);
 
-    @SuppressWarnings("CPD-START")
     private static final int LOAN_TYPE_COL = 1;
     private static final int CLIENT_NAME_COL = 2;
     private static final int PRODUCT_COL = 3;
@@ -64,27 +61,31 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
     private static final int STATUS_COL = 31;
     private static final int LOAN_ID_COL = 32;
     private static final int FAILURE_REPORT_COL = 33;
-    @SuppressWarnings("CPD-END")
-    private List<Loan> loans = new ArrayList<Loan>();
-    private List<Approval> approvalDates = new ArrayList<Approval>();
-    private List<LoanDisbursal> disbursalDates = new ArrayList<LoanDisbursal>();
-    private List<Transaction> loanRepayments = new ArrayList<Transaction>();
+
+    private List<Loan> loans = new ArrayList<>();
+    private List<Approval> approvalDates = new ArrayList<>();
+    private List<LoanDisbursal> disbursalDates = new ArrayList<>();
+    private List<Transaction> loanRepayments = new ArrayList<>();
 
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
 
     private final Workbook workbook;
 
     public LoanDataImportHandler(Workbook workbook, final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
+
         this.workbook = workbook;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
     }
 
     @Override
     public Result parse() {
+
         Result result = new Result();
         Sheet loanSheet = workbook.getSheet("Loans");
         Integer noOfEntries = getNumberOfRows(loanSheet, 0);
+
         for (int rowIndex = 1; rowIndex < noOfEntries; rowIndex++) {
+
             Row row;
             try {
                 row = loanSheet.getRow(rowIndex);
@@ -104,6 +105,7 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
     }
 
     private Loan parseAsLoan(Row row) {
+
         String status = readAsString(STATUS_COL, row);
         String productName = readAsString(PRODUCT_COL, row);
         String productId = getIdByName(workbook.getSheet("Products"), productName).toString();
@@ -111,47 +113,60 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         String loanOfficerId = getIdByName(workbook.getSheet("Staff"), loanOfficerName).toString();
         String submittedOnDate = readAsDate(SUBMITTED_ON_DATE_COL, row);
         String fundName = readAsString(FUND_NAME_COL, row);
+
         String fundId;
         if (fundName.equals(""))
             fundId = "";
         else
             fundId = getIdByName(workbook.getSheet("Extras"), fundName).toString();
+
         String principal = readAsDouble(PRINCIPAL_COL, row).toString();
         String numberOfRepayments = readAsString(NO_OF_REPAYMENTS_COL, row);
         String repaidEvery = readAsString(REPAID_EVERY_COL, row);
         String repaidEveryFrequency = readAsString(REPAID_EVERY_FREQUENCY_COL, row);
+
         String repaidEveryFrequencyId = "";
         if (repaidEveryFrequency.equalsIgnoreCase("Days"))
             repaidEveryFrequencyId = "0";
         else if (repaidEveryFrequency.equalsIgnoreCase("Weeks"))
             repaidEveryFrequencyId = "1";
         else if (repaidEveryFrequency.equalsIgnoreCase("Months")) repaidEveryFrequencyId = "2";
+
         String loanTerm = readAsString(LOAN_TERM_COL, row);
         String loanTermFrequency = readAsString(LOAN_TERM_FREQUENCY_COL, row);
+
         String loanTermFrequencyId = "";
         if (loanTermFrequency.equalsIgnoreCase("Days"))
             loanTermFrequencyId = "0";
         else if (loanTermFrequency.equalsIgnoreCase("Weeks"))
             loanTermFrequencyId = "1";
         else if (loanTermFrequency.equalsIgnoreCase("Months")) loanTermFrequencyId = "2";
+
         String nominalInterestRate = readAsString(NOMINAL_INTEREST_RATE_COL, row);
         String amortization = readAsString(AMORTIZATION_COL, row);
+
         String amortizationId = "";
         if (amortization.equalsIgnoreCase("Equal principal payments"))
             amortizationId = "0";
         else if (amortization.equalsIgnoreCase("Equal installments")) amortizationId = "1";
+
         String interestMethod = readAsString(INTEREST_METHOD_COL, row);
+
         String interestMethodId = "";
         if (interestMethod.equalsIgnoreCase("Flat"))
             interestMethodId = "1";
         else if (interestMethod.equalsIgnoreCase("Declining Balance")) interestMethodId = "0";
+
         String interestCalculationPeriod = readAsString(INTEREST_CALCULATION_PERIOD_COL, row);
+
         String interestCalculationPeriodId = "";
         if (interestCalculationPeriod.equalsIgnoreCase("Daily"))
             interestCalculationPeriodId = "0";
         else if (interestCalculationPeriod.equalsIgnoreCase("Same as repayment period")) interestCalculationPeriodId = "1";
+
         String arrearsTolerance = readAsString(ARREARS_TOLERANCE_COL, row);
         String repaymentStrategy = readAsString(REPAYMENT_STRATEGY_COL, row);
+
         String repaymentStrategyId = "";
         if (repaymentStrategy.equalsIgnoreCase("Mifos style"))
             repaymentStrategyId = "1";
@@ -164,6 +179,7 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         else if (repaymentStrategy.equalsIgnoreCase("Principal Interest Penalties Fees Order"))
             repaymentStrategyId = "5";
         else if (repaymentStrategy.equalsIgnoreCase("Interest Principal Penalties Fees Order")) repaymentStrategyId = "6";
+
         String graceOnPrincipalPayment = readAsString(GRACE_ON_PRINCIPAL_PAYMENT_COL, row);
         String graceOnInterestPayment = readAsString(GRACE_ON_INTEREST_PAYMENT_COL, row);
         String graceOnInterestCharged = readAsString(GRACE_ON_INTEREST_CHARGED_COL, row);
@@ -171,6 +187,7 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         String firstRepaymentOnDate = readAsDate(FIRST_REPAYMENT_COL, row);
         String loanType = readAsString(LOAN_TYPE_COL, row).toLowerCase(Locale.ENGLISH);
         String clientOrGroupName = readAsString(CLIENT_NAME_COL, row);
+
         if (loanType.equals("individual")) {
             String clientId = getIdByName(workbook.getSheet("Clients"), clientOrGroupName).toString();
             return new Loan(loanType, clientId, productId, loanOfficerId, submittedOnDate, fundId, principal, numberOfRepayments,
@@ -178,64 +195,70 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
                     amortizationId, interestMethodId, interestCalculationPeriodId, arrearsTolerance, repaymentStrategyId,
                     graceOnPrincipalPayment, graceOnInterestPayment, graceOnInterestCharged, interestChargedFromDate, firstRepaymentOnDate,
                     row.getRowNum(), status);
-        } else {
-            String groupId = getIdByName(workbook.getSheet("Groups"), clientOrGroupName).toString();
-            return new GroupLoan(loanType, groupId, productId, loanOfficerId, submittedOnDate, fundId, principal, numberOfRepayments,
-                    repaidEvery, repaidEveryFrequencyId, loanTerm, loanTermFrequencyId, nominalInterestRate, submittedOnDate,
-                    amortizationId, interestMethodId, interestCalculationPeriodId, arrearsTolerance, repaymentStrategyId,
-                    graceOnPrincipalPayment, graceOnInterestPayment, graceOnInterestCharged, interestChargedFromDate, firstRepaymentOnDate,
-                    row.getRowNum(), status);
         }
+
+        String groupId = getIdByName(workbook.getSheet("Groups"), clientOrGroupName).toString();
+        return new GroupLoan(loanType, groupId, productId, loanOfficerId, submittedOnDate, fundId, principal, numberOfRepayments,
+                repaidEvery, repaidEveryFrequencyId, loanTerm, loanTermFrequencyId, nominalInterestRate, submittedOnDate, amortizationId,
+                interestMethodId, interestCalculationPeriodId, arrearsTolerance, repaymentStrategyId, graceOnPrincipalPayment,
+                graceOnInterestPayment, graceOnInterestCharged, interestChargedFromDate, firstRepaymentOnDate, row.getRowNum(), status);
+
     }
 
     private Approval parseAsLoanApproval(Row row) {
+
         String approvedDate = readAsDate(APPROVED_DATE_COL, row);
-        if (!approvedDate.equals(""))
-            return new Approval(approvedDate, row.getRowNum());
-        else
-            return null;
+
+        if (!approvedDate.equals("")) return new Approval(approvedDate, row.getRowNum());
+
+        return null;
     }
 
     private LoanDisbursal parseAsLoanDisbursal(Row row) {
+
         String disbursedDate = readAsDate(DISBURSED_DATE_COL, row);
         String paymentType = readAsString(DISBURSED_PAYMENT_TYPE_COL, row);
         String paymentTypeId = getIdByName(workbook.getSheet("Extras"), paymentType).toString();
-        if (!disbursedDate.equals(""))
-            return new LoanDisbursal(disbursedDate, paymentTypeId, row.getRowNum());
-        else
-            return null;
+
+        if (!disbursedDate.equals("")) return new LoanDisbursal(disbursedDate, paymentTypeId, row.getRowNum());
+
+        return null;
     }
 
     private Transaction parseAsLoanRepayment(Row row) {
+
         String repaymentAmount = readAsDouble(TOTAL_AMOUNT_REPAID_COL, row).toString();
         String lastRepaymentDate = readAsDate(LAST_REPAYMENT_DATE_COL, row);
         String repaymentType = readAsString(REPAYMENT_TYPE_COL, row);
         String repaymentTypeId = getIdByName(workbook.getSheet("Extras"), repaymentType).toString();
-        if (!repaymentAmount.equals("0.0"))
-            return new Transaction(repaymentAmount, lastRepaymentDate, repaymentTypeId, row.getRowNum());
-        else
-            return null;
+
+        if (!repaymentAmount.equals("0.0")) return new Transaction(repaymentAmount, lastRepaymentDate, repaymentTypeId, row.getRowNum());
+
+        return null;
     }
 
     @Override
     public Result upload() {
+
         Result result = new Result();
         Sheet loanSheet = workbook.getSheet("Loans");
-        // restClient.createAuthToken();
+
         int progressLevel = 0;
         String loanId;
         for (int i = 0; i < loans.size(); i++) {
+
             Row row = loanSheet.getRow(loans.get(i).getRowIndex());
             Cell errorReportCell = row.createCell(FAILURE_REPORT_COL);
             Cell statusCell = row.createCell(STATUS_COL);
+
             loanId = "";
             try {
-                
+
                 String status = loans.get(i).getStatus();
                 progressLevel = getProgressLevel(status);
 
                 if (progressLevel == 0) {
-                    
+
                     loanId = uploadLoan(i).getLoanId().toString();
                     progressLevel = 1;
                 } else
@@ -249,7 +272,9 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
 
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
+
             } catch (RuntimeException re) {
+
                 String message = parseStatus(re.getMessage());
                 String status = "";
 
@@ -275,6 +300,7 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
     }
 
     private int getProgressLevel(String status) {
+
         if (status.equals("") || status.equals("Creation failed."))
             return 0;
         else if (status.equals("Approval failed."))
@@ -282,10 +308,12 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         else if (status.equals("Disbursal failed."))
             return 2;
         else if (status.equals("Repayment failed.")) return 3;
+
         return 0;
     }
 
     private CommandProcessingResult uploadLoan(int rowIndex) {
+
         Gson gson = new Gson();
         String payload = gson.toJson(loans.get(rowIndex));
         logger.info(payload);
@@ -297,13 +325,8 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
         return result;
     }
 
-    /*private String getLoanId(String response) {
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(response).getAsJsonObject();
-        return obj.get("loanId").getAsString();
-    }*/
-
     private Integer uploadLoanApproval(String loanId, int rowIndex) {
+
         if (approvalDates.get(rowIndex) != null) {
             Gson gson = new Gson();
             String payload = gson.toJson(approvalDates.get(rowIndex));
@@ -319,12 +342,14 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
     }
 
     private Integer uploadLoanDisbursal(String loanId, int rowIndex) {
+
         if (approvalDates.get(rowIndex) != null && disbursalDates.get(rowIndex) != null) {
             Gson gson = new Gson();
             String payload = gson.toJson(disbursalDates.get(rowIndex));
             logger.info(payload);
 
-            // restClient.post("loans/" + loanId + "?command=disburse", payload);
+            // restClient.post("loans/" + loanId + "?command=disburse",
+            // payload);
             final CommandWrapper commandRequest = new CommandWrapperBuilder().withJson(payload)
                     .disburseLoanApplication(Long.parseLong(loanId, 10)).build();
             @SuppressWarnings("unused")
@@ -334,11 +359,13 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
     }
 
     private Integer uploadLoanRepayment(String loanId, int rowIndex) {
+
         Gson gson = new Gson();
         String payload = gson.toJson(loanRepayments.get(rowIndex));
         logger.info(payload);
 
-        // restClient.post("loans/" + loanId + "/transactions?command=repayment", payload);
+        // restClient.post("loans/" + loanId +
+        // "/transactions?command=repayment", payload);
         final CommandWrapper commandRequest = new CommandWrapperBuilder().withJson(payload)
                 .loanRepaymentTransaction(Long.parseLong(loanId, 10)).build();
         @SuppressWarnings("unused")
@@ -348,6 +375,7 @@ public class LoanDataImportHandler extends AbstractDataImportHandler {
     }
 
     private void setReportHeaders(Sheet sheet) {
+
         sheet.setColumnWidth(STATUS_COL, 4000);
         Row rowHeader = sheet.getRow(0);
         writeString(STATUS_COL, rowHeader, "Status");

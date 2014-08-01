@@ -2,37 +2,27 @@ package org.mifosplatform.infrastructure.dataimport.domain.populator.loan;
 
 import java.util.ArrayList;
 import java.util.Collection;
-//import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-//import org.mifosplatform.infrastructure.dataimport.data.group.CompactGroup;
+
 import org.mifosplatform.infrastructure.dataimport.data.loan.LoanProduct;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.Result;
-//import org.mifosplatform.infrastructure.dataimport.services.http.RestClient;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.AbstractWorkbookPopulator;
-//import org.mifosplatform.portfolio.group.data.GroupGeneralData;
 import org.mifosplatform.portfolio.loanproduct.data.LoanProductData;
 import org.mifosplatform.portfolio.loanproduct.service.LoanProductReadPlatformService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-//import com.google.gson.Gson;
-//import com.google.gson.JsonArray;
-//import com.google.gson.JsonElement;
-//import com.google.gson.JsonParser;
 
 public class LoanProductSheetPopulator extends AbstractWorkbookPopulator {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanProductSheetPopulator.class);
 
-    // private final RestClient client;
     private final LoanProductReadPlatformService loanProductReadPlatformService;
-
-    //private String content;
 
     private List<LoanProduct> products;
 
@@ -63,7 +53,7 @@ public class LoanProductSheetPopulator extends AbstractWorkbookPopulator {
     private static final int CLOSE_DATE_COL = 24;
 
     public LoanProductSheetPopulator(final LoanProductReadPlatformService loanProductReadPlatformService) {
-        // this.client = client;
+
         this.loanProductReadPlatformService = loanProductReadPlatformService;
     }
 
@@ -71,28 +61,16 @@ public class LoanProductSheetPopulator extends AbstractWorkbookPopulator {
     public Result downloadAndParse() {
         Result result = new Result();
         try {
-            // client.createAuthToken();
 
-            // content = client.get("loanproducts");
             final Collection<LoanProductData> loanProductsCollection = this.loanProductReadPlatformService.retrieveAllLoanProducts();
 
-            products = new ArrayList<LoanProduct>();
+            products = new ArrayList<>();
+
             for (LoanProductData aLoanProductData : loanProductsCollection) {
 
                 LoanProduct product = new LoanProduct(aLoanProductData);
                 if (product.getStatus().equals("loanProduct.active")) products.add(product);
             }
-
-            /*
-             * Gson gson = new Gson(); JsonElement json = new
-             * JsonParser().parse(content); JsonArray array =
-             * json.getAsJsonArray(); Iterator<JsonElement> iterator =
-             * array.iterator(); while (iterator.hasNext()) { json =
-             * iterator.next(); LoanProduct product = gson.fromJson(json,
-             * LoanProduct.class); if
-             * (product.getStatus().equals("loanProduct.active"))
-             * products.add(product); }
-             */
 
         } catch (Exception e) {
             result.addError(e.getMessage());
@@ -103,40 +81,54 @@ public class LoanProductSheetPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result populate(Workbook workbook) {
+
         Result result = new Result();
+
         try {
+
             int rowIndex = 1;
             Sheet productSheet = workbook.createSheet("Products");
             setLayout(productSheet);
+
             CellStyle dateCellStyle = workbook.createCellStyle();
             short df = workbook.createDataFormat().getFormat("dd/mm/yy");
             dateCellStyle.setDataFormat(df);
+
             for (LoanProduct product : products) {
+
                 Row row = productSheet.createRow(rowIndex++);
                 writeInt(ID_COL, row, product.getId());
                 writeString(NAME_COL, row, product.getName().trim().replaceAll("[ )(]", "_"));
+
                 if (product.getFundName() != null) writeString(FUND_NAME_COL, row, product.getFundName());
+
                 writeInt(PRINCIPAL_COL, row, product.getPrincipal());
+
                 if (product.getMinPrincipal() != null)
                     writeInt(MIN_PRINCIPAL_COL, row, product.getMinPrincipal());
                 else
                     writeInt(MIN_PRINCIPAL_COL, row, 1);
+
                 if (product.getMaxPrincipal() != null)
                     writeInt(MAX_PRINCIPAL_COL, row, product.getMaxPrincipal());
                 else
                     writeInt(MAX_PRINCIPAL_COL, row, 999999999);
                 writeInt(NO_OF_REPAYMENTS_COL, row, product.getNumberOfRepayments());
+
                 if (product.getMinNumberOfRepayments() != null)
                     writeInt(MIN_REPAYMENTS_COL, row, product.getMinNumberOfRepayments());
                 else
                     writeInt(MIN_REPAYMENTS_COL, row, 1);
+
                 if (product.getMaxNumberOfRepayments() != null)
                     writeInt(MAX_REPAYMENTS_COL, row, product.getMaxNumberOfRepayments());
                 else
                     writeInt(MAX_REPAYMENTS_COL, row, 999999999);
+
                 writeInt(REPAYMENT_EVERY_COL, row, product.getRepaymentEvery());
                 writeString(REPAYMENT_FREQUENCY_COL, row, product.getRepaymentFrequencyType().getValue());
                 writeInt(INTEREST_RATE_COL, row, product.getInterestRatePerPeriod());
+
                 if (product.getMinInterestRatePerPeriod() != null)
                     writeInt(MIN_INTEREST_RATE_COL, row, product.getMinInterestRatePerPeriod());
                 else
@@ -145,28 +137,36 @@ public class LoanProductSheetPopulator extends AbstractWorkbookPopulator {
                     writeInt(MAX_INTEREST_RATE_COL, row, product.getMaxInterestRatePerPeriod());
                 else
                     writeInt(MAX_INTEREST_RATE_COL, row, 999999999);
+
                 writeString(INTEREST_RATE_FREQUENCY_COL, row, product.getInterestRateFrequencyType().getValue());
                 writeString(AMORTIZATION_TYPE_COL, row, product.getAmortizationType().getValue());
                 writeString(INTEREST_TYPE_COL, row, product.getInterestType().getValue());
                 writeString(INTEREST_CALCULATION_PERIOD_TYPE_COL, row, product.getInterestCalculationPeriodType().getValue());
+
                 if (product.getInArrearsTolerance() != null) writeInt(IN_ARREARS_TOLERANCE_COL, row, product.getInArrearsTolerance());
                 writeString(TRANSACTION_PROCESSING_STRATEGY_NAME_COL, row, product.getTransactionProcessingStrategyName());
+
                 if (product.getGraceOnPrincipalPayment() != null)
                     writeInt(GRACE_ON_PRINCIPAL_PAYMENT_COL, row, product.getGraceOnPrincipalPayment());
+
                 if (product.getGraceOnInterestPayment() != null)
                     writeInt(GRACE_ON_INTEREST_PAYMENT_COL, row, product.getGraceOnInterestPayment());
+
                 if (product.getGraceOnInterestCharged() != null)
                     writeInt(GRACE_ON_INTEREST_CHARGED_COL, row, product.getGraceOnInterestCharged());
+
                 if (product.getStartDate() != null)
                     writeDate(START_DATE_COL, row, product.getStartDate().get(2) + "/" + product.getStartDate().get(1) + "/"
                             + product.getStartDate().get(0), dateCellStyle);
                 else
                     writeDate(START_DATE_COL, row, "1/1/1970", dateCellStyle);
+
                 if (product.getCloseDate() != null)
                     writeDate(CLOSE_DATE_COL, row, product.getCloseDate().get(2) + "/" + product.getCloseDate().get(1) + "/"
                             + product.getCloseDate().get(0), dateCellStyle);
                 else
                     writeDate(CLOSE_DATE_COL, row, "1/1/2040", dateCellStyle);
+
                 productSheet.protectSheet("");
             }
         } catch (RuntimeException re) {
@@ -177,6 +177,7 @@ public class LoanProductSheetPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setLayout(Sheet worksheet) {
+
         worksheet.setColumnWidth(ID_COL, 2000);
         worksheet.setColumnWidth(NAME_COL, 5000);
         worksheet.setColumnWidth(FUND_NAME_COL, 3000);
@@ -205,6 +206,7 @@ public class LoanProductSheetPopulator extends AbstractWorkbookPopulator {
 
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         writeString(ID_COL, rowHeader, "ID");
         writeString(NAME_COL, rowHeader, "Name");
         writeString(FUND_NAME_COL, rowHeader, "Fund");

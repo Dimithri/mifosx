@@ -24,6 +24,7 @@ public class CompactSavingsAccount {
 
     public CompactSavingsAccount(String accountNo, String clientId, String clientName, String savingsProductName,
             Double minRequiredOpeningBalance, SavingsTimeline timeline, Status status) {
+
         this.accountNo = accountNo;
         this.clientId = clientId;
         this.clientName = clientName;
@@ -36,10 +37,11 @@ public class CompactSavingsAccount {
     public CompactSavingsAccount(final SavingsAccountData savingsAccountData) {
 
         this.accountNo = savingsAccountData.getAccountNo();
-        this.clientId = savingsAccountData.clientId().toString();
+        this.clientId = savingsAccountData.clientId() != null ? savingsAccountData.clientId().toString() : null;
         this.clientName = savingsAccountData.getClientName();
         this.savingsProductName = savingsAccountData.getSavingsProductName();
-        this.minRequiredOpeningBalance = savingsAccountData.getMinRequiredOpeningBalance().doubleValue();
+        this.minRequiredOpeningBalance = savingsAccountData.getMinRequiredOpeningBalance() != null ? savingsAccountData
+                .getMinRequiredOpeningBalance().doubleValue() : null;
         this.timeline = new SavingsTimeline(savingsAccountData.getTimeline());
         this.status = new Status(savingsAccountData.getStatus().isActive());
     }

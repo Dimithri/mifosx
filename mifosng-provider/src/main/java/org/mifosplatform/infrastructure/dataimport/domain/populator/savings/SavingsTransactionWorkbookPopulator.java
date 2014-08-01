@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFDataValidationHelper;
@@ -19,7 +18,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddressList;
-import org.mifosplatform.infrastructure.dataimport.data.loan.CompactLoan;
 import org.mifosplatform.infrastructure.dataimport.data.savings.CompactSavingsAccount;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.Result;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.AbstractWorkbookPopulator;
@@ -28,17 +26,10 @@ import org.mifosplatform.infrastructure.dataimport.domain.populator.ExtrasSheetP
 import org.mifosplatform.infrastructure.dataimport.domain.populator.OfficeSheetPopulator;
 import org.mifosplatform.infrastructure.core.service.Page;
 import org.mifosplatform.portfolio.group.service.SearchParameters;
-import org.mifosplatform.portfolio.loanaccount.data.LoanAccountData;
 import org.mifosplatform.portfolio.savings.data.SavingsAccountData;
 import org.mifosplatform.portfolio.savings.service.SavingsAccountReadPlatformService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulator {
 
@@ -46,11 +37,10 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
 
     private final SavingsAccountReadPlatformService savingsAccountReadPlatformService;
 
-    private String content;
-
     private OfficeSheetPopulator officeSheetPopulator;
     private ClientSheetPopulator clientSheetPopulator;
     private ExtrasSheetPopulator extrasSheetPopulator;
+
     private List<CompactSavingsAccount> savings;
 
     private static final int OFFICE_NAME_COL = 0;
@@ -81,41 +71,30 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
         this.officeSheetPopulator = officeSheetPopulator;
         this.clientSheetPopulator = clientSheetPopulator;
         this.extrasSheetPopulator = extrasSheetPopulator;
-        
-        savings = new ArrayList<CompactSavingsAccount>();
+
+        savings = new ArrayList<>();
     }
 
     @Override
     public Result downloadAndParse() {
+
         Result result = officeSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = clientSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = extrasSheetPopulator.downloadAndParse();
         if (result.isSuccess()) {
             try {
-                
+
                 final SearchParameters searchParameters = SearchParameters.forSavings(null, null, null, -1, null, null);
 
                 final Page<SavingsAccountData> savingsPage = this.savingsAccountReadPlatformService.retrieveAll(searchParameters);
                 final List<SavingsAccountData> savingsCollection = savingsPage.getPageItems();
-                
+
                 for (SavingsAccountData aSavingsAccountData : savingsCollection) {
 
                     CompactSavingsAccount savingsAccount = new CompactSavingsAccount(aSavingsAccountData);
                     if (savingsAccount.isActive()) savings.add(savingsAccount);
-                }  
-                
-                /*restClient.createAuthToken();
-                content = restClient.get("savingsaccounts?limit=-1");
-                Gson gson = new Gson();
-                JsonParser parser = new JsonParser();
-                JsonObject obj = parser.parse(content).getAsJsonObject();
-                JsonArray array = obj.getAsJsonArray("pageItems");
-                Iterator<JsonElement> iterator = array.iterator();
-                while (iterator.hasNext()) {
-                    JsonElement json = iterator.next();
-                    CompactSavingsAccount savingsAccount = gson.fromJson(json, CompactSavingsAccount.class);
-                    if (savingsAccount.isActive()) savings.add(savingsAccount);
-                }*/
+                }
+
             } catch (Exception e) {
                 result.addError(e.getMessage());
                 logger.error(e.getMessage());
@@ -126,19 +105,25 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
 
     @Override
     public Result populate(Workbook workbook) {
+
         Sheet savingsTransactionSheet = workbook.createSheet("SavingsTransaction");
         setLayout(savingsTransactionSheet);
+
         Result result = officeSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = clientSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = extrasSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = populateSavingsTable(savingsTransactionSheet);
         if (result.isSuccess()) result = setRules(savingsTransactionSheet);
+
         setDefaults(savingsTransactionSheet);
+
         return result;
     }
 
     private Result populateSavingsTable(Sheet savingsTransactionSheet) {
+
         Result result = new Result();
+
         Workbook workbook = savingsTransactionSheet.getWorkbook();
         CellStyle dateCellStyle = workbook.createCellStyle();
         short df = workbook.createDataFormat().getFormat("dd/mm/yy");
@@ -146,14 +131,19 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
         int rowIndex = 1;
         Row row;
         Collections.sort(savings, CompactSavingsAccount.ClientNameComparator);
+
         try {
             for (CompactSavingsAccount savingsAccount : savings) {
+
                 row = savingsTransactionSheet.createRow(rowIndex++);
+
                 writeString(LOOKUP_CLIENT_NAME_COL, row, savingsAccount.getClientName() + "(" + savingsAccount.getClientId() + ")");
                 writeLong(LOOKUP_ACCOUNT_NO_COL, row, Long.parseLong(savingsAccount.getAccountNo()));
                 writeString(LOOKUP_PRODUCT_COL, row, savingsAccount.getSavingsProductName());
+
                 if (savingsAccount.getMinRequiredOpeningBalance() != null)
                     writeDouble(LOOKUP_OPENING_BALANCE_COL, row, savingsAccount.getMinRequiredOpeningBalance());
+
                 writeDate(LOOKUP_SAVINGS_ACTIVATION_DATE_COL, row, savingsAccount.getTimeline().getActivatedOnDate().get(2) + "/"
                         + savingsAccount.getTimeline().getActivatedOnDate().get(1) + "/"
                         + savingsAccount.getTimeline().getActivatedOnDate().get(0), dateCellStyle);
@@ -166,8 +156,10 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
     }
 
     private void setLayout(Sheet worksheet) {
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         worksheet.setColumnWidth(OFFICE_NAME_COL, 4000);
         worksheet.setColumnWidth(CLIENT_NAME_COL, 5000);
         worksheet.setColumnWidth(SAVINGS_ACCOUNT_NO_COL, 3000);
@@ -187,6 +179,7 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
         worksheet.setColumnWidth(LOOKUP_PRODUCT_COL, 3000);
         worksheet.setColumnWidth(LOOKUP_OPENING_BALANCE_COL, 3700);
         worksheet.setColumnWidth(LOOKUP_SAVINGS_ACTIVATION_DATE_COL, 3500);
+
         writeString(OFFICE_NAME_COL, rowHeader, "Office Name*");
         writeString(CLIENT_NAME_COL, rowHeader, "Client Name*");
         writeString(SAVINGS_ACCOUNT_NO_COL, rowHeader, "Account No.*");
@@ -209,7 +202,9 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
     }
 
     private Result setRules(Sheet worksheet) {
+
         Result result = new Result();
+
         try {
             CellRangeAddressList officeNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
                     OFFICE_NAME_COL, OFFICE_NAME_COL);
@@ -277,7 +272,7 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
 
     private void setNames(Sheet worksheet) {
         Workbook savingsTransactionWorkbook = worksheet.getWorkbook();
-        ArrayList<String> officeNames = new ArrayList<String>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
+        ArrayList<String> officeNames = new ArrayList<>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
 
         // Office Names
         Name officeGroup = savingsTransactionWorkbook.createName();
@@ -297,13 +292,16 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
 
         // Counting clients with active savings and starting and end addresses
         // of cells for naming
-        HashMap<String, Integer[]> clientNameToBeginEndIndexes = new HashMap<String, Integer[]>();
-        ArrayList<String> clientsWithActiveSavings = new ArrayList<String>();
-        ArrayList<String> clientIdsWithActiveSavings = new ArrayList<String>();
+        HashMap<String, Integer[]> clientNameToBeginEndIndexes = new HashMap<>();
+        ArrayList<String> clientsWithActiveSavings = new ArrayList<>();
+        ArrayList<String> clientIdsWithActiveSavings = new ArrayList<>();
+
         int startIndex = 1, endIndex = 1;
         String clientName = "";
         String clientId = "";
+
         for (int i = 0; i < savings.size(); i++) {
+
             if (!clientName.equals(savings.get(i).getClientName())) {
                 endIndex = i + 1;
                 clientNameToBeginEndIndexes.put(clientName, new Integer[] { startIndex, endIndex });
@@ -321,6 +319,7 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
 
         // Account Number Named after Clients
         for (int j = 0; j < clientsWithActiveSavings.size(); j++) {
+
             Name name = savingsTransactionWorkbook.createName();
             name.setNameName("Account_" + clientsWithActiveSavings.get(j).replaceAll(" ", "_") + "_" + clientIdsWithActiveSavings.get(j)
                     + "_");

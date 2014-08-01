@@ -1,1 +1,1 @@
-This is the new package for the data import tool.
+This is the package for the MifosX data import tool.

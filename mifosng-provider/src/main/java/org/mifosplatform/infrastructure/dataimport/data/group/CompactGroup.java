@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.LocalDate;
 import org.mifosplatform.portfolio.group.data.GroupGeneralData;
-//import org.mockito.cglib.core.Local;
 
 public class CompactGroup {
 
@@ -26,18 +25,20 @@ public class CompactGroup {
         this.officeName = officeName;
         this.active = active;
     }
-    
+
     public CompactGroup(GroupGeneralData groupGeneralData) {
-        
-        this.id = groupGeneralData.getId().intValue();
+
+        this.id = groupGeneralData.getId() != null ? groupGeneralData.getId().intValue() : null;
         this.name = groupGeneralData.getName().trim();
-        
+
         LocalDate activationDate = groupGeneralData.getActivationDate();
-        this.activationDate = new ArrayList<Integer>();
-        this.activationDate.add(activationDate.getYear());
-        this.activationDate.add(activationDate.get(DateTimeFieldType.monthOfYear()));
-        this.activationDate.add(activationDate.getDayOfMonth());
-                
+        this.activationDate = new ArrayList<>();
+        if (activationDate != null) {
+            this.activationDate.add(activationDate.getYear());
+            this.activationDate.add(activationDate.get(DateTimeFieldType.monthOfYear()));
+            this.activationDate.add(activationDate.getDayOfMonth());
+        }
+
         this.officeName = groupGeneralData.getOfficeName();
         this.active = groupGeneralData.isActive();
     }

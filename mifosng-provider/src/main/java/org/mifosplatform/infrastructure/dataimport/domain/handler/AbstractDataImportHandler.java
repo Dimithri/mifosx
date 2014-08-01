@@ -98,10 +98,9 @@ public abstract class AbstractDataImportHandler implements DataImportHandler {
             return c.getBooleanCellValue();
         } catch (Exception e) {
             String booleanString = row.getCell(colIndex).getStringCellValue().trim();
-            if (booleanString.equalsIgnoreCase("TRUE"))
-                return true;
-            else
-                return false;
+            if (booleanString.equalsIgnoreCase("TRUE")) return true;
+
+            return false;
         }
     }
 

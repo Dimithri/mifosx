@@ -40,28 +40,24 @@ public class GroupSheetPopulator extends AbstractWorkbookPopulator {
 
     public GroupSheetPopulator(final OfficeReadPlatformService officeReadPlatformService,
             final GroupReadPlatformService groupReadPlatformService) {
-        
+
         this.officeReadPlatformService = officeReadPlatformService;
         this.groupReadPlatformService = groupReadPlatformService;
     }
 
     @Override
     public Result downloadAndParse() {
+
         Result result = new Result();
         try {
-            // restClient.createAuthToken();
-            // content = restClient.get("groups?limit=-1");
 
-            // Get group data from the database
             final PaginationParameters parameters = PaginationParameters.instance(null, null, -1, null, null);
             final SearchParameters searchParameters = SearchParameters.forGroups(null, null, null, null, null, null, null, -1, null, null);
 
             final Collection<GroupGeneralData> groupsCollection = this.groupReadPlatformService.retrieveAll(searchParameters, parameters);
 
-            // Parse Group Data
-            // parseGroups();
-            groups = new ArrayList<CompactGroup>();
-            groupNameToGroupId = new HashMap<String, Integer>();
+            groups = new ArrayList<>();
+            groupNameToGroupId = new HashMap<>();
 
             for (GroupGeneralData aGroupGeneralData : groupsCollection) {
 
@@ -72,13 +68,9 @@ public class GroupSheetPopulator extends AbstractWorkbookPopulator {
                 }
             }
 
-            // Get Office data from the database
-            // content = restClient.get("offices?limit=-1");
             Collection<OfficeData> officesCollection = this.officeReadPlatformService.retrieveAllOffices(false);
 
-            // Parse Office Data
-            // parseOfficeNames();
-            officeNames = new ArrayList<String>();
+            officeNames = new ArrayList<>();
 
             for (OfficeData aOfficeData : officesCollection) {
 
@@ -94,87 +86,65 @@ public class GroupSheetPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result populate(Workbook workbook) {
+
         Result result = new Result();
         Sheet groupSheet = workbook.createSheet("Groups");
         setLayout(groupSheet);
+
         try {
             setOfficeToGroupsMap();
             populateGroupsByOfficeName(groupSheet);
             groupSheet.protectSheet("");
+
         } catch (Exception e) {
             result.addError(e.getMessage());
             logger.error(e.getMessage());
         }
         return result;
     }
-    
-    // TODO
-    // Check ; DEACTIVE groups are added!!!!
-    // remove the old code
-    /*private void parseGroups() {
-        Gson gson = new Gson();
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(content).getAsJsonObject();
-        JsonArray array = obj.getAsJsonArray("pageItems");
-        Iterator<JsonElement> iterator = array.iterator();
-        groupNameToGroupId = new HashMap<String, Integer>();
-        while (iterator.hasNext()) {
-            JsonElement json = iterator.next();
-            CompactGroup group = gson.fromJson(json, CompactGroup.class);
-            if (group.isActive()) groups.add(group);
-            groupNameToGroupId.put(group.getName().trim(), group.getId()); 
-        }
-    }*/
-
-    // TODO
-    // remove the old code
-    /*private void parseOfficeNames() {
-        JsonElement json = new JsonParser().parse(content);
-        JsonArray array = json.getAsJsonArray();
-        Iterator<JsonElement> iterator = array.iterator();
-        officeNames = new ArrayList<String>();
-        while (iterator.hasNext()) {
-            String officeName = iterator.next().getAsJsonObject().get("name").toString();
-            officeName = officeName.substring(1, officeName.length() - 1).trim().replaceAll("[ )(]", "_");
-            officeNames.add(officeName);
-        }
-    }*/
 
     private void setOfficeToGroupsMap() {
-        officeToGroups = new HashMap<String, ArrayList<String>>();
+
+        officeToGroups = new HashMap<>();
         for (CompactGroup group : groups) {
             add(group.getOfficeName().trim().replaceAll("[ )(]", "_"), group.getName().trim());
         }
     }
 
-    // Guava Multi-map can reduce this.
     private void add(String key, String value) {
+
         ArrayList<String> values = officeToGroups.get(key);
+
         if (values == null) {
-            values = new ArrayList<String>();
+            values = new ArrayList<>();
         }
         values.add(value);
         officeToGroups.put(key, values);
     }
 
     private void populateGroupsByOfficeName(Sheet groupSheet) {
+
         int rowIndex = 1, officeIndex = 0, startIndex = 1;
-        officeNameToBeginEndIndexesOfGroups = new HashMap<Integer, Integer[]>();
+        officeNameToBeginEndIndexesOfGroups = new HashMap<>();
+
         Row row = groupSheet.createRow(rowIndex);
         for (String officeName : officeNames) {
+
             startIndex = rowIndex + 1;
             writeString(OFFICE_NAME_COL, row, officeName);
-            ArrayList<String> groupsList = new ArrayList<String>();
+            ArrayList<String> groupsList = new ArrayList<>();
 
             if (officeToGroups.containsKey(officeName)) groupsList = officeToGroups.get(officeName);
 
             if (!groupsList.isEmpty()) {
+
                 for (String groupName : groupsList) {
                     writeString(GROUP_NAME_COL, row, groupName);
                     writeInt(GROUP_ID_COL, row, groupNameToGroupId.get(groupName));
                     row = groupSheet.createRow(++rowIndex);
                 }
                 officeNameToBeginEndIndexesOfGroups.put(officeIndex++, new Integer[] { startIndex, rowIndex });
+
             } else {
                 officeNameToBeginEndIndexesOfGroups.put(officeIndex++, new Integer[] { startIndex, rowIndex + 1 });
             }
@@ -182,10 +152,13 @@ public class GroupSheetPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setLayout(Sheet worksheet) {
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         for (int colIndex = 0; colIndex <= 10; colIndex++)
             worksheet.setColumnWidth(colIndex, 6000);
+
         writeString(OFFICE_NAME_COL, rowHeader, "Office Names");
         writeString(GROUP_NAME_COL, rowHeader, "Group Names");
         writeString(GROUP_ID_COL, rowHeader, "Group ID");

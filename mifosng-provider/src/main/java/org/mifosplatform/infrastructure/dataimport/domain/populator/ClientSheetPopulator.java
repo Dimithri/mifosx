@@ -3,7 +3,6 @@ package org.mifosplatform.infrastructure.dataimport.domain.populator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,20 +20,12 @@ import org.mifosplatform.portfolio.group.service.SearchParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 public class ClientSheetPopulator extends AbstractWorkbookPopulator {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientSheetPopulator.class);
 
     private final ClientReadPlatformService clientReadPlatformService;
     private final OfficeReadPlatformService officeReadPlatformService;
-
-    private String content;
 
     private List<CompactClient> clients;
     private ArrayList<String> officeNames;
@@ -47,50 +38,46 @@ public class ClientSheetPopulator extends AbstractWorkbookPopulator {
     private static final int CLIENT_NAME_COL = 1;
     private static final int CLIENT_ID_COL = 2;
 
-    public ClientSheetPopulator(final ClientReadPlatformService clientReadPlatformService, final OfficeReadPlatformService officeReadPlatformService) {
-        
+    public ClientSheetPopulator(final ClientReadPlatformService clientReadPlatformService,
+            final OfficeReadPlatformService officeReadPlatformService) {
+
         this.clientReadPlatformService = clientReadPlatformService;
         this.officeReadPlatformService = officeReadPlatformService;
     }
 
     @Override
     public Result downloadAndParse() {
+
         Result result = new Result();
         try {
-            
-            //content = restClient.get("clients?limit=-1");
+
             final SearchParameters searchParameters = SearchParameters.forClients(null, null, null, null, null, null, null, null, -1, null,
                     null);
 
             final Page<ClientData> clientDataPage = this.clientReadPlatformService.retrieveAll(searchParameters);
             final List<ClientData> clientDataCollection = clientDataPage.getPageItems();
-            
-            // parseClients();
-            clients = new ArrayList<CompactClient>();
-            clientNameToClientId = new HashMap<String, Integer>();
-            
+
+            clients = new ArrayList<>();
+            clientNameToClientId = new HashMap<>();
+
             for (ClientData aClientData : clientDataCollection) {
 
                 CompactClient client = new CompactClient(aClientData);
                 if (aClientData.isActive()) {
                     clients.add(client);
                 }
-                //TODO
-                //check the logic
+
                 clientNameToClientId.put(client.getDisplayName().trim() + "(" + client.getId() + ")", client.getId());
-            }            
-            
-            //Get office names
-            //content = restClient.get("offices?limit=-1");
+            }
+
             Collection<OfficeData> officesCollection = this.officeReadPlatformService.retrieveAllOffices(false);
-            //parseOfficeNames();
-            
-            officeNames = new ArrayList<String>();
+
+            officeNames = new ArrayList<>();
             for (OfficeData aOfficeData : officesCollection) {
-                
+
                 officeNames.add(aOfficeData.name());
             }
-            
+
         } catch (Exception e) {
             result.addError(e.getMessage());
             logger.error(e.getMessage());
@@ -100,9 +87,11 @@ public class ClientSheetPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result populate(Workbook workbook) {
+
         Result result = new Result();
         Sheet clientSheet = workbook.createSheet("Clients");
         setLayout(clientSheet);
+
         try {
             setOfficeToClientsMap();
             populateClientsByOfficeName(clientSheet);
@@ -114,43 +103,17 @@ public class ClientSheetPopulator extends AbstractWorkbookPopulator {
         return result;
     }
 
-    private void parseClients() {
-        Gson gson = new Gson();
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(content).getAsJsonObject();
-        JsonArray array = obj.getAsJsonArray("pageItems");
-        Iterator<JsonElement> iterator = array.iterator();
-        clientNameToClientId = new HashMap<String, Integer>();
-        while (iterator.hasNext()) {
-            JsonElement json = iterator.next();
-            CompactClient client = gson.fromJson(json, CompactClient.class);
-            if (client.isActive()) {
-                clients.add(client);
-            }
-            clientNameToClientId.put(client.getDisplayName().trim() + "(" + client.getId() + ")", client.getId());
-        }
-    }
-
-    private void parseOfficeNames() {
-        JsonElement json = new JsonParser().parse(content);
-        JsonArray array = json.getAsJsonArray();
-        Iterator<JsonElement> iterator = array.iterator();
-        officeNames = new ArrayList<String>();
-        while (iterator.hasNext()) {
-            String officeName = iterator.next().getAsJsonObject().get("name").toString();
-            officeName = officeName.substring(1, officeName.length() - 1).trim().replaceAll("[ )(]", "_");
-            officeNames.add(officeName);
-        }
-    }
-
     private void populateClientsByOfficeName(Sheet clientSheet) {
+
         int rowIndex = 1, startIndex = 1, officeIndex = 0;
-        officeNameToBeginEndIndexesOfClients = new HashMap<Integer, Integer[]>();
+        officeNameToBeginEndIndexesOfClients = new HashMap<>();
         Row row = clientSheet.createRow(rowIndex);
+
         for (String officeName : officeNames) {
             startIndex = rowIndex + 1;
             writeString(OFFICE_NAME_COL, row, officeName);
-            ArrayList<String> clientList = new ArrayList<String>();
+            ArrayList<String> clientList = new ArrayList<>();
+
             if (officeToClients.containsKey(officeName)) clientList = officeToClients.get(officeName);
 
             if (!clientList.isEmpty()) {
@@ -166,27 +129,31 @@ public class ClientSheetPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setOfficeToClientsMap() {
-        officeToClients = new HashMap<String, ArrayList<String>>();
+
+        officeToClients = new HashMap<>();
         for (CompactClient person : clients)
             add(person.getOfficeName().trim().replaceAll("[ )(]", "_"), person.getDisplayName().trim() + "(" + person.getId() + ")");
     }
 
-    // Guava Multi-map can reduce this.
     private void add(String key, String value) {
+
         ArrayList<String> values = officeToClients.get(key);
         if (values == null) {
-            values = new ArrayList<String>();
+            values = new ArrayList<>();
         }
         values.add(value);
         officeToClients.put(key, values);
     }
 
     private void setLayout(Sheet worksheet) {
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
         worksheet.setColumnWidth(OFFICE_NAME_COL, 6000);
+
         for (int colIndex = 1; colIndex <= 10; colIndex++)
             worksheet.setColumnWidth(colIndex, 6000);
+
         writeString(OFFICE_NAME_COL, rowHeader, "Office Names");
         writeString(CLIENT_NAME_COL, rowHeader, "Client Names");
         writeString(CLIENT_ID_COL, rowHeader, "Client ID");

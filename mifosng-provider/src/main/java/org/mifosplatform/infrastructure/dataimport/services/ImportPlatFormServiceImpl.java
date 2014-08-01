@@ -22,68 +22,68 @@ public class ImportPlatFormServiceImpl implements ImportPlatformService {
 
     private final ImportHandlerFactoryService importHandlerFactoryService;
     private static final Logger logger = LoggerFactory.getLogger(TemplatePlatformServiceImpl.class);
-	
-	@Autowired
-	public ImportPlatFormServiceImpl(final ImportHandlerFactoryService importHandlerFactoryService) {
-        
-        this.importHandlerFactoryService = importHandlerFactoryService;		
-	}
-	
-	@Override
-	public Response importClientsFromTemplate(InputStream content) {
 
-		return importFromTemplate(content);
-	}
+    @Autowired
+    public ImportPlatFormServiceImpl(final ImportHandlerFactoryService importHandlerFactoryService) {
 
-	@Override
-	public Response importGroupsFromTemplate(InputStream content) {
-		
-		return importFromTemplate(content);
-	}
+        this.importHandlerFactoryService = importHandlerFactoryService;
+    }
 
-	@Override
-	public Response importLoansFromTemplate(InputStream content) {
+    @Override
+    public Response importClientsFromTemplate(InputStream content) {
 
-		return importFromTemplate(content);
-	}
+        return importFromTemplate(content);
+    }
 
-	@Override
-	public Response importLoanRepaymentFromTemplate(InputStream content) {
+    @Override
+    public Response importGroupsFromTemplate(InputStream content) {
 
-		return importFromTemplate(content);
-	}
+        return importFromTemplate(content);
+    }
 
-	@Override
-	public Response importSavingsFromTemplate(InputStream content) {
+    @Override
+    public Response importLoansFromTemplate(InputStream content) {
 
-		return importFromTemplate(content);
-	}
+        return importFromTemplate(content);
+    }
 
-	@Override
-	public Response importSavingsTransactionFromTemplate(InputStream content) {
+    @Override
+    public Response importLoanRepaymentFromTemplate(InputStream content) {
 
-		return importFromTemplate(content);
-	}
-	
-	private Response importFromTemplate(InputStream content) {
-		Response response = null;
+        return importFromTemplate(content);
+    }
+
+    @Override
+    public Response importSavingsFromTemplate(InputStream content) {
+
+        return importFromTemplate(content);
+    }
+
+    @Override
+    public Response importSavingsTransactionFromTemplate(InputStream content) {
+
+        return importFromTemplate(content);
+    }
+
+    private Response importFromTemplate(InputStream content) {
+        Response response = null;
         Workbook workbook;
-        
+
         try {
             workbook = new HSSFWorkbook(content);
             DataImportHandler handler = importHandlerFactoryService.createImportHandler(workbook);
             Result result = parseAndUpload(handler);
-            if(result.isSuccess()){
+            if (result.isSuccess()) {
                 response = writeResult(workbook, result);
             }
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
-        
+
         return response;
-	}
-	
-	private Result parseAndUpload(DataImportHandler handler) throws IOException {
+    }
+
+    private Result parseAndUpload(DataImportHandler handler) throws IOException {
         Result result = handler.parse();
         if (result.isSuccess()) {
             result = handler.upload();
@@ -97,7 +97,7 @@ public class ImportPlatFormServiceImpl implements ImportPlatformService {
         ResponseBuilder response = null;
 
         if (result.isSuccess()) {
-            
+
             String fileName = "Results.xls";
 
             workbook.write(stream);
@@ -106,7 +106,7 @@ public class ImportPlatFormServiceImpl implements ImportPlatformService {
             response.header("Success", "true");
             response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
             response.header("Access-Control-Expose-Headers", "Success");
-            
+
         } else {
             for (String e : result.getErrors())
                 logger.debug("Failed: " + e);
@@ -120,7 +120,7 @@ public class ImportPlatFormServiceImpl implements ImportPlatformService {
             response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
             response.header("Access-Control-Expose-Headers", "Success");
         }
-        
+
         response.header("Content-Type", "application/vnd.ms-excel");
 
         return response.build();

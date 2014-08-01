@@ -24,14 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 public class GroupDataImportHandler extends AbstractDataImportHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupDataImportHandler.class);
 
-    @SuppressWarnings("CPD-START")
     private static final int NAME_COL = 0;
     private static final int OFFICE_NAME_COL = 1;
     private static final int STAFF_NAME_COL = 2;
@@ -48,8 +45,7 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
     private static final int FAILURE_COL = 13;
     private static final int CLIENT_NAMES_STARTING_COL = 14;
     private static final int CLIENT_NAMES_ENDING_COL = 109;
-    @SuppressWarnings("CPD-END")
-    // private final RestClient restClient;
+
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
 
     private final Workbook workbook;
@@ -58,17 +54,20 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
     private List<Meeting> meetings;
 
     public GroupDataImportHandler(Workbook workbook, final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
+
         this.workbook = workbook;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
-        groups = new ArrayList<Group>();
-        meetings = new ArrayList<Meeting>();
+        groups = new ArrayList<>();
+        meetings = new ArrayList<>();
     }
 
     @Override
     public Result parse() {
+
         Result result = new Result();
         Sheet groupsSheet = workbook.getSheet("Groups");
         Integer noOfEntries = getNumberOfRows(groupsSheet, 0);
+
         for (int rowIndex = 1; rowIndex < noOfEntries; rowIndex++) {
             Row row;
             try {
@@ -86,6 +85,7 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
     }
 
     private Group parseAsGroup(Row row) {
+
         String status = readAsString(STATUS_COL, row);
         String officeName = readAsString(OFFICE_NAME_COL, row);
         String officeId = getIdByName(workbook.getSheet("Offices"), officeName).toString();
@@ -95,18 +95,23 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
         String activationDate = readAsDate(ACTIVATION_DATE_COL, row);
         String active = readAsBoolean(ACTIVE_COL, row).toString();
         String groupName = readAsString(NAME_COL, row);
+
         if (StringUtils.isBlank(groupName)) { throw new IllegalArgumentException("Name is blank"); }
-        ArrayList<String> clientMemberIds = new ArrayList<String>();
+        ArrayList<String> clientMemberIds = new ArrayList<>();
+
         for (int cellNo = CLIENT_NAMES_STARTING_COL; cellNo < CLIENT_NAMES_ENDING_COL; cellNo++) {
+
             String clientName = readAsString(cellNo, row);
             if (clientName.equals("")) break;
             String clientId = getIdByName(workbook.getSheet("Clients"), clientName).toString();
             if (!clientMemberIds.contains(clientId)) clientMemberIds.add(clientId);
         }
+
         return new Group(groupName, clientMemberIds, activationDate, active, externalId, officeId, staffId, row.getRowNum(), status);
     }
 
     private Meeting parseAsMeeting(Row row) {
+
         String meetingStartDate = readAsDate(MEETING_START_DATE_COL, row);
         String isRepeating = readAsBoolean(IS_REPEATING_COL, row).toString();
         String frequency = readAsString(FREQUENCY_COL, row);
@@ -114,34 +119,35 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
         String interval = readAsString(INTERVAL_COL, row);
         String repeatsOnDay = readAsString(REPEATS_ON_DAY_COL, row);
         repeatsOnDay = getRepeatsOnDayId(repeatsOnDay);
-        if (meetingStartDate.equals(""))
-            return null;
-        else {
-            if (repeatsOnDay.equals(""))
-                return new Meeting(meetingStartDate, isRepeating, frequency, interval, row.getRowNum());
-            else
-                return new WeeklyMeeting(meetingStartDate, isRepeating, frequency, interval, repeatsOnDay, row.getRowNum());
-        }
+        if (meetingStartDate.equals("")) return null;
+
+        if (repeatsOnDay.equals("")) return new Meeting(meetingStartDate, isRepeating, frequency, interval, row.getRowNum());
+
+        return new WeeklyMeeting(meetingStartDate, isRepeating, frequency, interval, repeatsOnDay, row.getRowNum());
+
     }
 
     @Override
     public Result upload() {
+
         Result result = new Result();
         Sheet groupSheet = workbook.getSheet("Groups");
         int progressLevel = 0;
         String groupId = "";
-        // restClient.createAuthToken();
+
         for (int i = 0; i < groups.size(); i++) {
+
             Row row = groupSheet.getRow(groups.get(i).getRowIndex());
             Cell errorReportCell = row.createCell(FAILURE_COL);
             Cell statusCell = row.createCell(STATUS_COL);
+
             try {
-                
+
                 String status = groups.get(i).getStatus();
                 progressLevel = getProgressLevel(status);
 
                 if (progressLevel == 0) {
-                    
+
                     groupId = uploadGroup(i).getGroupId().toString();
                     progressLevel = 1;
                 } else
@@ -151,7 +157,9 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
 
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
+
             } catch (RuntimeException e) {
+
                 String message = parseStatus(e.getMessage());
                 String status = "";
 
@@ -172,6 +180,7 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
     }
 
     private int getProgressLevel(String status) {
+
         if (status.equals("") || status.equals("Creation failed."))
             return 0;
         else if (status.equals("Meeting failed.")) return 1;
@@ -179,33 +188,24 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
     }
 
     private CommandProcessingResult uploadGroup(int rowIndex) {
+
         String payload = new Gson().toJson(groups.get(rowIndex));
         logger.info(payload);
-        // String response = restClient.post("groups", payload);
 
-        final CommandWrapper commandRequest = new CommandWrapperBuilder() //
-                .createGroup() //
-                .withJson(payload) //
-                .build(); //
+        final CommandWrapper commandRequest = new CommandWrapperBuilder().createGroup().withJson(payload).build();
         final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
 
         return result;
     }
 
-    /*private String getGroupId(String response) {
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(response).getAsJsonObject();
-        return obj.get("groupId").getAsString();
-    }*/
-
     private Integer uploadGroupMeeting(String groupId, int rowIndex) {
+
         Meeting meeting = meetings.get(rowIndex);
         meeting.setGroupId(groupId);
         meeting.setTitle("groups_" + groupId + "_CollectionMeeting");
         String payload = new Gson().toJson(meeting);
         logger.info(payload);
 
-        // restClient.post("groups/" + groupId + "/calendars", payload);
         String entityType = "groups";
         String entityId = groupId;
         final CalendarEntityType calendarEntityType = CalendarEntityType.getEntityType(entityType);
@@ -225,12 +225,14 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
     }
 
     private void setReportHeaders(Sheet sheet) {
+
         writeString(STATUS_COL, sheet.getRow(0), "Status");
         writeString(GROUP_ID_COL, sheet.getRow(0), "Group Id");
         writeString(FAILURE_COL, sheet.getRow(0), "Failure Report");
     }
 
     private String getFrequencyId(String frequency) {
+
         if (frequency.equalsIgnoreCase("Daily"))
             frequency = "1";
         else if (frequency.equalsIgnoreCase("Weekly"))
@@ -238,10 +240,12 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
         else if (frequency.equalsIgnoreCase("Monthly"))
             frequency = "3";
         else if (frequency.equalsIgnoreCase("Yearly")) frequency = "4";
+
         return frequency;
     }
 
     private String getRepeatsOnDayId(String repeatsOnDay) {
+
         if (repeatsOnDay.equalsIgnoreCase("Mon"))
             repeatsOnDay = "1";
         else if (repeatsOnDay.equalsIgnoreCase("Tue"))
@@ -255,6 +259,7 @@ public class GroupDataImportHandler extends AbstractDataImportHandler {
         else if (repeatsOnDay.equalsIgnoreCase("Sat"))
             repeatsOnDay = "6";
         else if (repeatsOnDay.equalsIgnoreCase("Sun")) repeatsOnDay = "7";
+
         return repeatsOnDay;
     }
 

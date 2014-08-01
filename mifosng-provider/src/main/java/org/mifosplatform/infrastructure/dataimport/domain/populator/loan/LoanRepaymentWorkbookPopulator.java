@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFDataValidationHelper;
@@ -19,7 +18,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddressList;
-import org.mifosplatform.infrastructure.dataimport.data.client.CompactClient;
 import org.mifosplatform.infrastructure.dataimport.data.loan.CompactLoan;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.Result;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.AbstractWorkbookPopulator;
@@ -27,26 +25,17 @@ import org.mifosplatform.infrastructure.dataimport.domain.populator.ClientSheetP
 import org.mifosplatform.infrastructure.dataimport.domain.populator.ExtrasSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.OfficeSheetPopulator;
 import org.mifosplatform.infrastructure.core.service.Page;
-import org.mifosplatform.portfolio.client.data.ClientData;
 import org.mifosplatform.portfolio.group.service.SearchParameters;
 import org.mifosplatform.portfolio.loanaccount.data.LoanAccountData;
 import org.mifosplatform.portfolio.loanaccount.service.LoanReadPlatformService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanRepaymentWorkbookPopulator.class);
 
     private final LoanReadPlatformService loanReadPlatformService;
-
-    private String content;
 
     private OfficeSheetPopulator officeSheetPopulator;
     private ClientSheetPopulator clientSheetPopulator;
@@ -72,66 +61,62 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
     private static final int LOOKUP_PRINCIPAL_COL = 17;
     private static final int LOOKUP_LOAN_DISBURSEMENT_DATE_COL = 18;
 
-    public LoanRepaymentWorkbookPopulator(final LoanReadPlatformService loanReadPlatformService, final OfficeSheetPopulator officeSheetPopulator, final ClientSheetPopulator clientSheetPopulator,
+    public LoanRepaymentWorkbookPopulator(final LoanReadPlatformService loanReadPlatformService,
+            final OfficeSheetPopulator officeSheetPopulator, final ClientSheetPopulator clientSheetPopulator,
             ExtrasSheetPopulator extrasSheetPopulator) {
 
         this.loanReadPlatformService = loanReadPlatformService;
-        
+
         this.officeSheetPopulator = officeSheetPopulator;
         this.clientSheetPopulator = clientSheetPopulator;
         this.extrasSheetPopulator = extrasSheetPopulator;
-        loans = new ArrayList<CompactLoan>();
+        loans = new ArrayList<>();
     }
 
     @Override
     public Result downloadAndParse() {
+
         Result result = officeSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = clientSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = extrasSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = parseLoans();
+
         return result;
     }
 
     @Override
     public Result populate(Workbook workbook) {
+
         Sheet loanRepaymentSheet = workbook.createSheet("LoanRepayment");
         setLayout(loanRepaymentSheet);
         Result result = officeSheetPopulator.populate(workbook);
+
         if (result.isSuccess()) result = clientSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = extrasSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = populateLoansTable(loanRepaymentSheet);
         if (result.isSuccess()) result = setRules(loanRepaymentSheet);
+
         setDefaults(loanRepaymentSheet);
+
         return result;
     }
 
     private Result parseLoans() {
+
         Result result = new Result();
         try {
-            
-            final SearchParameters searchParameters = SearchParameters.forLoans(null, null, null, -1, null, null,null);
-            
+
+            final SearchParameters searchParameters = SearchParameters.forLoans(null, null, null, -1, null, null, null);
+
             final Page<LoanAccountData> loanBasicDetails = this.loanReadPlatformService.retrieveAll(searchParameters);
             final List<LoanAccountData> loanAccountCollection = loanBasicDetails.getPageItems();
-            
+
             for (LoanAccountData aLoanAccountData : loanAccountCollection) {
 
-                CompactLoan loan = new CompactLoan(aLoanAccountData); 
+                CompactLoan loan = new CompactLoan(aLoanAccountData);
                 if (loan.isActive()) loans.add(loan);
-            }  
-            
-            /*restClient.createAuthToken();
-            content = restClient.get("loans?limit=-1");
-            Gson gson = new Gson();
-            JsonParser parser = new JsonParser();
-            JsonObject obj = parser.parse(content).getAsJsonObject();
-            JsonArray array = obj.getAsJsonArray("pageItems");
-            Iterator<JsonElement> iterator = array.iterator();
-            while (iterator.hasNext()) {
-                JsonElement json = iterator.next();
-                CompactLoan loan = gson.fromJson(json, CompactLoan.class);
-                if (loan.isActive()) loans.add(loan);
-            }*/
+            }
+
         } catch (Exception e) {
             result.addError(e.getMessage());
             logger.error(e.getMessage());
@@ -140,7 +125,9 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private Result populateLoansTable(Sheet loanRepaymentSheet) {
+
         Result result = new Result();
+
         int rowIndex = 1;
         Row row;
         Workbook workbook = loanRepaymentSheet.getWorkbook();
@@ -148,9 +135,12 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
         short df = workbook.createDataFormat().getFormat("dd/mm/yy");
         dateCellStyle.setDataFormat(df);
         Collections.sort(loans, CompactLoan.ClientNameComparator);
+
         try {
             for (CompactLoan loan : loans) {
+
                 row = loanRepaymentSheet.createRow(rowIndex++);
+
                 writeString(LOOKUP_CLIENT_NAME_COL, row, loan.getClientName() + "(" + loan.getClientId() + ")");
                 writeLong(LOOKUP_ACCOUNT_NO_COL, row, Long.parseLong(loan.getAccountNo()));
                 writeString(LOOKUP_PRODUCT_COL, row, loan.getLoanProductName());
@@ -166,8 +156,10 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setLayout(Sheet worksheet) {
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         worksheet.setColumnWidth(OFFICE_NAME_COL, 4000);
         worksheet.setColumnWidth(CLIENT_NAME_COL, 5000);
         worksheet.setColumnWidth(LOAN_ACCOUNT_NO_COL, 3000);
@@ -186,6 +178,7 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
         worksheet.setColumnWidth(LOOKUP_PRODUCT_COL, 3000);
         worksheet.setColumnWidth(LOOKUP_PRINCIPAL_COL, 3700);
         worksheet.setColumnWidth(LOOKUP_LOAN_DISBURSEMENT_DATE_COL, 3700);
+
         writeString(OFFICE_NAME_COL, rowHeader, "Office Name*");
         writeString(CLIENT_NAME_COL, rowHeader, "Client Name*");
         writeString(LOAN_ACCOUNT_NO_COL, rowHeader, "Account No.*");
@@ -208,7 +201,9 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private Result setRules(Sheet worksheet) {
+
         Result result = new Result();
+
         try {
             CellRangeAddressList officeNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
                     OFFICE_NAME_COL, OFFICE_NAME_COL);
@@ -269,7 +264,8 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setNames(Sheet worksheet) {
-        ArrayList<String> officeNames = new ArrayList<String>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
+
+        ArrayList<String> officeNames = new ArrayList<>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
         Workbook loanRepaymentWorkbook = worksheet.getWorkbook();
         // Office Names
         Name officeGroup = loanRepaymentWorkbook.createName();
@@ -289,9 +285,9 @@ public class LoanRepaymentWorkbookPopulator extends AbstractWorkbookPopulator {
 
         // Counting clients with active loans and starting and end addresses of
         // cells
-        HashMap<String, Integer[]> clientNameToBeginEndIndexes = new HashMap<String, Integer[]>();
-        ArrayList<String> clientsWithActiveLoans = new ArrayList<String>();
-        ArrayList<String> clientIdsWithActiveLoans = new ArrayList<String>();
+        HashMap<String, Integer[]> clientNameToBeginEndIndexes = new HashMap<>();
+        ArrayList<String> clientsWithActiveLoans = new ArrayList<>();
+        ArrayList<String> clientIdsWithActiveLoans = new ArrayList<>();
         int startIndex = 1, endIndex = 1;
         String clientName = "";
         String clientId = "";

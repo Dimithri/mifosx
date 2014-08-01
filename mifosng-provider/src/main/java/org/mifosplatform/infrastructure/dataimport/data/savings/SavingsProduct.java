@@ -62,29 +62,24 @@ public class SavingsProduct {
 
     public SavingsProduct(final SavingsProductData savingsProductData) {
 
-        this.id = savingsProductData.getId().intValue();
+        this.id = savingsProductData.getId() != null ? savingsProductData.getId().intValue() : null;
         this.name = savingsProductData.getName();
         this.currency = new Currency(savingsProductData.getCurrency());
-        this.nominalAnnualInterestRate = savingsProductData.getNominalAnnualInterestRate().doubleValue();
+        this.nominalAnnualInterestRate = savingsProductData.getNominalAnnualInterestRate() != null ? savingsProductData
+                .getNominalAnnualInterestRate().doubleValue() : null;
         this.interestCompoundingPeriodType = new Type(savingsProductData.getInterestCompoundingPeriodType());
         this.interestPostingPeriodType = new Type(savingsProductData.getInterestPostingPeriodType());
         this.interestCalculationType = new Type(savingsProductData.getInterestCalculationType());
         this.interestCalculationDaysInYearType = new Type(savingsProductData.getInterestCalculationDaysInYearType());
-        this.minRequiredOpeningBalance = savingsProductData.getMinRequiredOpeningBalance().doubleValue();
+        this.minRequiredOpeningBalance = savingsProductData.getMinRequiredOpeningBalance() != null ? savingsProductData
+                .getMinRequiredOpeningBalance().doubleValue() : null;
         this.lockinPeriodFrequency = savingsProductData.getLockinPeriodFrequency();
         this.lockinPeriodFrequencyType = new Type(savingsProductData.getLockinPeriodFrequencyType());
-        
-        // TODO
-        // handle below parameters
+
         this.withdrawalFeeAmount = null;
         this.withdrawalFeeType = null;
         this.annualFeeAmount = null;
-        this.annualFeeOnMonthDay = new ArrayList<Integer>();
-        
-        //this.withdrawalFeeAmount = savingsProductData.getWithdrawalFeeAmount();
-        //this.withdrawalFeeType = new Type(savingsProductData.getWithdrawalFeeType());
-        //this.annualFeeAmount = savingsProductData.getAnnualFeeAmount();
-        //this.annualFeeOnMonthDay = savingsProductData.getAnnualFeeOnMonthDay();
+        this.annualFeeOnMonthDay = new ArrayList<>();
     }
 
     public Integer getId() {

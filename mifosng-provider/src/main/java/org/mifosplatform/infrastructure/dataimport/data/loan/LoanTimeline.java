@@ -17,8 +17,8 @@ public class LoanTimeline {
     public LoanTimeline(LoanApplicationTimelineData timeline) {
 
         LocalDate actualDisbursementDate = timeline.getActualDisbursementDate();
-        
-        this.actualDisbursementDate = new ArrayList<Integer>();
+
+        this.actualDisbursementDate = new ArrayList<>();
         this.actualDisbursementDate.add(actualDisbursementDate.getYear());
         this.actualDisbursementDate.add(actualDisbursementDate.get(DateTimeFieldType.monthOfYear()));
         this.actualDisbursementDate.add(actualDisbursementDate.getDayOfMonth());

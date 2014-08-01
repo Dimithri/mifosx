@@ -19,21 +19,23 @@ public class CompactClient {
     private final Boolean active;
 
     public CompactClient(Integer id, String displayName, String officeName, ArrayList<Integer> activationDate, Boolean active) {
+
         this.id = id;
         this.displayName = displayName;
         this.activationDate = activationDate;
         this.officeName = officeName;
         this.active = active;
     }
-    
+
     public CompactClient(ClientData clientData) {
-        this.id = clientData.id().intValue();
-        this.displayName = clientData.displayName();    
+
+        this.id = clientData.id() != null ? clientData.id().intValue() : null;
+        this.displayName = clientData.displayName();
         this.officeName = clientData.officeName();
         this.active = clientData.isActive();
-        
-        this.activationDate = new ArrayList<Integer>();
-        if(this.active){
+
+        this.activationDate = new ArrayList<>();
+        if (this.active) {
             LocalDate activationDate = clientData.getActivationDate();
 
             this.activationDate.add(activationDate.getYear());

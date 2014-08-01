@@ -4,6 +4,5 @@ import java.io.IOException;
 
 public interface WorkbookPopulatorFactoryService {
 
-	public WorkbookPopulator createWorkbookPopulator(String parameter,
-			String template) throws IOException;
+    public WorkbookPopulator createWorkbookPopulator(String parameter, String template) throws IOException;
 }

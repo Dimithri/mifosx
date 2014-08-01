@@ -24,6 +24,7 @@ public class CompactLoan {
 
     public CompactLoan(String accountNo, String clientId, String clientName, String loanProductName, Double principal,
             LoanTimeline timeline, Status status) {
+
         this.accountNo = accountNo;
         this.clientId = clientId;
         this.clientName = clientName;
@@ -34,11 +35,12 @@ public class CompactLoan {
     }
 
     public CompactLoan(LoanAccountData aLoanAccountData) {
+
         this.accountNo = aLoanAccountData.getAccountNo();
-        this.clientId = aLoanAccountData.clientId().toString();
+        this.clientId = aLoanAccountData.clientId() != null ? aLoanAccountData.clientId().toString() : null;
         this.clientName = aLoanAccountData.getClientName();
         this.loanProductName = aLoanAccountData.getLoanProductName();
-        this.principal = aLoanAccountData.getPrincipal().doubleValue();
+        this.principal = aLoanAccountData.getPrincipal() != null ? aLoanAccountData.getPrincipal().doubleValue() : null;
         this.timeline = new LoanTimeline(aLoanAccountData.getTimeline());
         this.status = new Status(aLoanAccountData.getStatus().isActive());
     }

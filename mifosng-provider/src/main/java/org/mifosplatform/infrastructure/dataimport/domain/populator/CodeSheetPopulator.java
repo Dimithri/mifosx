@@ -19,7 +19,6 @@ public class CodeSheetPopulator extends AbstractWorkbookPopulator {
     private static final Logger logger = LoggerFactory.getLogger(CodeSheetPopulator.class);
 
     private final String code;
-    // private final CodeService codeService;
     private final CodeValueReadPlatformService codeValueReadPlatformService;
 
     private Collection<CodeValueData> codeValues;
@@ -41,7 +40,7 @@ public class CodeSheetPopulator extends AbstractWorkbookPopulator {
         try {
             codeValues = codeValueReadPlatformService.retrieveCodeValuesByCode(code);
 
-            codeNames = new ArrayList<String>();
+            codeNames = new ArrayList<>();
             for (CodeValueData codeValueData : codeValues) {
 
                 codeNames.add(codeValueData.getName().trim().replaceAll("[ )(]", "_"));

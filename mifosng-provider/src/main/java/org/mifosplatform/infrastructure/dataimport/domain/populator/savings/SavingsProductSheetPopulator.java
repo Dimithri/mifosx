@@ -8,12 +8,14 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+
 import org.mifosplatform.infrastructure.dataimport.data.Currency;
 import org.mifosplatform.infrastructure.dataimport.data.savings.SavingsProduct;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.Result;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.AbstractWorkbookPopulator;
 import org.mifosplatform.portfolio.savings.data.SavingsProductData;
 import org.mifosplatform.portfolio.savings.service.SavingsProductReadPlatformService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,31 +47,19 @@ public class SavingsProductSheetPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result downloadAndParse() {
-        Result result = new Result();
-        try {
-            /*// client.createAuthToken();
-            products = new ArrayList<SavingsProduct>();
 
-            // #############################
-            // content = client.get("savingsproducts");
-            Gson gson = new Gson();
-            JsonElement json = new JsonParser().parse(content);
-            JsonArray array = json.getAsJsonArray();
-            Iterator<JsonElement> iterator = array.iterator();
-            while (iterator.hasNext()) {
-                json = iterator.next();
-                SavingsProduct product = gson.fromJson(json, SavingsProduct.class);
-                products.add(product);
-            }*/
-            
+        Result result = new Result();
+
+        try {
+
             final Collection<SavingsProductData> productsCollection = this.savingsProductReadPlatformService.retrieveAll();
-            
-            products = new ArrayList<SavingsProduct>();
+
+            products = new ArrayList<>();
             for (SavingsProductData aSavingsProductData : productsCollection) {
 
                 products.add(new SavingsProduct(aSavingsProductData));
             }
-            
+
         } catch (Exception e) {
             result.addError(e.getMessage());
             logger.error(e.getMessage());
@@ -79,7 +69,9 @@ public class SavingsProductSheetPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result populate(Workbook workbook) {
+
         Result result = new Result();
+
         try {
             int rowIndex = 1;
             Sheet productSheet = workbook.createSheet("Products");
@@ -87,7 +79,9 @@ public class SavingsProductSheetPopulator extends AbstractWorkbookPopulator {
             CellStyle dateCellStyle = workbook.createCellStyle();
             short df = workbook.createDataFormat().getFormat("dd-mmm");
             dateCellStyle.setDataFormat(df);
+
             for (SavingsProduct product : products) {
+
                 Row row = productSheet.createRow(rowIndex++);
                 writeInt(ID_COL, row, product.getId());
                 writeString(NAME_COL, row, product.getName().trim().replaceAll("[ )(]", "_"));
@@ -96,17 +90,23 @@ public class SavingsProductSheetPopulator extends AbstractWorkbookPopulator {
                 writeString(INTEREST_POSTING_PERIOD_COL, row, product.getInterestPostingPeriodType().getValue());
                 writeString(INTEREST_CALCULATION_COL, row, product.getInterestCalculationType().getValue());
                 writeString(INTEREST_CALCULATION_DAYS_IN_YEAR_COL, row, product.getInterestCalculationDaysInYearType().getValue());
+
                 if (product.getMinRequiredOpeningBalance() != null)
                     writeDouble(MIN_OPENING_BALANCE_COL, row, product.getMinRequiredOpeningBalance());
+
                 if (product.getLockinPeriodFrequency() != null) writeInt(LOCKIN_PERIOD_COL, row, product.getLockinPeriodFrequency());
+
                 if (product.getLockinPeriodFrequencyType() != null)
                     writeString(LOCKIN_PERIOD_FREQUENCY_COL, row, product.getLockinPeriodFrequencyType().getValue());
+
                 Currency currency = product.getCurrency();
                 writeString(CURRENCY_COL, row, currency.getCode());
                 writeInt(DECIMAL_PLACES_COL, row, currency.getDecimalPlaces());
+
                 if (currency.getInMultiplesOf() != null) writeInt(IN_MULTIPLES_OF_COL, row, currency.getInMultiplesOf());
             }
             productSheet.protectSheet("");
+
         } catch (RuntimeException re) {
             result.addError(re.getMessage());
             logger.error(re.getMessage());
@@ -115,8 +115,10 @@ public class SavingsProductSheetPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setLayout(Sheet worksheet) {
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         worksheet.setColumnWidth(ID_COL, 2000);
         worksheet.setColumnWidth(NAME_COL, 5000);
         worksheet.setColumnWidth(NOMINAL_ANNUAL_INTEREST_RATE_COL, 2000);

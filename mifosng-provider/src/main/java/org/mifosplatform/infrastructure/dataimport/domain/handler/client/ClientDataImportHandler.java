@@ -63,7 +63,7 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
         this.clientWritePlatformService = clientWritePlatformService;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
-        clients = new ArrayList<Client>();
+        clients = new ArrayList<>();
     }
 
     @Override
@@ -146,25 +146,23 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
     @Override
     public Result upload() {
+
         Result result = new Result();
         Sheet clientSheet = workbook.getSheet("Clients");
-        // restClient.createAuthToken();
+
         for (Client client : clients) {
             try {
                 Gson gson = new Gson();
                 String payload = gson.toJson(client);
                 logger.info(payload);
 
-                // create client
                 final CommandWrapper commandRequest = new CommandWrapperBuilder().createClient().withJson(payload).build();
 
-                @SuppressWarnings("unused")
                 final CommandProcessingResult commandProcessingResult = this.commandsSourceWritePlatformService
                         .logCommandSource(commandRequest);
 
                 if (!clientType.equals("Individual")) {
 
-                    // Add client to group
                     Integer groupId = client.getGroupId();
 
                     if (groupId != 0) {
@@ -172,8 +170,8 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
                         Long clientId = commandProcessingResult.getClientId().longValue();
                         String[] clientIdAsArray = { clientId.toString() };
                         String payloadJson = gson.toJson(clientIdAsArray);
-                        payloadJson = "{\"clientMembers\":"+payloadJson+"}";
-                                
+                        payloadJson = "{\"clientMembers\":" + payloadJson + "}";
+
                         final CommandWrapper commandRequestForGroupAssociation = new CommandWrapperBuilder().withJson(payloadJson)
                                 .associateClientsToGroup(groupId.longValue()).build();
                         @SuppressWarnings("unused")
@@ -181,17 +179,20 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
                                 .logCommandSource(commandRequestForGroupAssociation);
                     }
                 }
-                // Log the results
+
                 Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
+
             } catch (RuntimeException e) {
+
                 logger.error(e.getMessage());
                 String message = parseStatus(e.getMessage());
                 Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue(message);
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.RED));
                 result.addError("Row = " + client.getRowIndex() + " ," + message);
+
             } catch (Exception e) {
                 logger.error(e.getMessage());
             }
@@ -218,20 +219,5 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
         }
         return id;
-    }
-
-    private class CommandResultForClientCreation {
-
-        private Integer officeId;
-        private Integer clientId;
-        private Integer resourceId;
-
-        public CommandResultForClientCreation() {
-
-        }
-
-        public Integer getClientId() {
-            return clientId;
-        }
     }
 }

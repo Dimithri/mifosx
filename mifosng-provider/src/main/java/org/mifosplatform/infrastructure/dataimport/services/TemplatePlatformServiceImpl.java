@@ -85,7 +85,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
             workbook = new HSSFWorkbook(content);
             DataImportHandler handler = importHandlerFactoryService.createImportHandler(workbook);
             Result result = parseAndUpload(handler);
-            if(result.isSuccess()){
+            if (result.isSuccess()) {
                 response = writeResult(workbook, result);
             }
         } catch (IOException e) {
@@ -96,10 +96,9 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         // writeResult(workbook, result, response);
         // }
 
-        //return "{clients are imported}";
+        // return "{clients are imported}";
         return response;
     }
-
 
     @Override
     public Response getGroupImportTemplate() {
@@ -127,7 +126,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
     @Override
     public Response importGroupsFromTemplate(InputStream content) {
-        
+
         return importFromTemplate(content);
     }
 
@@ -156,10 +155,10 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
     @Override
     public Response importLoansFromTemplate(InputStream content) {
-        
+
         return importFromTemplate(content);
     }
-    
+
     @Override
     public Response getLoanRepaymentImportTemplate() {
         Response response = null;
@@ -185,7 +184,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
     @Override
     public Response importLoanRepaymentFromTemplate(InputStream content) {
-        
+
         return importFromTemplate(content);
     }
 
@@ -214,7 +213,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
     @Override
     public Response importSavingsFromTemplate(InputStream content) {
-        
+
         return importFromTemplate(content);
     }
 
@@ -243,10 +242,9 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
     @Override
     public Response importSavingsTransactionFromTemplate(InputStream content) {
-        
+
         return importFromTemplate(content);
     }
-
 
     private Result parseAndUpload(DataImportHandler handler) throws IOException {
         Result result = handler.parse();
@@ -259,14 +257,15 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
     private Response writeResult(Workbook workbook, Result result) throws IOException {
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        //OutputStreamWriter out = new OutputStreamWriter(stream, "UTF-8");
+        // OutputStreamWriter out = new OutputStreamWriter(stream, "UTF-8");
         ResponseBuilder response = null;
 
         if (result.isSuccess()) {
-            //out.write("Import complete");
-            //response = Response.ok(new ByteArrayInputStream(stream.toByteArray()));
-            //response.header("Success", "true");
-            
+            // out.write("Import complete");
+            // response = Response.ok(new
+            // ByteArrayInputStream(stream.toByteArray()));
+            // response.header("Success", "true");
+
             String fileName = "Results.xls";
 
             workbook.write(stream);
@@ -275,7 +274,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
             response.header("Success", "true");
             response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
             response.header("Access-Control-Expose-Headers", "Success");
-            
+
         } else {
             for (String e : result.getErrors())
                 logger.debug("Failed: " + e);
@@ -289,14 +288,14 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
             response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
             response.header("Access-Control-Expose-Headers", "Success");
         }
-        
+
         response.header("Content-Type", "application/vnd.ms-excel");
 
-        //out.flush();
-        //out.close();
+        // out.flush();
+        // out.close();
         return response.build();
     }
-    
+
     private Result downloadAndPopulate(Workbook workbook, WorkbookPopulator populator) throws IOException {
         Result result = populator.downloadAndParse();
         if (result.isSuccess()) {
@@ -318,8 +317,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         return response.build();
     }
 
-    
-    private Response importFromTemplate(InputStream content){
+    private Response importFromTemplate(InputStream content) {
         Response response = null;
         Workbook workbook;
         // Result result;
@@ -327,7 +325,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
             workbook = new HSSFWorkbook(content);
             DataImportHandler handler = importHandlerFactoryService.createImportHandler(workbook);
             Result result = parseAndUpload(handler);
-            if(result.isSuccess()){
+            if (result.isSuccess()) {
                 response = writeResult(workbook, result);
             }
         } catch (IOException e) {
@@ -338,8 +336,8 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         // writeResult(workbook, result, response);
         // }
 
-        //return "{clients are imported}";
+        // return "{clients are imported}";
         return response;
     }
-    
+
 }

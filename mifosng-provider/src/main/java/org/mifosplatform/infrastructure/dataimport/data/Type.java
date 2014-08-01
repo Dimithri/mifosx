@@ -17,7 +17,7 @@ public class Type {
     }
 
     public Type(final EnumOptionData type) {
-        this.id = type.getId().intValue();
+        this.id = type.getId() != null ? type.getId().intValue() : null;
         this.code = type.getCode();
         this.value = type.getValue();
     }

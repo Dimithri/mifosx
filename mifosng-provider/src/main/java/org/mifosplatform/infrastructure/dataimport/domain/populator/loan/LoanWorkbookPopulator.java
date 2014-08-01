@@ -35,7 +35,6 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
     private LoanProductSheetPopulator productSheetPopulator;
     private ExtrasSheetPopulator extrasSheetPopulator;
 
-    @SuppressWarnings("CPD-START")
     private static final int OFFICE_NAME_COL = 0;
     private static final int LOAN_TYPE_COL = 1;
     private static final int CLIENT_NAME_COL = 2;
@@ -70,10 +69,10 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
     private static final int LOOKUP_CLIENT_NAME_COL = 42;
     private static final int LOOKUP_ACTIVATION_DATE_COL = 43;
 
-    @SuppressWarnings("CPD-END")
     public LoanWorkbookPopulator(OfficeSheetPopulator officeSheetPopulator, ClientSheetPopulator clientSheetPopulator,
             GroupSheetPopulator groupSheetPopulator, PersonnelSheetPopulator personnelSheetPopulator,
             LoanProductSheetPopulator productSheetPopulator, ExtrasSheetPopulator extrasSheetPopulator) {
+
         this.officeSheetPopulator = officeSheetPopulator;
         this.clientSheetPopulator = clientSheetPopulator;
         this.groupSheetPopulator = groupSheetPopulator;
@@ -84,35 +83,45 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result downloadAndParse() {
+
         Result result = officeSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = clientSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = groupSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = personnelSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = productSheetPopulator.downloadAndParse();
         if (result.isSuccess()) result = extrasSheetPopulator.downloadAndParse();
+
         return result;
     }
 
     @Override
     public Result populate(Workbook workbook) {
+
         Sheet loanSheet = workbook.createSheet("Loans");
         Result result = officeSheetPopulator.populate(workbook);
+
         if (result.isSuccess()) result = clientSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = groupSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = personnelSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = productSheetPopulator.populate(workbook);
         if (result.isSuccess()) result = extrasSheetPopulator.populate(workbook);
+
         setLayout(loanSheet);
+
         if (result.isSuccess()) result = setRules(loanSheet);
         if (result.isSuccess()) result = setDefaults(loanSheet);
+
         setClientAndGroupDateLookupTable(loanSheet, clientSheetPopulator.getClients(), groupSheetPopulator.getGroups(),
                 LOOKUP_CLIENT_NAME_COL, LOOKUP_ACTIVATION_DATE_COL);
+
         return result;
     }
 
     private void setLayout(Sheet worksheet) {
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         worksheet.setColumnWidth(OFFICE_NAME_COL, 4000);
         worksheet.setColumnWidth(LOAN_TYPE_COL, 3500);
         worksheet.setColumnWidth(CLIENT_NAME_COL, 4000);
@@ -146,6 +155,7 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
         worksheet.setColumnWidth(REPAYMENT_TYPE_COL, 4300);
         worksheet.setColumnWidth(LOOKUP_CLIENT_NAME_COL, 6000);
         worksheet.setColumnWidth(LOOKUP_ACTIVATION_DATE_COL, 6000);
+
         writeString(OFFICE_NAME_COL, rowHeader, "Office Name*");
         writeString(LOAN_TYPE_COL, rowHeader, "Loan Type*");
         writeString(CLIENT_NAME_COL, rowHeader, "Client/Group Name*");
@@ -176,22 +186,28 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
         writeString(REPAYMENT_TYPE_COL, rowHeader, "Repayment Type");
         writeString(LOOKUP_CLIENT_NAME_COL, rowHeader, "Client Name");
         writeString(LOOKUP_ACTIVATION_DATE_COL, rowHeader, "Client Activation Date");
+
         CellStyle borderStyle = worksheet.getWorkbook().createCellStyle();
         CellStyle doubleBorderStyle = worksheet.getWorkbook().createCellStyle();
+
         borderStyle.setBorderBottom(CellStyle.BORDER_THIN);
         doubleBorderStyle.setBorderBottom(CellStyle.BORDER_THIN);
         doubleBorderStyle.setBorderRight(CellStyle.BORDER_THICK);
+
         for (int colNo = 0; colNo < 30; colNo++) {
             Cell cell = rowHeader.getCell(colNo);
             if (cell == null) rowHeader.createCell(colNo);
             rowHeader.getCell(colNo).setCellStyle(borderStyle);
         }
+
         rowHeader.getCell(FIRST_REPAYMENT_COL).setCellStyle(doubleBorderStyle);
         rowHeader.getCell(REPAYMENT_TYPE_COL).setCellStyle(doubleBorderStyle);
     }
 
     private Result setRules(Sheet worksheet) {
+
         Result result = new Result();
+
         try {
             CellRangeAddressList officeNameRange = new CellRangeAddressList(1, SpreadsheetVersion.EXCEL97.getLastRowIndex(),
                     OFFICE_NAME_COL, OFFICE_NAME_COL);
@@ -372,6 +388,7 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
             worksheet.addValidationData(graceOnInterestChargedValidation);
             worksheet.addValidationData(lastRepaymentDateValidation);
             worksheet.addValidationData(repaymentTypeValidation);
+
         } catch (RuntimeException re) {
             result.addError(re.getMessage());
         }
@@ -379,7 +396,9 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private Result setDefaults(Sheet worksheet) {
+
         Result result = new Result();
+
         try {
             for (Integer rowNo = 1; rowNo < 1000; rowNo++) {
                 Row row = worksheet.createRow(rowNo);
@@ -424,8 +443,9 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setNames(Sheet worksheet) {
+
         Workbook loanWorkbook = worksheet.getWorkbook();
-        ArrayList<String> officeNames = new ArrayList<String>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
+        ArrayList<String> officeNames = new ArrayList<>(Arrays.asList(officeSheetPopulator.getOfficeNames()));
         List<LoanProduct> products = productSheetPopulator.getProducts();
 
         // Office Names
@@ -435,6 +455,7 @@ public class LoanWorkbookPopulator extends AbstractWorkbookPopulator {
 
         // Client and Loan Officer Names for each office
         for (Integer i = 0; i < officeNames.size(); i++) {
+
             Integer[] officeNameToBeginEndIndexesOfClients = clientSheetPopulator.getOfficeNameToBeginEndIndexesOfClients().get(i);
             Integer[] officeNameToBeginEndIndexesOfStaff = personnelSheetPopulator.getOfficeNameToBeginEndIndexesOfStaff().get(i);
             Integer[] officeNameToBeginEndIndexesOfGroups = groupSheetPopulator.getOfficeNameToBeginEndIndexesOfGroups().get(i);

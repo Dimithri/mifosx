@@ -2,7 +2,6 @@ package org.mifosplatform.infrastructure.dataimport.domain.populator;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -10,21 +9,13 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.infrastructure.dataimport.data.PaymentType;
 import org.mifosplatform.infrastructure.dataimport.data.loan.Fund;
-import org.mifosplatform.infrastructure.dataimport.data.loan.LoanProduct;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.Result;
 import org.mifosplatform.infrastructure.codes.data.CodeValueData;
 import org.mifosplatform.infrastructure.codes.service.CodeValueReadPlatformService;
-import org.mifosplatform.portfolio.client.service.ClientReadPlatformService;
 import org.mifosplatform.portfolio.fund.data.FundData;
 import org.mifosplatform.portfolio.fund.service.FundReadPlatformService;
-import org.mifosplatform.portfolio.loanproduct.data.LoanProductData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 
 public class ExtrasSheetPopulator extends AbstractWorkbookPopulator {
 
@@ -32,7 +23,7 @@ public class ExtrasSheetPopulator extends AbstractWorkbookPopulator {
 
     private final FundReadPlatformService fundReadPlatformService;
     private final CodeValueReadPlatformService codeValueReadPlatformService;
-    
+
     private final Long paymentTypeCodeId;
 
     private List<Fund> funds;
@@ -43,10 +34,12 @@ public class ExtrasSheetPopulator extends AbstractWorkbookPopulator {
     private static final int PAYMENT_TYPE_ID_COL = 2;
     private static final int PAYMENT_TYPE_NAME_COL = 3;
 
-    public ExtrasSheetPopulator(final FundReadPlatformService fundReadPlatformService, final CodeValueReadPlatformService codeValueReadPlatformService) {
+    public ExtrasSheetPopulator(final FundReadPlatformService fundReadPlatformService,
+            final CodeValueReadPlatformService codeValueReadPlatformService) {
+
         this.fundReadPlatformService = fundReadPlatformService;
         this.codeValueReadPlatformService = codeValueReadPlatformService;
-        
+
         paymentTypeCodeId = new Long(12);
     }
 
@@ -54,51 +47,23 @@ public class ExtrasSheetPopulator extends AbstractWorkbookPopulator {
     public Result downloadAndParse() {
         Result result = new Result();
         try {
-            /*// client.createAuthToken();
-            funds = new ArrayList<Fund>();
-            // content = client.get("funds");
-
-            Gson gson = new Gson();
-            JsonElement json = new JsonParser().parse(content);
-            JsonArray array = json.getAsJsonArray();
-            Iterator<JsonElement> iterator = array.iterator();
-            while (iterator.hasNext()) {
-                json = iterator.next();
-                Fund fund = gson.fromJson(json, Fund.class);
-                funds.add(fund);
-            }*/
 
             final Collection<FundData> fundsCollection = this.fundReadPlatformService.retrieveAllFunds();
-            
-            funds = new ArrayList<Fund>();
+
+            funds = new ArrayList<>();
             for (FundData aFundData : fundsCollection) {
 
                 funds.add(new Fund(aFundData));
             }
 
-            /*paymentTypes = new ArrayList<PaymentType>();
-
-            // ################//
-            // content = client.get("codes/12/codevalues");
-            json = new JsonParser().parse(content);
-            array = json.getAsJsonArray();
-            iterator = array.iterator();
-            while (iterator.hasNext()) {
-                json = iterator.next();
-                PaymentType paymentType = gson.fromJson(json, PaymentType.class);
-                paymentTypes.add(paymentType);
-            }*/
-            
-            //PaymentType Code Values
             final Collection<CodeValueData> paymentCodeValues = this.codeValueReadPlatformService.retrieveAllCodeValues(paymentTypeCodeId);
-            
-            paymentTypes = new ArrayList<PaymentType>();
+
+            paymentTypes = new ArrayList<>();
             for (CodeValueData aCodeValueData : paymentCodeValues) {
 
                 paymentTypes.add(new PaymentType(aCodeValueData));
             }
 
-            
         } catch (Exception e) {
             result.addError(e.getMessage());
             logger.error(e.getMessage());
@@ -108,27 +73,36 @@ public class ExtrasSheetPopulator extends AbstractWorkbookPopulator {
 
     @Override
     public Result populate(Workbook workbook) {
+
         Result result = new Result();
+
         try {
             int fundRowIndex = 1;
             Sheet extrasSheet = workbook.createSheet("Extras");
             setLayout(extrasSheet);
+
             for (Fund fund : funds) {
                 Row row = extrasSheet.createRow(fundRowIndex++);
                 writeInt(FUND_ID_COL, row, fund.getId());
                 writeString(FUND_NAME_COL, row, fund.getName());
             }
+
             int paymentTypeRowIndex = 1;
+
             for (PaymentType paymentType : paymentTypes) {
                 Row row;
+
                 if (paymentTypeRowIndex < fundRowIndex)
                     row = extrasSheet.getRow(paymentTypeRowIndex++);
                 else
                     row = extrasSheet.createRow(paymentTypeRowIndex++);
+
                 writeInt(PAYMENT_TYPE_ID_COL, row, paymentType.getId());
                 writeString(PAYMENT_TYPE_NAME_COL, row, paymentType.getName().trim().replaceAll("[ )(]", "_"));
             }
+
             extrasSheet.protectSheet("");
+
         } catch (Exception e) {
             result.addError(e.getMessage());
             logger.error(e.getMessage());
@@ -137,12 +111,15 @@ public class ExtrasSheetPopulator extends AbstractWorkbookPopulator {
     }
 
     private void setLayout(Sheet worksheet) {
+
         worksheet.setColumnWidth(FUND_ID_COL, 4000);
         worksheet.setColumnWidth(FUND_NAME_COL, 7000);
         worksheet.setColumnWidth(PAYMENT_TYPE_ID_COL, 4000);
         worksheet.setColumnWidth(PAYMENT_TYPE_NAME_COL, 7000);
+
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
+
         writeString(FUND_ID_COL, rowHeader, "Fund ID");
         writeString(FUND_NAME_COL, rowHeader, "Name");
         writeString(PAYMENT_TYPE_ID_COL, rowHeader, "Payment Type ID");
