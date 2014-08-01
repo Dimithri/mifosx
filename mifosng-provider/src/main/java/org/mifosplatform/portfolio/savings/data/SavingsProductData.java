@@ -363,7 +363,47 @@ public class SavingsProductData {
         return this.id.hashCode();
     }
 
+    public Long getId() {
+        return this.id;
+    }
+
     public String getName() {
         return this.name;
+    }
+
+    public CurrencyData getCurrency() {
+        return this.currency;
+    }
+
+    public BigDecimal getNominalAnnualInterestRate() {
+        return this.nominalAnnualInterestRate;
+    }
+
+    public EnumOptionData getInterestCompoundingPeriodType() {
+        return this.interestCompoundingPeriodType;
+    }
+
+    public EnumOptionData getInterestPostingPeriodType() {
+        return this.interestPostingPeriodType;
+    }
+
+    public EnumOptionData getInterestCalculationType() {
+        return this.interestCalculationType;
+    }
+
+    public EnumOptionData getInterestCalculationDaysInYearType() {
+        return this.interestCalculationDaysInYearType;
+    }
+
+    public BigDecimal getMinRequiredOpeningBalance() {
+        return this.minRequiredOpeningBalance;
+    }
+
+    public Integer getLockinPeriodFrequency() {
+        return this.lockinPeriodFrequency;
+    }
+
+    public EnumOptionData getLockinPeriodFrequencyType() {
+        return this.lockinPeriodFrequencyType;
     }
 }

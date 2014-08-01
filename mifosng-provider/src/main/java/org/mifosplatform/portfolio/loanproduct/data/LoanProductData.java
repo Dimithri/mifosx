@@ -665,4 +665,32 @@ public class LoanProductData {
         }
         return overdueFeeCharges;
     }
+
+    public String getStatus() {
+        return this.status;
+    }
+
+    public Integer getMinNumberOfRepayments() {
+        return this.minNumberOfRepayments;
+    }
+
+    public Integer getMaxNumberOfRepayments() {
+        return this.maxNumberOfRepayments;
+    }
+
+    public BigDecimal getMinInterestRatePerPeriod() {
+        return this.minInterestRatePerPeriod;
+    }
+
+    public BigDecimal getMaxInterestRatePerPeriod() {
+        return this.maxInterestRatePerPeriod;
+    }
+
+    public LocalDate getStartDate() {
+        return this.startDate;
+    }
+
+    public LocalDate getCloseDate() {
+        return this.closeDate;
+    }
 }

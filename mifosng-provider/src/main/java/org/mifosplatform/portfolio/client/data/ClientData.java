@@ -304,4 +304,8 @@ final public class ClientData implements Comparable<ClientData> {
     public LocalDate getActivationDate() {
         return this.activationDate;
     }
+    
+    public Boolean isActive(){
+        return this.active;
+    }
 }

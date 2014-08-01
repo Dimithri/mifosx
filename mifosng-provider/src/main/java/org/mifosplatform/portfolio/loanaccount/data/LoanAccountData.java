@@ -1145,9 +1145,33 @@ public class LoanAccountData {
     public Long loanProductId() {
         return this.loanProductId;
     }
-    
-    public BigDecimal getTotalOutstandingAmount(){
+
+    public BigDecimal getTotalOutstandingAmount() {
         return this.summary.getTotalOutstanding();
+    }
+
+    public String getAccountNo() {
+        return this.accountNo;
+    }
+
+    public String getClientName() {
+        return this.clientName;
+    }
+
+    public String getLoanProductName() {
+        return this.loanProductName;
+    }
+
+    public BigDecimal getPrincipal() {
+        return this.principal;
+    }
+
+    public LoanApplicationTimelineData getTimeline() {
+        return this.timeline;
+    }
+
+    public LoanStatusEnumData getStatus() {
+        return this.status;
     }
 
 }

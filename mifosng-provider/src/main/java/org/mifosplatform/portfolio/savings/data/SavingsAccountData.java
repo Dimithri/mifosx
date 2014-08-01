@@ -463,4 +463,28 @@ public class SavingsAccountData {
     public Collection<SavingsAccountChargeData> charges() {
         return (this.charges == null) ? new HashSet<SavingsAccountChargeData>() : this.charges;
     }
+
+    public SavingsAccountApplicationTimelineData getTimeline() {
+        return this.timeline;
+    }
+
+    public SavingsAccountStatusEnumData getStatus() {
+        return this.status;
+    }
+
+    public String getAccountNo() {
+        return this.accountNo;
+    }
+
+    public String getClientName() {
+        return this.clientName;
+    }
+
+    public String getSavingsProductName() {
+        return this.savingsProductName;
+    }
+
+    public BigDecimal getMinRequiredOpeningBalance() {
+        return this.minRequiredOpeningBalance;
+    }
 }
