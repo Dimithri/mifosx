@@ -81,6 +81,8 @@ public class SavingsTransactionDataImportHandler extends AbstractDataImportHandl
         String transactionDate = readAsDate(TRANSACTION_DATE_COL, row);
         String paymentType = readAsString(PAYMENT_TYPE_COL, row);
         String paymentTypeId = getIdByName(workbook.getSheet("Extras"), paymentType).toString();
+        if (paymentTypeId.equals("0")) 
+            paymentTypeId = "";
         String accountNumber = readAsLong(ACCOUNT_NO_COL, row);
         String checkNumber = readAsLong(CHECK_NO_COL, row);
         String routingCode = readAsLong(ROUTING_CODE_COL, row);

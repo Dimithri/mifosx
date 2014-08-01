@@ -84,7 +84,7 @@ public class DataImportApiResource {
 
         Response response = null;
 
-        if (entityType.equals("clients"))
+        if (entityType.equals("clients") || entityType.equals("clientsofgroup"))
             response = this.importPlatformService.importClientsFromTemplate(uploadedInputStream);
         else if (entityType.equals("groups"))
             response = this.importPlatformService.importGroupsFromTemplate(uploadedInputStream);
