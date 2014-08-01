@@ -330,6 +330,9 @@ public class SavingsTransactionWorkbookPopulator extends AbstractWorkbookPopulat
         // Payment Type Name
         Name paymentTypeGroup = savingsTransactionWorkbook.createName();
         paymentTypeGroup.setNameName("PaymentTypes");
-        paymentTypeGroup.setRefersToFormula("Extras!$D$2:$D$" + (extrasSheetPopulator.getPaymentTypesSize() + 1));
+        if (extrasSheetPopulator.getPaymentTypesSize() == 0)
+            paymentTypeGroup.setRefersToFormula("Extras!$D$2:$D$2");
+        else
+            paymentTypeGroup.setRefersToFormula("Extras!$D$2:$D$" + (extrasSheetPopulator.getPaymentTypesSize() + 1));
     }
 }
