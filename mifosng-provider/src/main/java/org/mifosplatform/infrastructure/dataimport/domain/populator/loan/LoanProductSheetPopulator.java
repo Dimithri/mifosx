@@ -161,7 +161,7 @@ public class LoanProductSheetPopulator extends AbstractWorkbookPopulator {
                 else
                     writeDate(START_DATE_COL, row, "1/1/1970", dateCellStyle);
 
-                if (product.getCloseDate() != null)
+                if (product.getCloseDate() != null && product.getCloseDate().size()==3)
                     writeDate(CLOSE_DATE_COL, row, product.getCloseDate().get(2) + "/" + product.getCloseDate().get(1) + "/"
                             + product.getCloseDate().get(0), dateCellStyle);
                 else
