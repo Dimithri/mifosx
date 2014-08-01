@@ -15,13 +15,16 @@ public class SavingsTimeline {
     }
 
     public SavingsTimeline(SavingsAccountApplicationTimelineData timeline) {
-        
+
         LocalDate activatedOnDate = timeline.getActivatedOnDate();
-        
+
         this.activatedOnDate = new ArrayList<Integer>();
-        this.activatedOnDate.add(activatedOnDate.getYear());
-        this.activatedOnDate.add(activatedOnDate.get(DateTimeFieldType.monthOfYear()));
-        this.activatedOnDate.add(activatedOnDate.getDayOfMonth());
+
+        if (activatedOnDate != null) {
+            this.activatedOnDate.add(activatedOnDate.getYear());
+            this.activatedOnDate.add(activatedOnDate.get(DateTimeFieldType.monthOfYear()));
+            this.activatedOnDate.add(activatedOnDate.getDayOfMonth());
+        }
     }
 
     public ArrayList<Integer> getActivatedOnDate() {
