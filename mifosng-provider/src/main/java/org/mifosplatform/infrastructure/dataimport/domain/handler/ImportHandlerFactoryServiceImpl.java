@@ -9,6 +9,7 @@ import org.mifosplatform.infrastructure.dataimport.domain.handler.client.ClientD
 import org.mifosplatform.infrastructure.dataimport.domain.handler.group.GroupDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.loan.LoanDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.loan.LoanRepaymentDataImportHandler;
+import org.mifosplatform.infrastructure.dataimport.domain.handler.office.OfficeDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.savings.SavingsDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.savings.SavingsTransactionDataImportHandler;
 import org.mifosplatform.portfolio.client.service.ClientWritePlatformService;
@@ -43,7 +44,9 @@ public class ImportHandlerFactoryServiceImpl implements ImportHandlerFactoryServ
             return new LoanRepaymentDataImportHandler(workbook, commandsSourceWritePlatformService);
         } else if (workbook.getSheetIndex("Savings") == 0) {
             return new SavingsDataImportHandler(workbook, commandsSourceWritePlatformService);
-        } else if (workbook.getSheetIndex("SavingsTransaction") == 0) { return new SavingsTransactionDataImportHandler(workbook,
+        } else if (workbook.getSheetIndex("SavingsTransaction") == 0) {
+            return new SavingsTransactionDataImportHandler(workbook, commandsSourceWritePlatformService);
+        } else if (workbook.getSheetIndex("OfficesForImport") == 0) { return new OfficeDataImportHandler(workbook,
                 commandsSourceWritePlatformService); }
 
         throw new IllegalArgumentException("No work sheet found for processing : active sheet " + workbook.getSheetName(0));

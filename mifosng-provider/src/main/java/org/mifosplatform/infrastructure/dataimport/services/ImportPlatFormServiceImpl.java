@@ -70,6 +70,12 @@ public class ImportPlatFormServiceImpl implements ImportPlatformService {
 
         return importFromTemplate(content);
     }
+    
+    @Override
+    public Response importOfficesFromTemplate(InputStream content) {
+        
+        return importFromTemplate(content);
+    }
 
     private Response importFromTemplate(InputStream content) {
         Response response = null;

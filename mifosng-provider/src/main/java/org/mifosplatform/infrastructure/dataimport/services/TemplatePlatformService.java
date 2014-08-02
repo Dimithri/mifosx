@@ -7,7 +7,7 @@ public interface TemplatePlatformService {
     public Response getClientImportTemplate(int clientTypeId);
 
     public Response getGroupImportTemplate();
-    
+
     public Response getCenterImportTemplate();
 
     public Response getLoanImportTemplate();
@@ -17,4 +17,6 @@ public interface TemplatePlatformService {
     public Response getSavingImportTemplate();
 
     public Response getSavingsTransactionImportTemplate();
+
+    public Response getOfficeImportTemplate();
 }

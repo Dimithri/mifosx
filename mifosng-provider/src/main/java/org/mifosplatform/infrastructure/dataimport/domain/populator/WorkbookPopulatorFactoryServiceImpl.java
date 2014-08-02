@@ -8,6 +8,7 @@ import org.mifosplatform.infrastructure.dataimport.domain.populator.group.GroupW
 import org.mifosplatform.infrastructure.dataimport.domain.populator.loan.LoanProductSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.loan.LoanRepaymentWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.loan.LoanWorkbookPopulator;
+import org.mifosplatform.infrastructure.dataimport.domain.populator.office.OfficeWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsProductSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsTransactionWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsWorkbookPopulator;
@@ -66,8 +67,8 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
 
         if (template.trim().equals("client"))
             return new ClientWorkbookPopulator(parameter, new OfficeSheetPopulator(officeReadPlatformService), new PersonnelSheetPopulator(
-                    Boolean.FALSE, officeReadPlatformService, staffReadPlatformService), new CodeSheetPopulator("ClientType",
-                    codeValueReadPlatformService), new CodeSheetPopulator("ClientClassification", codeValueReadPlatformService),
+                    Boolean.FALSE, officeReadPlatformService, staffReadPlatformService), new CodeValueSheetPopulator("ClientType",
+                    codeValueReadPlatformService), new CodeValueSheetPopulator("ClientClassification", codeValueReadPlatformService),
                     new GroupSheetPopulator(officeReadPlatformService, groupReadPlatformService));
         else if (template.trim().equals("groups"))
             return new GroupWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService), new PersonnelSheetPopulator(
@@ -95,6 +96,7 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
             return new SavingsTransactionWorkbookPopulator(savingsAccountReadPlatformService, new OfficeSheetPopulator(
                     officeReadPlatformService), new ClientSheetPopulator(clientReadPlatformService, officeReadPlatformService),
                     new ExtrasSheetPopulator(fundReadPlatformService, codeValueReadPlatformService));
+        else if (template.trim().equals("office")) return new OfficeWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService));
 
         throw new IllegalArgumentException("Can't find populator.");
     }

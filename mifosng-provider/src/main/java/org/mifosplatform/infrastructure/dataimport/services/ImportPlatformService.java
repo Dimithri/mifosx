@@ -18,5 +18,7 @@ public interface ImportPlatformService {
     public Response importSavingsFromTemplate(InputStream content);
 
     public Response importSavingsTransactionFromTemplate(InputStream content);
+    
+    public Response importOfficesFromTemplate(InputStream content);
 
 }

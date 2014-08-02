@@ -62,7 +62,7 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
 
     @Override
     public Response getCenterImportTemplate() {
-        
+
         String fileName = "center";
 
         return getTemplate("", fileName);
@@ -96,6 +96,14 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
     public Response getSavingsTransactionImportTemplate() {
 
         String fileName = "savingsTransactionHistory";
+
+        return getTemplate("", fileName);
+    }
+
+    @Override
+    public Response getOfficeImportTemplate() {
+
+        String fileName = "office";
 
         return getTemplate("", fileName);
     }
