@@ -57,6 +57,8 @@ public class DataImportApiResource {
             response = this.templatePlatformService.getClientImportTemplate(1);
         else if (entityType.equals("groups"))
             response = this.templatePlatformService.getGroupImportTemplate();
+        else if (entityType.equals("centers"))
+            response = this.templatePlatformService.getCenterImportTemplate();
         else if (entityType.equals("savings"))
             response = this.templatePlatformService.getSavingImportTemplate();
         else if (entityType.equals("savingtransactions"))
@@ -88,6 +90,8 @@ public class DataImportApiResource {
             response = this.importPlatformService.importClientsFromTemplate(uploadedInputStream);
         else if (entityType.equals("groups"))
             response = this.importPlatformService.importGroupsFromTemplate(uploadedInputStream);
+        else if (entityType.equals("centers"))
+            response = this.importPlatformService.importCentersFromTemplate(uploadedInputStream);
         else if (entityType.equals("savings"))
             response = this.importPlatformService.importSavingsFromTemplate(uploadedInputStream);
         else if (entityType.equals("savingtransactions"))

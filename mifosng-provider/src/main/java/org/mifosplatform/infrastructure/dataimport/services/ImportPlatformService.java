@@ -9,6 +9,8 @@ public interface ImportPlatformService {
 
     public Response importGroupsFromTemplate(InputStream content);
 
+    public Response importCentersFromTemplate(InputStream content);
+
     public Response importLoansFromTemplate(InputStream content);
 
     public Response importLoanRepaymentFromTemplate(InputStream content);

@@ -2,6 +2,7 @@ package org.mifosplatform.infrastructure.dataimport.domain.populator;
 
 import java.io.IOException;
 
+import org.mifosplatform.infrastructure.dataimport.domain.populator.center.CenterWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.client.ClientWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.group.GroupWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.loan.LoanProductSheetPopulator;
@@ -72,6 +73,9 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
             return new GroupWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService), new PersonnelSheetPopulator(
                     Boolean.FALSE, officeReadPlatformService, staffReadPlatformService), new ClientSheetPopulator(
                     clientReadPlatformService, officeReadPlatformService));
+        else if (template.trim().equals("center"))
+            return new CenterWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService), new PersonnelSheetPopulator(
+                    Boolean.FALSE, officeReadPlatformService, staffReadPlatformService));
         else if (template.trim().equals("loan"))
             return new LoanWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService), new ClientSheetPopulator(
                     clientReadPlatformService, officeReadPlatformService), new GroupSheetPopulator(officeReadPlatformService,

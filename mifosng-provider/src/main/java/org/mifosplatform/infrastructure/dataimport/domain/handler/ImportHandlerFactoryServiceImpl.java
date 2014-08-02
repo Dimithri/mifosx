@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.commands.service.PortfolioCommandSourceWritePlatformService;
+import org.mifosplatform.infrastructure.dataimport.domain.handler.center.CenterDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.client.ClientDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.group.GroupDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.loan.LoanDataImportHandler;
@@ -34,6 +35,8 @@ public class ImportHandlerFactoryServiceImpl implements ImportHandlerFactoryServ
             return new ClientDataImportHandler(workbook, clientWritePlatformService, commandsSourceWritePlatformService);
         } else if (workbook.getSheetIndex("Groups") == 0) {
             return new GroupDataImportHandler(workbook, commandsSourceWritePlatformService);
+        } else if (workbook.getSheetIndex("Centers") == 0) {
+            return new CenterDataImportHandler(workbook, commandsSourceWritePlatformService);
         } else if (workbook.getSheetIndex("Loans") == 0) {
             return new LoanDataImportHandler(workbook, commandsSourceWritePlatformService);
         } else if (workbook.getSheetIndex("LoanRepayment") == 0) {

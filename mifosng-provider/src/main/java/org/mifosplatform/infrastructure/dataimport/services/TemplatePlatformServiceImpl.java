@@ -61,6 +61,14 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
     }
 
     @Override
+    public Response getCenterImportTemplate() {
+        
+        String fileName = "center";
+
+        return getTemplate("", fileName);
+    }
+
+    @Override
     public Response getLoanImportTemplate() {
 
         String fileName = "loan";

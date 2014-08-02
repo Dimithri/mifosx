@@ -42,6 +42,12 @@ public class ImportPlatFormServiceImpl implements ImportPlatformService {
     }
 
     @Override
+    public Response importCentersFromTemplate(InputStream content) {
+
+        return importFromTemplate(content);
+    }
+
+    @Override
     public Response importLoansFromTemplate(InputStream content) {
 
         return importFromTemplate(content);
