@@ -2,7 +2,7 @@ package org.mifosplatform.infrastructure.dataimport.data.client;
 
 import java.util.Locale;
 
-public class Client {
+public final class Client {
 
     private final transient Integer rowIndex;
 
