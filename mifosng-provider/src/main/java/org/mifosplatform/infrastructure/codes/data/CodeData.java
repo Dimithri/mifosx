@@ -13,9 +13,7 @@ import java.io.Serializable;
 public class CodeData implements Serializable {
 
     private final Long id;
-    @SuppressWarnings("unused")
     private final String name;
-    @SuppressWarnings("unused")
     private final boolean systemDefined;
 
     public static CodeData instance(final Long id, final String name, final boolean systemDefined) {
@@ -30,5 +28,13 @@ public class CodeData implements Serializable {
 
     public Long getCodeId() {
         return this.id;
+    }
+    
+    public String getName(){
+        return this.name;
+    }
+    
+    public Boolean isSystemDefined(){
+        return this.systemDefined;
     }
 }

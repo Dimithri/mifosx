@@ -16,7 +16,7 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.mifosplatform.infrastructure.dataimport.data.Office;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.Result;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.AbstractWorkbookPopulator;
-import org.mifosplatform.infrastructure.dataimport.domain.populator.CodeSheetPopulator;
+import org.mifosplatform.infrastructure.dataimport.domain.populator.CodeValueSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.GroupSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.OfficeSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.PersonnelSheetPopulator;
@@ -47,13 +47,13 @@ public class ClientWorkbookPopulator extends AbstractWorkbookPopulator {
 
     private final OfficeSheetPopulator officeSheetPopulator;
     private final PersonnelSheetPopulator personnelSheetPopulator;
-    private final CodeSheetPopulator codeSheetPopulatorClientType;
-    private final CodeSheetPopulator codeSheetPopulatorClientClassification;
+    private final CodeValueSheetPopulator codeSheetPopulatorClientType;
+    private final CodeValueSheetPopulator codeSheetPopulatorClientClassification;
     private final GroupSheetPopulator groupSheetPopulator;
 
     public ClientWorkbookPopulator(String clientType, final OfficeSheetPopulator officeSheetPopulator,
-            final PersonnelSheetPopulator personnelSheetPopulator, final CodeSheetPopulator codeSheetPopulatorClientType,
-            final CodeSheetPopulator codeSheetPopulatorClientClassification, final GroupSheetPopulator groupSheetPopulator) {
+            final PersonnelSheetPopulator personnelSheetPopulator, final CodeValueSheetPopulator codeSheetPopulatorClientType,
+            final CodeValueSheetPopulator codeSheetPopulatorClientClassification, final GroupSheetPopulator groupSheetPopulator) {
 
         this.clientType = clientType;
         this.officeSheetPopulator = officeSheetPopulator;

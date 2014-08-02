@@ -69,6 +69,10 @@ public class DataImportApiResource {
             response = this.templatePlatformService.getLoanRepaymentImportTemplate();
         else if (entityType.equals("offices"))
             response = this.templatePlatformService.getOfficeImportTemplate();
+        else if (entityType.equals("codes"))
+            response = this.templatePlatformService.getCodeImportTemplate();
+        else if (entityType.equals("codevalues"))
+            response = this.templatePlatformService.getCodeValueImportTemplate();
         else {
 
         }
@@ -104,6 +108,10 @@ public class DataImportApiResource {
             response = this.importPlatformService.importLoanRepaymentFromTemplate(uploadedInputStream);
         else if (entityType.equals("offices"))
             response = this.importPlatformService.importOfficesFromTemplate(uploadedInputStream);
+        else if (entityType.equals("codes"))
+            response = this.importPlatformService.importCodesFromTemplate(uploadedInputStream);
+        else if (entityType.equals("codevalues"))
+            response = this.importPlatformService.importCodeValuesFromTemplate(uploadedInputStream);
         else {
 
         }

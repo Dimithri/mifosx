@@ -7,27 +7,30 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.Result;
-import org.mifosplatform.infrastructure.codes.data.CodeData;
-import org.mifosplatform.infrastructure.codes.service.CodeReadPlatformService;
+//import org.mifosplatform.infrastructure.dataimport.services.CodeService;
+import org.mifosplatform.infrastructure.codes.data.CodeValueData;
+import org.mifosplatform.infrastructure.codes.service.CodeValueReadPlatformService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CodeSheetPopulator extends AbstractWorkbookPopulator {
+public class CodeValueSheetPopulator extends AbstractWorkbookPopulator {
 
-    private static final Logger logger = LoggerFactory.getLogger(CodeSheetPopulator.class);
+    private static final Logger logger = LoggerFactory.getLogger(CodeValueSheetPopulator.class);
 
-    private final CodeReadPlatformService codeReadPlatformService;
+    private final String code;
+    private final CodeValueReadPlatformService codeValueReadPlatformService;
 
-    private Collection<CodeData> codes;
+    private Collection<CodeValueData> codeValues;
     private ArrayList<String> codeNames;
 
     private static final int ID_COL = 0;
-    private static final int CODE_COL = 1;
+    private static final int CODE_VALUE_COL = 1;
 
-    protected CodeSheetPopulator(final CodeReadPlatformService codeReadPlatformService) {
+    protected CodeValueSheetPopulator(final String code, final CodeValueReadPlatformService codeValueReadPlatformService) {
 
-        this.codeReadPlatformService = codeReadPlatformService;
+        this.codeValueReadPlatformService = codeValueReadPlatformService;
+        this.code = code;
     }
 
     @Override
@@ -35,12 +38,12 @@ public class CodeSheetPopulator extends AbstractWorkbookPopulator {
 
         Result result = new Result();
         try {
-            codes = codeReadPlatformService.retrieveAllCodes();
+            codeValues = codeValueReadPlatformService.retrieveCodeValuesByCode(code);
 
             codeNames = new ArrayList<>();
-            for (CodeData codeData : codes) {
+            for (CodeValueData codeValueData : codeValues) {
 
-                codeNames.add(codeData.getName().trim().replaceAll("[ )(]", "_"));
+                codeNames.add(codeValueData.getName().trim().replaceAll("[ )(]", "_"));
             }
         } catch (Exception e) {
             result.addError(e.getMessage());
@@ -56,7 +59,7 @@ public class CodeSheetPopulator extends AbstractWorkbookPopulator {
         try {
             int rowIndex = 1;
 
-            Sheet codeSheet = workbook.createSheet("AvailableCodes");
+            Sheet codeSheet = workbook.createSheet(code);
             setLayout(codeSheet);
 
             populateCodes(codeSheet, rowIndex);
@@ -72,22 +75,22 @@ public class CodeSheetPopulator extends AbstractWorkbookPopulator {
     private void setLayout(Sheet worksheet) {
 
         worksheet.setColumnWidth(ID_COL, 2000);
-        worksheet.setColumnWidth(CODE_COL, 7000);
+        worksheet.setColumnWidth(CODE_VALUE_COL, 7000);
 
         Row rowHeader = worksheet.createRow(0);
         rowHeader.setHeight((short) 500);
 
         writeString(ID_COL, rowHeader, "ID");
-        writeString(CODE_COL, rowHeader, "Value");
+        writeString(CODE_VALUE_COL, rowHeader, "Value");
     }
 
     private void populateCodes(Sheet codeSheet, int rowIndex) {
 
-        for (CodeData codeData : codes) {
+        for (CodeValueData codeValueData : codeValues) {
 
             Row row = codeSheet.createRow(rowIndex);
-            writeInt(ID_COL, row, codeData.getCodeId().intValue());
-            writeString(CODE_COL, row, codeData.getName().trim().replaceAll("[ )(]", "_"));
+            writeInt(ID_COL, row, codeValueData.getId().intValue());
+            writeString(CODE_VALUE_COL, row, codeValueData.getName().trim().replaceAll("[ )(]", "_"));
             rowIndex++;
 
         }

@@ -1,4 +1,4 @@
-package org.mifosplatform.infrastructure.dataimport.domain.handler.office;
+package org.mifosplatform.infrastructure.dataimport.domain.handler.code;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.mifosplatform.commands.domain.CommandWrapper;
 import org.mifosplatform.commands.service.CommandWrapperBuilder;
 import org.mifosplatform.commands.service.PortfolioCommandSourceWritePlatformService;
-import org.mifosplatform.infrastructure.dataimport.data.office.Office;
+import org.mifosplatform.infrastructure.dataimport.data.code.Code;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.AbstractDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.Result;
 import org.mifosplatform.infrastructure.dataimport.services.utils.StringUtils;
@@ -23,35 +23,32 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
-public class OfficeDataImportHandler extends AbstractDataImportHandler {
+public class CodeDataImportHandler extends AbstractDataImportHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(OfficeDataImportHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(CodeDataImportHandler.class);
 
     private static final int NAME_COL = 0;
-    private static final int PARENT_OFFICE_COL = 1;
-    private static final int OPENING_DATE_COL = 2;
-    private static final int EXTERNAL_ID_COL = 3;
-    private static final int STATUS_COL = 5;
-    private static final int FAILURE_COL = 8;
+    private static final int STATUS_COL = 3;
+    private static final int FAILURE_COL = 7;
 
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
 
     private final Workbook workbook;
 
-    private List<Office> offices;
+    private List<Code> codes;
 
-    public OfficeDataImportHandler(Workbook workbook, final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
+    public CodeDataImportHandler(Workbook workbook, final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
 
         this.workbook = workbook;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
-        offices = new ArrayList<>();
+        codes = new ArrayList<>();
     }
 
     @Override
     public Result parse() {
 
         Result result = new Result();
-        Sheet officeSheet = workbook.getSheet("OfficesForImport");
+        Sheet officeSheet = workbook.getSheet("Codes");
         Integer noOfEntries = getNumberOfRows(officeSheet, 0);
 
         for (int rowIndex = 1; rowIndex < noOfEntries; rowIndex++) {
@@ -59,7 +56,7 @@ public class OfficeDataImportHandler extends AbstractDataImportHandler {
             try {
                 row = officeSheet.getRow(rowIndex);
                 if (isNotImported(row, STATUS_COL)) {
-                    offices.add(parseAsOffice(row));
+                    codes.add(parseAsCode(row));
                 }
             } catch (Exception e) {
                 logger.error("row = " + rowIndex, e);
@@ -69,44 +66,37 @@ public class OfficeDataImportHandler extends AbstractDataImportHandler {
         return result;
     }
 
-    private Office parseAsOffice(Row row) {
+    private Code parseAsCode(Row row) {
 
-        String officeName = readAsString(NAME_COL, row);
-        
-        String parentOfficeName = readAsString(PARENT_OFFICE_COL, row);
-        Integer parentOfficeIdInt = getIdByName(workbook.getSheet("Offices"), parentOfficeName);
-        Long parentOfficeId = parentOfficeIdInt != 0 && parentOfficeIdInt != null ? parentOfficeIdInt.longValue() : null;
-        
-        String openingDate = readAsDate(OPENING_DATE_COL, row);
-        String externalId = readAsString(EXTERNAL_ID_COL, row);
+        String codeName = readAsString(NAME_COL, row);
 
         String status = readAsString(STATUS_COL, row);
 
-        if (StringUtils.isBlank(officeName)) { throw new IllegalArgumentException("Name is blank"); }
+        if (StringUtils.isBlank(codeName)) { throw new IllegalArgumentException("Name is blank"); }
         
-        return new Office(officeName, parentOfficeId, openingDate, externalId, row.getRowNum(), status);
+        return new Code(codeName, row.getRowNum(), status);
     }
 
     @Override
     public Result upload() {
 
         Result result = new Result();
-        Sheet officesSheet = workbook.getSheet("OfficesForImport");
+        Sheet officesSheet = workbook.getSheet("Codes");
         @SuppressWarnings("unused")
         Long centerId = null;
 
-        for (int i = 0; i < offices.size(); i++) {
+        for (int i = 0; i < codes.size(); i++) {
 
-            Row row = officesSheet.getRow(offices.get(i).getRowIndex());
+            Row row = officesSheet.getRow(codes.get(i).getRowIndex());
             Cell errorReportCell = row.createCell(FAILURE_COL);
             Cell statusCell = row.createCell(STATUS_COL);
 
             try {
 
                 @SuppressWarnings("unused")
-                String status = offices.get(i).getStatus();
+                String status = codes.get(i).getStatus();
 
-                centerId = uploadCenter(i).getOfficeId();
+                centerId = uploadCode(i).getSubResourceId();
 
                 statusCell.setCellValue("Imported");
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
@@ -120,19 +110,19 @@ public class OfficeDataImportHandler extends AbstractDataImportHandler {
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.RED));
 
                 errorReportCell.setCellValue(message);
-                result.addError("Row = " + offices.get(i).getRowIndex() + " ," + message);
+                result.addError("Row = " + codes.get(i).getRowIndex() + " ," + message);
             }
         }
         setReportHeaders(officesSheet);
         return result;
     }
 
-    private CommandProcessingResult uploadCenter(int rowIndex) {
+    private CommandProcessingResult uploadCode(int rowIndex) {
 
-        String payload = new Gson().toJson(offices.get(rowIndex));
+        String payload = new Gson().toJson(codes.get(rowIndex));
         logger.info(payload);
 
-        final CommandWrapper commandRequest = new CommandWrapperBuilder().createOffice().withJson(payload).build();
+        final CommandWrapper commandRequest = new CommandWrapperBuilder().createCode().withJson(payload).build();
         final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
 
         return result;
@@ -144,7 +134,7 @@ public class OfficeDataImportHandler extends AbstractDataImportHandler {
         writeString(FAILURE_COL, sheet.getRow(0), "Failure Report");
     }
 
-    public List<Office> getOffices() {
-        return this.offices;
+    public List<Code> getOffices() {
+        return this.codes;
     }
 }

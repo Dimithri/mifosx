@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import org.mifosplatform.infrastructure.dataimport.domain.populator.center.CenterWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.client.ClientWorkbookPopulator;
+import org.mifosplatform.infrastructure.dataimport.domain.populator.code.CodeValueWorkbookPopulator;
+import org.mifosplatform.infrastructure.dataimport.domain.populator.code.CodeWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.group.GroupWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.loan.LoanProductSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.loan.LoanRepaymentWorkbookPopulator;
@@ -12,6 +14,7 @@ import org.mifosplatform.infrastructure.dataimport.domain.populator.office.Offic
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsProductSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsTransactionWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsWorkbookPopulator;
+import org.mifosplatform.infrastructure.codes.service.CodeReadPlatformService;
 import org.mifosplatform.infrastructure.codes.service.CodeValueReadPlatformService;
 
 import org.mifosplatform.organisation.office.service.OfficeReadPlatformService;
@@ -41,6 +44,7 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
     private final CodeValueReadPlatformService codeValueReadPlatformService;
     private final LoanReadPlatformService loanReadPlatformService;
     private final SavingsAccountReadPlatformService savingsAccountReadPlatformService;
+    private final CodeReadPlatformService codeReadPlatformService;
 
     @Autowired
     public WorkbookPopulatorFactoryServiceImpl(final OfficeReadPlatformService officeReadPlatformService,
@@ -48,7 +52,8 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
             final GroupReadPlatformService groupReadPlatformService, final LoanProductReadPlatformService loanProductReadPlatformService,
             final SavingsProductReadPlatformService savingsProductReadPlatformService,
             final FundReadPlatformService fundReadPlatformService, final CodeValueReadPlatformService codeValueReadPlatformService,
-            final LoanReadPlatformService loanReadPlatformService, final SavingsAccountReadPlatformService savingsAccountReadPlatformService) {
+            final LoanReadPlatformService loanReadPlatformService,
+            final SavingsAccountReadPlatformService savingsAccountReadPlatformService, final CodeReadPlatformService codeReadPlatformService) {
 
         this.officeReadPlatformService = officeReadPlatformService;
         this.staffReadPlatformService = staffReadPlatformService;
@@ -60,6 +65,7 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
         this.codeValueReadPlatformService = codeValueReadPlatformService;
         this.loanReadPlatformService = loanReadPlatformService;
         this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
+        this.codeReadPlatformService = codeReadPlatformService;
     }
 
     @Override
@@ -96,7 +102,12 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
             return new SavingsTransactionWorkbookPopulator(savingsAccountReadPlatformService, new OfficeSheetPopulator(
                     officeReadPlatformService), new ClientSheetPopulator(clientReadPlatformService, officeReadPlatformService),
                     new ExtrasSheetPopulator(fundReadPlatformService, codeValueReadPlatformService));
-        else if (template.trim().equals("office")) return new OfficeWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService));
+        else if (template.trim().equals("office"))
+            return new OfficeWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService));
+        else if (template.trim().equals("codes"))
+            return new CodeWorkbookPopulator();
+        else if (template.trim().equals("codevalues"))
+            return new CodeValueWorkbookPopulator(new CodeSheetPopulator(codeReadPlatformService));
 
         throw new IllegalArgumentException("Can't find populator.");
     }

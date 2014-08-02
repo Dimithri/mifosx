@@ -19,4 +19,8 @@ public interface TemplatePlatformService {
     public Response getSavingsTransactionImportTemplate();
 
     public Response getOfficeImportTemplate();
+
+    public Response getCodeImportTemplate();
+
+    public Response getCodeValueImportTemplate();
 }
