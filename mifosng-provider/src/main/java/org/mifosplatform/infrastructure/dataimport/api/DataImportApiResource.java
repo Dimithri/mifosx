@@ -73,6 +73,8 @@ public class DataImportApiResource {
             response = this.templatePlatformService.getCodeImportTemplate();
         else if (entityType.equals("codevalues"))
             response = this.templatePlatformService.getCodeValueImportTemplate();
+        else if (entityType.equals("staff"))
+            response = this.templatePlatformService.getStaffImportTemplate();
         else {
 
         }
@@ -112,6 +114,8 @@ public class DataImportApiResource {
             response = this.importPlatformService.importCodesFromTemplate(uploadedInputStream);
         else if (entityType.equals("codevalues"))
             response = this.importPlatformService.importCodeValuesFromTemplate(uploadedInputStream);
+        else if (entityType.equals("staff"))
+            response = this.importPlatformService.importStaffFromTemplate(uploadedInputStream);
         else {
 
         }

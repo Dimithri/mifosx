@@ -23,4 +23,6 @@ public interface TemplatePlatformService {
     public Response getCodeImportTemplate();
 
     public Response getCodeValueImportTemplate();
+
+    public Response getStaffImportTemplate();
 }

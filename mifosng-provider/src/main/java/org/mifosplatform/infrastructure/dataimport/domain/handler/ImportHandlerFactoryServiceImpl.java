@@ -14,6 +14,7 @@ import org.mifosplatform.infrastructure.dataimport.domain.handler.loan.LoanRepay
 import org.mifosplatform.infrastructure.dataimport.domain.handler.office.OfficeDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.savings.SavingsDataImportHandler;
 import org.mifosplatform.infrastructure.dataimport.domain.handler.savings.SavingsTransactionDataImportHandler;
+import org.mifosplatform.infrastructure.dataimport.domain.handler.staff.StaffDataImportHandler;
 import org.mifosplatform.portfolio.client.service.ClientWritePlatformService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,8 @@ public class ImportHandlerFactoryServiceImpl implements ImportHandlerFactoryServ
             return new CodeDataImportHandler(workbook, commandsSourceWritePlatformService);
         else if (workbook.getSheetIndex("CodeValues") == 0)
             return new CodeValueDataImportHandler(workbook, commandsSourceWritePlatformService);
+        else if (workbook.getSheetIndex("StaffForImport") == 0)
+            return new StaffDataImportHandler(workbook, commandsSourceWritePlatformService);
 
         throw new IllegalArgumentException("No work sheet found for processing : active sheet " + workbook.getSheetName(0));
     }

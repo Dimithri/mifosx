@@ -14,6 +14,7 @@ import org.mifosplatform.infrastructure.dataimport.domain.populator.office.Offic
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsProductSheetPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsTransactionWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsWorkbookPopulator;
+import org.mifosplatform.infrastructure.dataimport.domain.populator.staff.StaffWorkbookPopulator;
 import org.mifosplatform.infrastructure.codes.service.CodeReadPlatformService;
 import org.mifosplatform.infrastructure.codes.service.CodeValueReadPlatformService;
 
@@ -108,6 +109,8 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
             return new CodeWorkbookPopulator();
         else if (template.trim().equals("codevalues"))
             return new CodeValueWorkbookPopulator(new CodeSheetPopulator(codeReadPlatformService));
+        else if (template.trim().equals("staff"))
+            return new StaffWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService));
 
         throw new IllegalArgumentException("Can't find populator.");
     }

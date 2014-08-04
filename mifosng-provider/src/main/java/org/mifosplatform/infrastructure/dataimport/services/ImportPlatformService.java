@@ -25,4 +25,6 @@ public interface ImportPlatformService {
 
     public Response importCodeValuesFromTemplate(InputStream content);
 
+    public Response importStaffFromTemplate(InputStream content);
+
 }
