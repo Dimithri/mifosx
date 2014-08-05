@@ -132,6 +132,14 @@ public class TemplatePlatformServiceImpl implements TemplatePlatformService {
         return getTemplate("", fileName);
     }
 
+    @Override
+    public Response getUserImportTemplate() {
+
+        String fileName = "users";
+
+        return getTemplate("", fileName);
+    }
+
     private Response getTemplate(final String parameter, String fileName) {
 
         Response response = null;

@@ -27,4 +27,6 @@ public interface ImportPlatformService {
 
     public Response importStaffFromTemplate(InputStream content);
 
+    public Response importUsersFromTemplate(InputStream content);
+
 }

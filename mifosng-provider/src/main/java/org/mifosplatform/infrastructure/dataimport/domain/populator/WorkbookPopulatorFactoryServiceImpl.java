@@ -15,6 +15,7 @@ import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.Savi
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsTransactionWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.savings.SavingsWorkbookPopulator;
 import org.mifosplatform.infrastructure.dataimport.domain.populator.staff.StaffWorkbookPopulator;
+import org.mifosplatform.infrastructure.dataimport.domain.populator.user.UserWorkbookPopulator;
 import org.mifosplatform.infrastructure.codes.service.CodeReadPlatformService;
 import org.mifosplatform.infrastructure.codes.service.CodeValueReadPlatformService;
 
@@ -28,9 +29,12 @@ import org.mifosplatform.portfolio.loanaccount.service.LoanReadPlatformService;
 import org.mifosplatform.portfolio.loanproduct.service.LoanProductReadPlatformService;
 import org.mifosplatform.portfolio.savings.service.SavingsAccountReadPlatformService;
 import org.mifosplatform.portfolio.savings.service.SavingsProductReadPlatformService;
+import org.mifosplatform.useradministration.service.RoleReadPlatformService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.amazonaws.services.identitymanagement.model.User;
 
 @Service
 public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFactoryService {
@@ -46,6 +50,7 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
     private final LoanReadPlatformService loanReadPlatformService;
     private final SavingsAccountReadPlatformService savingsAccountReadPlatformService;
     private final CodeReadPlatformService codeReadPlatformService;
+    private final RoleReadPlatformService roleReadPlatformService;
 
     @Autowired
     public WorkbookPopulatorFactoryServiceImpl(final OfficeReadPlatformService officeReadPlatformService,
@@ -54,7 +59,8 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
             final SavingsProductReadPlatformService savingsProductReadPlatformService,
             final FundReadPlatformService fundReadPlatformService, final CodeValueReadPlatformService codeValueReadPlatformService,
             final LoanReadPlatformService loanReadPlatformService,
-            final SavingsAccountReadPlatformService savingsAccountReadPlatformService, final CodeReadPlatformService codeReadPlatformService) {
+            final SavingsAccountReadPlatformService savingsAccountReadPlatformService,
+            final CodeReadPlatformService codeReadPlatformService, final RoleReadPlatformService roleReadPlatformService) {
 
         this.officeReadPlatformService = officeReadPlatformService;
         this.staffReadPlatformService = staffReadPlatformService;
@@ -67,6 +73,7 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
         this.loanReadPlatformService = loanReadPlatformService;
         this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
         this.codeReadPlatformService = codeReadPlatformService;
+        this.roleReadPlatformService = roleReadPlatformService;
     }
 
     @Override
@@ -111,6 +118,9 @@ public class WorkbookPopulatorFactoryServiceImpl implements WorkbookPopulatorFac
             return new CodeValueWorkbookPopulator(new CodeSheetPopulator(codeReadPlatformService));
         else if (template.trim().equals("staff"))
             return new StaffWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService));
+        else if (template.trim().equals("users"))
+            return new UserWorkbookPopulator(new OfficeSheetPopulator(officeReadPlatformService), new PersonnelSheetPopulator(Boolean.TRUE,
+                    officeReadPlatformService, staffReadPlatformService), new UserRoleSheetPopulator(roleReadPlatformService));
 
         throw new IllegalArgumentException("Can't find populator.");
     }
