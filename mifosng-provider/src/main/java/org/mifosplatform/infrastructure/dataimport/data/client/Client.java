@@ -10,9 +10,9 @@ public final class Client {
 
     private final Locale locale;
 
-    private final String officeId;
+    private final Long officeId;
 
-    private final String staffId;
+    private final Long staffId;
 
     private final String firstname;
 
@@ -38,9 +38,13 @@ public final class Client {
 
     private transient Integer groupId;
 
+    private transient Boolean isValid;
+
+    private transient String validationStatus;
+
     public Client(final String firstname, final String lastname, final String middlename, final String mobileNo, final String genderId,
             final String dateOfBirth, final String clientTypeId, final String clientClassificationId, final String activationDate,
-            final String active, final String externalId, final String officeId, final String staffId, Integer rowIndex) {
+            final String active, final String externalId, final Long officeId, final Long staffId, Integer rowIndex) {
 
         this.firstname = firstname;
         this.lastname = lastname;
@@ -104,11 +108,11 @@ public final class Client {
         return this.externalId;
     }
 
-    public String getOfficeId() {
+    public Long getOfficeId() {
         return this.officeId;
     }
 
-    public String getStaffId() {
+    public Long getStaffId() {
         return this.staffId;
     }
 
@@ -130,5 +134,37 @@ public final class Client {
 
     public void setGruopID(Integer groupId) {
         this.groupId = groupId;
+    }
+
+    public String getValidateStatus() {
+        return this.validationStatus;
+    }
+
+    public Boolean isValidated() {
+
+        if (this.officeId.equals("") || this.officeId == null) {
+            this.isValid = false;
+            this.validationStatus = "Office name must be selected";
+        } else if (this.staffId.equals("") || this.staffId == null) {
+            this.isValid = false;
+            this.validationStatus = "Staff name must be selected";
+        } else if (this.firstname.equals("") || this.firstname == null) {
+            this.isValid = false;
+            this.validationStatus = "First name must be selected";
+        } else if (this.lastname.equals("") || this.lastname == null) {
+            this.isValid = false;
+            this.validationStatus = "Last name must be selected";
+        } else if (this.active.equals("") || this.active == null) {
+            this.isValid = false;
+            this.validationStatus = "Activation must be selected";
+        } else if (this.active.equalsIgnoreCase("true") && (this.activationDate.equals("") || this.activationDate == null)) {
+            this.isValid = false;
+            this.validationStatus = "Activation date must be provided";
+        } else {
+            this.isValid = true;
+            this.validationStatus = "Required fields are provided";
+        }
+
+        return this.isValid;
     }
 }

@@ -109,9 +109,7 @@ public class ImportPlatFormServiceImpl implements ImportPlatformService {
             workbook = new HSSFWorkbook(content);
             DataImportHandler handler = importHandlerFactoryService.createImportHandler(workbook);
             Result result = parseAndUpload(handler);
-            if (result.isSuccess()) {
-                response = writeResult(workbook, result);
-            }
+            response = writeResult(workbook, result);
         } catch (IOException e) {
             logger.error(e.getMessage());
         }

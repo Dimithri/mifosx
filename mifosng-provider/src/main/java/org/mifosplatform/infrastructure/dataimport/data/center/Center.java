@@ -24,6 +24,10 @@ public final class Center {
 
     private final transient String status;
 
+    private transient Boolean isValid;
+
+    private transient String validationStatus;
+
     public Center(final String name, final Long officeId, final Long staffId, final String active, final String activationDate,
             final String externalId, final Integer rowIndex, final String status) {
 
@@ -38,6 +42,7 @@ public final class Center {
         this.dateFormat = "dd MMMM yyyy";
         this.locale = Locale.ENGLISH;
     }
+
     public String getName() {
         return this.name;
     }
@@ -76,5 +81,31 @@ public final class Center {
 
     public String getStatus() {
         return this.status;
+    }
+
+    public String getValidateStatus() {
+        return this.validationStatus;
+    }
+
+    public Boolean isValidated() {
+
+        if (this.officeId.equals("") || this.officeId == null) {
+            this.isValid = false;
+            this.validationStatus = "Office name must be selected";
+        } else if (this.staffId.equals("") || this.staffId == null) {
+            this.isValid = false;
+            this.validationStatus = "Staff name must be selected";
+        } else if (this.active.equals("") || this.active == null) {
+            this.isValid = false;
+            this.validationStatus = "Activation must be selected";
+        } else if (this.active.equalsIgnoreCase("true") && (this.activationDate.equals("") || this.activationDate == null)) {
+            this.isValid = false;
+            this.validationStatus = "Activation date must be provided";
+        } else {
+            this.isValid = true;
+            this.validationStatus = "Required fields are provided";
+        }
+
+        return this.isValid;
     }
 }

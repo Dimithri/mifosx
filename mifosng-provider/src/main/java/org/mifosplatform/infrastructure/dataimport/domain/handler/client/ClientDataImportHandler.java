@@ -106,29 +106,49 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
     private Client parseAsClient(Row row) {
 
         Client client = null;
+        String buffer;
 
         String officeName = readAsString(OFFICE_NAME_COL, row);
-        String officeId = getIdByName(workbook.getSheet("Offices"), officeName).toString();
+        Long officeId = officeName.equals("") ? null : getIdByName(workbook.getSheet("Offices"), officeName).longValue();
+
         String staffName = readAsString(STAFF_NAME_COL, row);
-        String staffId = getIdByName(workbook.getSheet("Staff"), staffName).toString();
-        String mobileNo = readAsString(MOBILE_NO_COL, row);
-        String dateOfBirth = readAsDate(DATE_OF_BIRTH_COL, row);
-        String externalId = readAsString(EXTERNAL_ID_COL, row);
-        String activationDate = readAsDate(ACTIVATION_DATE_COL, row);
-        String active = readAsBoolean(ACTIVE_COL, row).toString();
-        String gender = getGenderId(readAsString(GENDER_COL, row));
+        Long staffId = staffName.equals("") ? null : getIdByName(workbook.getSheet("Staff"), staffName).longValue();
+
+        buffer = readAsString(FIRST_NAME_COL, row);
+        String firstName = buffer.equals("") ? null : buffer;
+
+        buffer = readAsString(MIDDLE_NAME_COL, row);
+        String middleName = buffer.equals("") ? null : buffer;
+
+        buffer = readAsString(LAST_NAME_COL, row);
+        String lastName = buffer.equals("") ? null : buffer;
+
+        buffer = readAsString(MOBILE_NO_COL, row);
+        String mobileNo = buffer.equals("") ? null : buffer;
+
+        buffer = readAsDate(DATE_OF_BIRTH_COL, row);
+        String dateOfBirth = buffer.equals("") ? null : buffer;
+
+        buffer = getGenderId(readAsString(GENDER_COL, row));
+        String gender = buffer.equals("") ? null : buffer;
 
         String clientTypeName = readAsString(CLIENT_TYPE_COL, row);
         Integer clientTypeIdInt = getIdByName(workbook.getSheet("ClientType"), clientTypeName);
-        String clientTypeId = clientTypeIdInt != 0 ? clientTypeIdInt.toString() : "";
+        String clientTypeId = clientTypeIdInt != 0 ? clientTypeIdInt.toString() : null;
 
         String clientClassificationName = readAsString(CLIENT_CLASSIFICATION_COL, row);
         Integer clientClassificationIdInt = getIdByName(workbook.getSheet("ClientClassification"), clientClassificationName);
-        String clientClassificationId = clientClassificationIdInt != 0 ? clientClassificationIdInt.toString() : "";
+        String clientClassificationId = clientClassificationIdInt != 0 ? clientClassificationIdInt.toString() : null;
 
-        String firstName = readAsString(FIRST_NAME_COL, row);
-        String lastName = readAsString(LAST_NAME_COL, row);
-        String middleName = readAsString(MIDDLE_NAME_COL, row);
+        buffer = readAsString(EXTERNAL_ID_COL, row);
+        String externalId = buffer.equals("") ? null : buffer;
+
+        buffer = readAsBoolean(ACTIVE_COL, row).toString();
+        String active = buffer.equals("") ? null : buffer;
+
+        buffer = readAsDate(ACTIVATION_DATE_COL, row);
+        String activationDate = buffer.equals("") ? null : buffer;
+
         if (StringUtils.isBlank(firstName)) { throw new IllegalArgumentException("Name is blank"); }
 
         client = new Client(firstName, lastName, middleName, mobileNo, gender, dateOfBirth, clientTypeId, clientClassificationId,
@@ -138,6 +158,7 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
             String groupName = readAsString(GROUP_NAME_COL, row);
             Integer groupId = getIdByName(workbook.getSheet("Groups"), groupName);
+            groupId = groupId != 0 ? groupId : null;
             client.setGruopID(groupId);
         }
 
@@ -152,42 +173,56 @@ public class ClientDataImportHandler extends AbstractDataImportHandler {
 
         for (Client client : clients) {
             try {
-                Gson gson = new Gson();
-                String payload = gson.toJson(client);
-                logger.info(payload);
+                if (client.isValidated()) {
 
-                final CommandWrapper commandRequest = new CommandWrapperBuilder().createClient().withJson(payload).build();
+                    Gson gson = new Gson();
+                    String payload = gson.toJson(client);
+                    logger.info(payload);
 
-                final CommandProcessingResult commandProcessingResult = this.commandsSourceWritePlatformService
-                        .logCommandSource(commandRequest);
+                    final CommandWrapper commandRequest = new CommandWrapperBuilder().createClient().withJson(payload).build();
 
-                if (!clientType.equals("Individual")) {
+                    final CommandProcessingResult commandProcessingResult = this.commandsSourceWritePlatformService
+                            .logCommandSource(commandRequest);
 
-                    Integer groupId = client.getGroupId();
+                    if (!clientType.equals("Individual")) {
 
-                    if (groupId != 0) {
+                        Integer groupId = client.getGroupId();
 
-                        Long clientId = commandProcessingResult.getClientId().longValue();
-                        String[] clientIdAsArray = { clientId.toString() };
-                        String payloadJson = gson.toJson(clientIdAsArray);
-                        payloadJson = "{\"clientMembers\":" + payloadJson + "}";
+                        if (groupId != 0) {
 
-                        final CommandWrapper commandRequestForGroupAssociation = new CommandWrapperBuilder().withJson(payloadJson)
-                                .associateClientsToGroup(groupId.longValue()).build();
-                        @SuppressWarnings("unused")
-                        final CommandProcessingResult commandProcessingResultForGroupAssociation = this.commandsSourceWritePlatformService
-                                .logCommandSource(commandRequestForGroupAssociation);
+                            Long clientId = commandProcessingResult.getClientId().longValue();
+                            String[] clientIdAsArray = { clientId.toString() };
+                            String payloadJson = gson.toJson(clientIdAsArray);
+                            payloadJson = "{\"clientMembers\":" + payloadJson + "}";
+
+                            final CommandWrapper commandRequestForGroupAssociation = new CommandWrapperBuilder().withJson(payloadJson)
+                                    .associateClientsToGroup(groupId.longValue()).build();
+                            @SuppressWarnings("unused")
+                            final CommandProcessingResult commandProcessingResultForGroupAssociation = this.commandsSourceWritePlatformService
+                                    .logCommandSource(commandRequestForGroupAssociation);
+                        }
                     }
-                }
 
-                Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
-                statusCell.setCellValue("Imported");
-                statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
+                    Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
+                    statusCell.setCellValue("Imported");
+                    statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.LIGHT_GREEN));
+                } else {
+                    throw new RuntimeException(client.getValidateStatus());
+                }
 
             } catch (RuntimeException e) {
 
-                logger.error(e.getMessage());
-                String message = parseStatus(e.getMessage());
+                String message;
+                if (e.getMessage() != null) {
+                    message = parseStatus(e.getMessage());
+                } else if (e.getLocalizedMessage() != null) {
+                    message = e.getLocalizedMessage();
+                } else {
+                    message = "";
+                }
+
+                logger.error(message);
+
                 Cell statusCell = clientSheet.getRow(client.getRowIndex()).createCell(STATUS_COL);
                 statusCell.setCellValue(message);
                 statusCell.setCellStyle(getCellStyle(workbook, IndexedColors.RED));
