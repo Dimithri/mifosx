@@ -217,10 +217,6 @@ public final class SavingsAccountTransaction extends AbstractPersistable<Long> {
         return Money.of(currency, this.amount);
     }
 
-    public Money getRunningBalance(final MonetaryCurrency currency) {
-        return Money.of(currency, this.runningBalance);
-    }
-
     public boolean isDeposit() {
         return SavingsAccountTransactionType.fromInt(this.typeOf).isDeposit();
     }

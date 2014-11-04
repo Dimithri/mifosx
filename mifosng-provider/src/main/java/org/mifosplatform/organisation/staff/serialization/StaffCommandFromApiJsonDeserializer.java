@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
 import org.mifosplatform.infrastructure.core.data.ApiParameterError;
 import org.mifosplatform.infrastructure.core.data.DataValidatorBuilder;
 import org.mifosplatform.infrastructure.core.exception.InvalidJsonException;
@@ -34,7 +33,7 @@ public final class StaffCommandFromApiJsonDeserializer {
      * The parameters supported for this command.
      */
     private final Set<String> supportedParameters = new HashSet<>(Arrays.asList("firstname", "lastname", "officeId", "externalId",
-            "mobileNo", "isLoanOfficer", "isActive", "joiningDate", "dateFormat", "locale"));
+            "mobileNo", "isLoanOfficer", "isActive"));
 
     private final FromJsonHelper fromApiJsonHelper;
 
@@ -78,21 +77,6 @@ public final class StaffCommandFromApiJsonDeserializer {
             final Boolean activeFlag = this.fromApiJsonHelper.extractBooleanNamed("isActive", element);
             baseDataValidator.reset().parameter("isActive").value(activeFlag).notNull();
         }
-        
-        if (this.fromApiJsonHelper.parameterExists("joiningDate", element)) {
-            final LocalDate joiningDate = this.fromApiJsonHelper.extractLocalDateNamed("joiningDate", element);
-            baseDataValidator.reset().parameter("joiningDate").value(joiningDate).notNull();
-        }
-
-        if (this.fromApiJsonHelper.parameterExists("dateFormat", element)) {
-        	final String dateFormat = this.fromApiJsonHelper.extractStringNamed("dateFormat", element);
-        	baseDataValidator.reset().parameter("dateFormat").value(dateFormat).notBlank();
-        }
-        
-        if (this.fromApiJsonHelper.parameterExists("locale", element)) {
-        	final String locale = this.fromApiJsonHelper.extractStringNamed("locale", element);
-        	baseDataValidator.reset().parameter("locale").value(locale).notBlank();
-        }
 
         throwExceptionIfValidationWarningsExist(dataValidationErrors);
     }
@@ -135,21 +119,6 @@ public final class StaffCommandFromApiJsonDeserializer {
         if (this.fromApiJsonHelper.parameterExists("isActive", element)) {
             final Boolean activeFlag = this.fromApiJsonHelper.extractBooleanNamed("isActive", element);
             baseDataValidator.reset().parameter("isActive").value(activeFlag).notNull();
-        }
-                
-        if (this.fromApiJsonHelper.parameterExists("joiningDate", element)) {
-            final LocalDate joiningDate = this.fromApiJsonHelper.extractLocalDateNamed("joiningDate", element);
-            baseDataValidator.reset().parameter("joiningDate").value(joiningDate).notNull();
-        }
-
-        if (this.fromApiJsonHelper.parameterExists("dateFormat", element)) {
-        	final String dateFormat = this.fromApiJsonHelper.extractStringNamed("dateFormat", element);
-        	baseDataValidator.reset().parameter("dateFormat").value(dateFormat).notBlank();
-        }
-        
-        if (this.fromApiJsonHelper.parameterExists("locale", element)) {
-        	final String locale = this.fromApiJsonHelper.extractStringNamed("locale", element);
-        	baseDataValidator.reset().parameter("locale").value(locale).notBlank();
         }
 
         throwExceptionIfValidationWarningsExist(dataValidationErrors);

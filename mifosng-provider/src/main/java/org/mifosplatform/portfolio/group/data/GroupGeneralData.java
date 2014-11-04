@@ -175,6 +175,18 @@ public class GroupGeneralData {
     public Long officeId() {
         return this.officeId;
     }
+    
+    public String getOfficeName() {
+        return this.officeName;
+    }
+
+    public Boolean isActive() {
+        return this.active;
+    }
+
+    public LocalDate getActivationDate() {
+        return this.activationDate;
+    }
 
     public String getHierarchy() {
         return this.hierarchy;

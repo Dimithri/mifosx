@@ -1,13 +1,7 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
- */
 package org.mifosplatform.portfolio.loanaccount.data;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Map;
 
 import org.joda.time.LocalDate;
 import org.mifosplatform.organisation.monetary.data.CurrencyData;
@@ -20,7 +14,8 @@ public class LoanScheduleAccrualData {
     private final LocalDate accruedTill;
     private final PeriodFrequencyType repaymentFrequency;
     private final Integer repayEvery;
-    private final Integer installmentNumber;
+    private final Integer numberOfDaysInYear;
+    private final Integer numberOfDaysInMonth;
     private final LocalDate dueDate;
     private final LocalDate fromDate;
     private final Long repaymentScheduleId;
@@ -28,28 +23,24 @@ public class LoanScheduleAccrualData {
     private final BigDecimal interestIncome;
     private final BigDecimal feeIncome;
     private final BigDecimal penaltyIncome;
-    private final BigDecimal waivedInterestIncome;
     private final BigDecimal accruedInterestIncome;
     private final BigDecimal accruedFeeIncome;
     private final BigDecimal accruedPenaltyIncome;
     private final CurrencyData currencyData;
-    private final LocalDate interestCalculatedFrom;
+    private final BigDecimal dueDateFeeIncome;
+    private final BigDecimal dueDatePenaltyIncome;
 
-    private Map<LoanChargeData, BigDecimal> applicableCharges;
-    private BigDecimal dueDateFeeIncome;
-    private BigDecimal dueDatePenaltyIncome;
-    private BigDecimal accruableIncome;
-
-    public LoanScheduleAccrualData(final Long loanId, final Long officeId, final Integer installmentNumber, final LocalDate accruedTill,
-            final PeriodFrequencyType repaymentFrequency, final Integer repayEvery, final LocalDate dueDate, final LocalDate fromDate,
-            final Long repaymentScheduleId, final Long loanProductId, final BigDecimal interestIncome, final BigDecimal feeIncome,
-            final BigDecimal penaltyIncome, final BigDecimal accruedInterestIncome, final BigDecimal accruedFeeIncome,
-            final BigDecimal accruedPenaltyIncome, final CurrencyData currencyData, final LocalDate interestCalculatedFrom,
-            final BigDecimal waivedInterestIncome) {
+    public LoanScheduleAccrualData(final Long loanId, final Long officeId, final LocalDate accruedTill, final Integer numberOfDaysInMonth,
+            final Integer numberOfDaysInYear, final PeriodFrequencyType repaymentFrequency, final Integer repayEvery,
+            final LocalDate dueDate, final LocalDate fromDate, final Long repaymentScheduleId, final Long loanProductId,
+            final BigDecimal interestIncome, final BigDecimal feeIncome, final BigDecimal penaltyIncome,
+            final BigDecimal accruedInterestIncome, final BigDecimal accruedFeeIncome, final BigDecimal accruedPenaltyIncome,
+            final CurrencyData currencyData, final BigDecimal dueDateFeeIncome, final BigDecimal dueDatePenaltyIncome) {
         this.loanId = loanId;
-        this.installmentNumber = installmentNumber;
         this.officeId = officeId;
         this.accruedTill = accruedTill;
+        this.numberOfDaysInMonth = numberOfDaysInMonth;
+        this.numberOfDaysInYear = numberOfDaysInYear;
         this.dueDate = dueDate;
         this.fromDate = fromDate;
         this.repaymentScheduleId = repaymentScheduleId;
@@ -63,8 +54,8 @@ public class LoanScheduleAccrualData {
         this.currencyData = currencyData;
         this.repaymentFrequency = repaymentFrequency;
         this.repayEvery = repayEvery;
-        this.interestCalculatedFrom = interestCalculatedFrom;
-        this.waivedInterestIncome = waivedInterestIncome;
+        this.dueDateFeeIncome = dueDateFeeIncome;
+        this.dueDatePenaltyIncome = dueDatePenaltyIncome;
     }
 
     public Long getLoanId() {
@@ -123,6 +114,14 @@ public class LoanScheduleAccrualData {
         return this.accruedTill;
     }
 
+    public Integer getNumberOfDaysInYear() {
+        return this.numberOfDaysInYear;
+    }
+
+    public Integer getNumberOfDaysInMonth() {
+        return this.numberOfDaysInMonth;
+    }
+
     public LocalDate getFromDateAsLocaldate() {
         return this.fromDate;
     }
@@ -135,18 +134,6 @@ public class LoanScheduleAccrualData {
         return this.repayEvery;
     }
 
-    public LocalDate getInterestCalculatedFrom() {
-        return this.interestCalculatedFrom;
-    }
-
-    public Integer getInstallmentNumber() {
-        return this.installmentNumber;
-    }
-
-    public Map<LoanChargeData, BigDecimal> getApplicableCharges() {
-        return this.applicableCharges;
-    }
-
     public BigDecimal getDueDateFeeIncome() {
         return this.dueDateFeeIncome;
     }
@@ -154,28 +141,5 @@ public class LoanScheduleAccrualData {
     public BigDecimal getDueDatePenaltyIncome() {
         return this.dueDatePenaltyIncome;
     }
-
-    public void updateChargeDetails(final Map<LoanChargeData, BigDecimal> applicableCharges, final BigDecimal dueDateFeeIncome,
-            final BigDecimal dueDatePenaltyIncome) {
-        this.applicableCharges = applicableCharges;
-        this.dueDateFeeIncome = dueDateFeeIncome;
-        this.dueDatePenaltyIncome = dueDatePenaltyIncome;
-    }
-
-    
-    public BigDecimal getWaivedInterestIncome() {
-        return this.waivedInterestIncome;
-    }
-
-    
-    public BigDecimal getAccruableIncome () {
-        return this.accruableIncome;
-    }
-
-    
-    public void updateAccruableIncome (BigDecimal accruableIncome ) {
-        this.accruableIncome = accruableIncome ;
-    }
-
 
 }

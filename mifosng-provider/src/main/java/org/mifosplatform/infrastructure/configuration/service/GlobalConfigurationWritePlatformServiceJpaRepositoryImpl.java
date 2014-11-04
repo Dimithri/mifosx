@@ -50,7 +50,7 @@ public class GlobalConfigurationWritePlatformServiceJpaRepositoryImpl implements
             this.globalConfigurationDataValidator.validateForUpdate(command);
 
             final GlobalConfigurationProperty configItemForUpdate = this.repository.findOneWithNotFoundDetection(configId);
-            
+
             final Map<String, Object> changes = configItemForUpdate.update(command);
 
             if (!changes.isEmpty()) {
@@ -65,6 +65,7 @@ public class GlobalConfigurationWritePlatformServiceJpaRepositoryImpl implements
         }
 
     }
+
 
     @Transactional
     @Override

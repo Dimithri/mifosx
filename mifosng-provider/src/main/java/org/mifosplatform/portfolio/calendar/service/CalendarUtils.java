@@ -38,10 +38,6 @@ import org.mifosplatform.portfolio.common.domain.PeriodFrequencyType;
 
 public class CalendarUtils {
 
-    static {
-        System.setProperty("net.fortuna.ical4j.timezone.date.floating", "true");
-    }
-
     public static LocalDate getNextRecurringDate(final String recurringRule, final LocalDate seedDate, final LocalDate startDate) {
         final Recur recur = CalendarUtils.getICalRecur(recurringRule);
         if (recur == null) { return null; }
@@ -472,10 +468,9 @@ public class CalendarUtils {
         if (recur == null) { return null; }
         LocalDate date = startDate;
         final LocalDate seedDate = calendar.getStartDateLocalDate();
-        /**
-         * if (isValidRedurringDate(calendar.getRecurrence(), seedDate, date)) {
-         * date = date.plusDays(1); }
-         **/
+        if (isValidRedurringDate(calendar.getRecurrence(), seedDate, date)) {
+            date = date.plusDays(1);
+        }
 
         final LocalDate scheduleDate = getNextRecurringDate(recur, seedDate, date);
 

@@ -286,24 +286,4 @@ public final class LoanSummary {
     public BigDecimal getTotalWrittenOff() {
         return this.totalWrittenOff;
     }
-    
-    /** 
-     * @return total interest repaid 
-     **/
-    public BigDecimal getTotalInterestRepaid() {
-    	return this.totalInterestRepaid;
-    }
-    
-    public BigDecimal getTotalFeeChargesCharged() {
-    	return this.totalFeeChargesCharged;
-    }
-    
-    public BigDecimal getTotalPenaltyChargesCharged() {
-    	return this.totalPenaltyChargesCharged;
-    }
-
-    
-    public BigDecimal getTotalPrincipalWrittenOff() {
-        return this.totalPrincipalWrittenOff;
-    }
 }

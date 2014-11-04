@@ -27,23 +27,17 @@ public class GlobalConfigurationProperty extends AbstractPersistable<Long> {
 
     @Column(name = "value", nullable = true)
     private Long value;
-    
-    @Column(name = "description", nullable = true)
-    private final String description;
 
     protected GlobalConfigurationProperty() {
         this.name = null;
         this.enabled = false;
         this.value = null;
-        this.description = null;
     }
 
-    public GlobalConfigurationProperty(final String name, final boolean enabled, final Long value,
-    		final String description) {
+    public GlobalConfigurationProperty(final String name, final boolean enabled, final Long value) {
         this.name = name;
         this.enabled = enabled;
         this.value = value;
-        this.description = description;
     }
 
     public boolean isEnabled() {
@@ -84,7 +78,7 @@ public class GlobalConfigurationProperty extends AbstractPersistable<Long> {
 
     public static GlobalConfigurationProperty newSurveyConfiguration(final String name)
     {
-        return new GlobalConfigurationProperty(name, false, null, null);
+        return new GlobalConfigurationProperty(name,false,null);
     }
 
 }

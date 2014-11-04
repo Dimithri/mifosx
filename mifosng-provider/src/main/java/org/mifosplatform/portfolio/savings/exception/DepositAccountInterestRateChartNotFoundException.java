@@ -10,7 +10,6 @@ import org.mifosplatform.infrastructure.core.exception.AbstractPlatformResourceN
 public class DepositAccountInterestRateChartNotFoundException extends AbstractPlatformResourceNotFoundException {
 
     public DepositAccountInterestRateChartNotFoundException(final Long id) {
-        super("error.msg.deposit.account.interest.rate.chart.id.invalid", "Deposit Account Interest rate chart with identifier " + id
-                + " does not exist", id);
+        super("error.msg.deposit.account.interest.rate.chart.id.invalid", "Deposit Account Interest rate chart with identifier " + id + " does not exist", id);
     }
 }

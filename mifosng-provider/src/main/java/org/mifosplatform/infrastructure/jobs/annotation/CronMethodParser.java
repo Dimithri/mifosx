@@ -1,8 +1,3 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
- */
 package org.mifosplatform.infrastructure.jobs.annotation;
 
 import java.io.IOException;
@@ -60,8 +55,7 @@ public class CronMethodParser {
             throws IOException {
         final String basePackagePath = ClassUtils.convertClassNameToResourcePath(new StandardEnvironment()
                 .resolveRequiredPlaceholders(SEARCH_PACKAGE));
-        String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackagePath + "/" + RESOURCE_PATTERN;
-        packageSearchPath = packageSearchPath.replace("//", "/"); // else it doesn't work if *.class are in WAR!!
+        final String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + basePackagePath + "/" + RESOURCE_PATTERN;
         final Resource[] resources = resourcePatternResolver.getResources(packageSearchPath);
         for (final Resource resource : resources) {
             if (resource.isReadable()) {

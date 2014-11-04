@@ -7,7 +7,6 @@ package org.mifosplatform.organisation.staff.data;
 
 import java.util.Collection;
 
-import org.joda.time.LocalDate;
 import org.mifosplatform.organisation.office.data.OfficeData;
 
 /**
@@ -25,30 +24,29 @@ public class StaffData {
     private final String officeName;
     private final Boolean isLoanOfficer;
     private final Boolean isActive;
-    private final LocalDate joiningDate;
 
     @SuppressWarnings("unused")
     private final Collection<OfficeData> allowedOffices;
 
     public static StaffData templateData(final StaffData staff, final Collection<OfficeData> allowedOffices) {
         return new StaffData(staff.id, staff.firstname, staff.lastname, staff.displayName, staff.officeId, staff.officeName,
-                staff.isLoanOfficer, staff.externalId, staff.mobileNo, allowedOffices, staff.isActive, staff.joiningDate);
+                staff.isLoanOfficer, staff.externalId, staff.mobileNo, allowedOffices, staff.isActive);
     }
 
     public static StaffData lookup(final Long id, final String displayName) {
-        return new StaffData(id, null, null, displayName, null, null, null, null, null, null, null, null);
+        return new StaffData(id, null, null, displayName, null, null, null, null, null, null, null);
     }
 
     public static StaffData instance(final Long id, final String firstname, final String lastname, final String displayName,
             final Long officeId, final String officeName, final Boolean isLoanOfficer, final String externalId, final String mobileNo,
-            final boolean isActive, final LocalDate joiningDate) {
+            final boolean isActive) {
         return new StaffData(id, firstname, lastname, displayName, officeId, officeName, isLoanOfficer, externalId, mobileNo, null,
-                isActive, joiningDate);
+                isActive);
     }
 
     private StaffData(final Long id, final String firstname, final String lastname, final String displayName, final Long officeId,
             final String officeName, final Boolean isLoanOfficer, final String externalId, final String mobileNo,
-            final Collection<OfficeData> allowedOffices, final Boolean isActive, final LocalDate joiningDate) {
+            final Collection<OfficeData> allowedOffices, final Boolean isActive) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
@@ -60,7 +58,6 @@ public class StaffData {
         this.mobileNo = mobileNo;
         this.allowedOffices = allowedOffices;
         this.isActive = isActive;
-        this.joiningDate = joiningDate;
     }
 
     public Long getId() {
@@ -83,7 +80,11 @@ public class StaffData {
         return this.officeName;
     }
     
-    public LocalDate getJoiningDate() {
-    	return this.joiningDate;
+    public Long getOfficeId(){
+    	return this.officeId;
+    }
+    
+    public boolean getIsLoanOfficer(){
+    	return this.isLoanOfficer;
     }
 }

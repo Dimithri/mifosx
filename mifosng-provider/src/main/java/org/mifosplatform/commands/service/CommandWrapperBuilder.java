@@ -302,30 +302,6 @@ public class CommandWrapperBuilder {
         return this;
     }
 
-    public CommandWrapperBuilder createHook() {
-        this.actionName = "CREATE";
-        this.entityName = "HOOK";
-        this.entityId = null;
-        this.href = "/hooks/template";
-        return this;
-    }
-
-    public CommandWrapperBuilder updateHook(final Long hookId) {
-        this.actionName = "UPDATE";
-        this.entityName = "HOOK";
-        this.entityId = hookId;
-        this.href = "/hooks/" + hookId;
-        return this;
-    }
-
-    public CommandWrapperBuilder deleteHook(final Long hookId) {
-        this.actionName = "DELETE";
-        this.entityName = "HOOK";
-        this.entityId = hookId;
-        this.href = "/hooks/" + hookId;
-        return this;
-    }
-
     public CommandWrapperBuilder createCharge() {
         this.actionName = "CREATE";
         this.entityName = "CHARGE";
@@ -1503,24 +1479,6 @@ public class CommandWrapperBuilder {
         this.href = "/centers/" + centerId + "?command=close";
         return this;
     }
-    
-    public CommandWrapperBuilder associateGroupsToCenter(final Long centerId) {
-        this.actionName = "ASSOCIATEGROUPS";
-        this.entityName = "CENTER";
-        this.entityId = centerId;
-        this.groupId = centerId;
-        this.href = "/groups/" + centerId + "?command=associateGroups";
-        return this;
-    }
-
-    public CommandWrapperBuilder disassociateGroupsFromCenter(final Long centerId) {
-        this.actionName = "DISASSOCIATEGROUPS";
-        this.entityName = "CENTER";
-        this.entityId = centerId;
-        this.groupId = centerId;
-        this.href = "/groups/" + centerId + "?command=disassociateGroups";
-        return this;
-    }
 
     public CommandWrapperBuilder createAccountingRule() {
         this.actionName = "CREATE";
@@ -2073,43 +2031,5 @@ public class CommandWrapperBuilder {
         this.entityId = entityId;
         return this;
     }
-    public CommandWrapperBuilder assignSavingsOfficer(final Long accountId) {
-    	this.actionName = "UPDATESAVINGSOFFICER";
-        this.entityName = "SAVINGSACCOUNT";
-        this.entityId = accountId;
-        this.href = "/savingsaccounts/" + accountId + "?command=assignSavingsOfficer";
-        return this;
-    }
 
-    public CommandWrapperBuilder unassignSavingsOfficer(final Long accountId) {
-        this.actionName = "REMOVESAVINGSOFFICER";
-        this.entityName = "SAVINGSACCOUNT";
-        this.entityId = accountId;
-        this.href = "/savingsaccounts/" + accountId + "?commad=unassignSavingsOfficer";
-        return this;
-    }
-
-    public CommandWrapperBuilder createLoanRescheduleRequest(final String entityName) {
-        this.actionName = "CREATE";
-        this.entityName = entityName;
-        this.entityId = null;
-        this.href = "/rescheduleloans";
-        return this;
-    }
-    
-    public CommandWrapperBuilder approveLoanRescheduleRequest(final String entityName, final Long requestId) {
-    	this.actionName = "APPROVE";
-    	this.entityName = entityName;
-    	this.entityId = requestId;
-    	this.href = "/rescheduleloans/" + requestId + "?command=approve";
-    	return this;
-    }
-    
-    public CommandWrapperBuilder rejectLoanRescheduleRequest(final String entityName, final Long requestId) {
-    	this.actionName = "REJECT";
-    	this.entityName = entityName;
-    	this.entityId = requestId;
-    	this.href = "/rescheduleloans/" + requestId + "?command=reject";
-    	return this;
-    }
 }

@@ -31,6 +31,7 @@ public class LoanSchedulePeriodData {
     private final BigDecimal principalPaid;
     private final BigDecimal principalWrittenOff;
     private final BigDecimal principalOutstanding;
+    @SuppressWarnings("unused")
     private final BigDecimal principalLoanBalanceOutstanding;
     @SuppressWarnings("unused")
     private final BigDecimal interestOriginalDue;
@@ -412,9 +413,5 @@ public class LoanSchedulePeriodData {
 
     public BigDecimal totalOverdue() {
         return defaultToZeroIfNull(this.totalOverdue);
-    }
-
-    public BigDecimal principalLoanBalanceOutstanding() {
-        return this.principalLoanBalanceOutstanding;
     }
 }

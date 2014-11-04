@@ -100,28 +100,18 @@ public class LoanProductRelatedDetail implements LoanProductMinimumRepaymentSche
     @Column(name = "grace_on_arrears_ageing", nullable = true)
     private Integer graceOnArrearsAgeing;
 
-    @Column(name = "days_in_month_enum", nullable = false)
-    private Integer daysInMonthType;
-
-    @Column(name = "days_in_year_enum", nullable = false)
-    private Integer daysInYearType;
-
-    @Column(name = "interest_recalculation_enabled")
-    private boolean isInterestRecalculationEnabled;
-
     public static LoanProductRelatedDetail createFrom(final MonetaryCurrency currency, final BigDecimal principal,
             final BigDecimal nominalInterestRatePerPeriod, final PeriodFrequencyType interestRatePeriodFrequencyType,
             final BigDecimal nominalAnnualInterestRate, final InterestMethod interestMethod,
             final InterestCalculationPeriodMethod interestCalculationPeriodMethod, final Integer repaymentEvery,
             final PeriodFrequencyType repaymentPeriodFrequencyType, final Integer numberOfRepayments,
             final Integer graceOnPrincipalPayment, final Integer graceOnInterestPayment, final Integer graceOnInterestCharged,
-            final AmortizationMethod amortizationMethod, final BigDecimal inArrearsTolerance, final Integer graceOnArrearsAgeing,
-            final Integer daysInMonthType, final Integer daysInYearType, final boolean isInterestRecalculationEnabled) {
+            final AmortizationMethod amortizationMethod, final BigDecimal inArrearsTolerance, final Integer graceOnArrearsAgeing) {
 
         return new LoanProductRelatedDetail(currency, principal, nominalInterestRatePerPeriod, interestRatePeriodFrequencyType,
                 nominalAnnualInterestRate, interestMethod, interestCalculationPeriodMethod, repaymentEvery, repaymentPeriodFrequencyType,
                 numberOfRepayments, graceOnPrincipalPayment, graceOnInterestPayment, graceOnInterestCharged, amortizationMethod,
-                inArrearsTolerance, graceOnArrearsAgeing, daysInMonthType, daysInYearType, isInterestRecalculationEnabled);
+                inArrearsTolerance, graceOnArrearsAgeing);
     }
 
     protected LoanProductRelatedDetail() {
@@ -134,8 +124,7 @@ public class LoanProductRelatedDetail implements LoanProductMinimumRepaymentSche
             final InterestCalculationPeriodMethod interestCalculationPeriodMethod, final Integer repayEvery,
             final PeriodFrequencyType repaymentFrequencyType, final Integer defaultNumberOfRepayments,
             final Integer graceOnPrincipalPayment, final Integer graceOnInterestPayment, final Integer graceOnInterestCharged,
-            final AmortizationMethod amortizationMethod, final BigDecimal inArrearsTolerance, final Integer graceOnArrearsAgeing,
-            final Integer daysInMonthType, final Integer daysInYearType, final boolean isInterestRecalculationEnabled) {
+            final AmortizationMethod amortizationMethod, final BigDecimal inArrearsTolerance, final Integer graceOnArrearsAgeing) {
         this.currency = currency;
         this.principal = defaultPrincipal;
         this.nominalInterestRatePerPeriod = defaultNominalInterestRatePerPeriod;
@@ -156,9 +145,6 @@ public class LoanProductRelatedDetail implements LoanProductMinimumRepaymentSche
             this.inArrearsTolerance = inArrearsTolerance;
         }
         this.graceOnArrearsAgeing = graceOnArrearsAgeing;
-        this.daysInMonthType = daysInMonthType;
-        this.daysInYearType = daysInYearType;
-        this.isInterestRecalculationEnabled = isInterestRecalculationEnabled;
     }
 
     private Integer defaultToNullIfZero(final Integer value) {
@@ -169,62 +155,51 @@ public class LoanProductRelatedDetail implements LoanProductMinimumRepaymentSche
         return defaultTo;
     }
 
-    @Override
-	public MonetaryCurrency getCurrency() {
+    public MonetaryCurrency getCurrency() {
         return this.currency.copy();
     }
 
-    @Override
-	public Money getPrincipal() {
+    public Money getPrincipal() {
         return Money.of(this.currency, this.principal);
     }
 
     public void setPrincipal(BigDecimal principal) {
         this.principal = principal;
     }
-    
-    @Override
-	public Integer graceOnInterestCharged() {
+
+    public Integer graceOnInterestCharged() {
         return this.graceOnInterestCharged;
     }
-    
-    @Override
-	public Integer graceOnInterestPayment() {
+
+    public Integer graceOnInterestPayment() {
         return this.graceOnInterestPayment;
     }
-    
-    @Override
-	public Integer graceOnPrincipalPayment() {
+
+    public Integer graceOnPrincipalPayment() {
         return this.graceOnPrincipalPayment;
     }
 
-    @Override
-	public Money getInArrearsTolerance() {
+    public Money getInArrearsTolerance() {
         return Money.of(this.currency, this.inArrearsTolerance);
     }
 
-    @Override
-	public BigDecimal getNominalInterestRatePerPeriod() {
+    public BigDecimal getNominalInterestRatePerPeriod() {
         return BigDecimal.valueOf(Double.valueOf(this.nominalInterestRatePerPeriod.stripTrailingZeros().toString()));
     }
 
-    @Override
-	public PeriodFrequencyType getInterestPeriodFrequencyType() {
+    public PeriodFrequencyType getInterestPeriodFrequencyType() {
         return this.interestPeriodFrequencyType;
     }
 
-    @Override
-	public BigDecimal getAnnualNominalInterestRate() {
+    public BigDecimal getAnnualNominalInterestRate() {
         return BigDecimal.valueOf(Double.valueOf(this.annualNominalInterestRate.stripTrailingZeros().toString()));
     }
 
-    @Override
-	public InterestMethod getInterestMethod() {
+    public InterestMethod getInterestMethod() {
         return this.interestMethod;
     }
 
-    @Override
-	public InterestCalculationPeriodMethod getInterestCalculationPeriodMethod() {
+    public InterestCalculationPeriodMethod getInterestCalculationPeriodMethod() {
         return this.interestCalculationPeriodMethod;
     }
 
@@ -243,8 +218,7 @@ public class LoanProductRelatedDetail implements LoanProductMinimumRepaymentSche
         return this.numberOfRepayments;
     }
 
-    @Override
-	public AmortizationMethod getAmortizationMethod() {
+    public AmortizationMethod getAmortizationMethod() {
         return this.amortizationMethod;
     }
 
@@ -409,28 +383,6 @@ public class LoanProductRelatedDetail implements LoanProductMinimumRepaymentSche
             this.graceOnArrearsAgeing = newValue;
         }
 
-        if (command.isChangeInIntegerParameterNamed(LoanProductConstants.daysInMonthTypeParameterName, this.daysInMonthType)) {
-            final Integer newValue = command.integerValueOfParameterNamed(LoanProductConstants.daysInMonthTypeParameterName);
-            actualChanges.put(LoanProductConstants.daysInMonthTypeParameterName, newValue);
-            actualChanges.put("locale", localeAsInput);
-            this.daysInMonthType = newValue;
-        }
-
-        if (command.isChangeInIntegerParameterNamed(LoanProductConstants.daysInYearTypeParameterName, this.daysInYearType)) {
-            final Integer newValue = command.integerValueOfParameterNamed(LoanProductConstants.daysInYearTypeParameterName);
-            actualChanges.put(LoanProductConstants.daysInYearTypeParameterName, newValue);
-            actualChanges.put("locale", localeAsInput);
-            this.daysInYearType = newValue;
-        }
-
-        if (command.isChangeInBooleanParameterNamed(LoanProductConstants.isInterestRecalculationEnabledParameterName,
-                this.isInterestRecalculationEnabled)) {
-            final boolean newValue = command
-                    .booleanPrimitiveValueOfParameterNamed(LoanProductConstants.isInterestRecalculationEnabledParameterName);
-            actualChanges.put(LoanProductConstants.isInterestRecalculationEnabledParameterName, newValue);
-            this.isInterestRecalculationEnabled = newValue;
-        }
-
         validateRepaymentPeriodWithGraceSettings();
 
         return actualChanges;
@@ -478,28 +430,15 @@ public class LoanProductRelatedDetail implements LoanProductMinimumRepaymentSche
         this.interestPeriodFrequencyType = interestPeriodFrequencyType;
     }
 
-    @Override
-	public Integer getGraceOnDueDate() {
+    public Integer getGraceOnDueDate() {
         return this.graceOnArrearsAgeing;
     }
 
     public DaysInMonthType fetchDaysInMonthType() {
-        return DaysInMonthType.fromInt(this.daysInMonthType);
+        return DaysInMonthType.ACTUAL;
     }
 
     public DaysInYearType fetchDaysInYearType() {
-        return DaysInYearType.fromInt(this.daysInYearType);
-    }
-
-    public boolean isInterestRecalculationEnabled() {
-        return this.isInterestRecalculationEnabled;
-    }
-
-    public void updateIsInterestRecalculationEnabled(final boolean isInterestRecalculationEnabled) {
-        this.isInterestRecalculationEnabled = isInterestRecalculationEnabled;
-    }
-    
-    public void updateNumberOfRepayments(Integer numberOfRepayments) {
-    	this.numberOfRepayments = numberOfRepayments;
+        return DaysInYearType.ACTUAL;
     }
 }

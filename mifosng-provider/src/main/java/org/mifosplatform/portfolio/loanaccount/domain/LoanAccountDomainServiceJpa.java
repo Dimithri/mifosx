@@ -8,10 +8,8 @@ package org.mifosplatform.portfolio.loanaccount.domain;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -24,7 +22,6 @@ import org.mifosplatform.infrastructure.core.exception.PlatformApiDataValidation
 import org.mifosplatform.organisation.holiday.domain.Holiday;
 import org.mifosplatform.organisation.holiday.domain.HolidayRepository;
 import org.mifosplatform.organisation.holiday.domain.HolidayStatusType;
-import org.mifosplatform.organisation.monetary.data.CurrencyData;
 import org.mifosplatform.organisation.monetary.domain.ApplicationCurrency;
 import org.mifosplatform.organisation.monetary.domain.ApplicationCurrencyRepositoryWrapper;
 import org.mifosplatform.organisation.monetary.domain.MonetaryCurrency;
@@ -33,21 +30,11 @@ import org.mifosplatform.organisation.workingdays.domain.WorkingDays;
 import org.mifosplatform.organisation.workingdays.domain.WorkingDaysRepositoryWrapper;
 import org.mifosplatform.portfolio.account.domain.AccountTransferRepository;
 import org.mifosplatform.portfolio.account.domain.AccountTransferTransaction;
-import org.mifosplatform.portfolio.calendar.domain.Calendar;
-import org.mifosplatform.portfolio.calendar.domain.CalendarEntityType;
-import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
-import org.mifosplatform.portfolio.calendar.domain.CalendarInstanceRepository;
-import org.mifosplatform.portfolio.calendar.service.CalendarUtils;
 import org.mifosplatform.portfolio.client.domain.Client;
 import org.mifosplatform.portfolio.client.exception.ClientNotActiveException;
-import org.mifosplatform.portfolio.common.domain.PeriodFrequencyType;
 import org.mifosplatform.portfolio.group.domain.Group;
 import org.mifosplatform.portfolio.group.exception.GroupNotActiveException;
-import org.mifosplatform.portfolio.loanaccount.data.LoanScheduleAccrualData;
-import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.LoanScheduleGeneratorFactory;
-import org.mifosplatform.portfolio.loanaccount.service.LoanAccrualWritePlatformService;
 import org.mifosplatform.portfolio.loanaccount.service.LoanAssembler;
-import org.mifosplatform.portfolio.loanproduct.domain.LoanProductRelatedDetail;
 import org.mifosplatform.portfolio.note.domain.Note;
 import org.mifosplatform.portfolio.note.domain.NoteRepository;
 import org.mifosplatform.portfolio.paymentdetail.domain.PaymentDetail;
@@ -70,11 +57,6 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
     private final JournalEntryWritePlatformService journalEntryWritePlatformService;
     private final NoteRepository noteRepository;
     private final AccountTransferRepository accountTransferRepository;
-    private final LoanScheduleGeneratorFactory loanScheduleFactory;
-    private final ApplicationCurrencyRepositoryWrapper applicationCurrencyRepository;
-    private final CalendarInstanceRepository calendarInstanceRepository;
-    private final LoanRepaymentScheduleInstallmentRepository repaymentScheduleInstallmentRepository;
-    private final LoanAccrualWritePlatformService accrualWritePlatformService;
 
     @Autowired
     public LoanAccountDomainServiceJpa(final LoanAssembler loanAccountAssembler, final LoanRepository loanRepository,
@@ -83,11 +65,7 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
             final WorkingDaysRepositoryWrapper workingDaysRepository,
             final ApplicationCurrencyRepositoryWrapper applicationCurrencyRepositoryWrapper,
             final JournalEntryWritePlatformService journalEntryWritePlatformService,
-            final AccountTransferRepository accountTransferRepository, final LoanScheduleGeneratorFactory loanScheduleFactory,
-            final ApplicationCurrencyRepositoryWrapper applicationCurrencyRepository,
-            final CalendarInstanceRepository calendarInstanceRepository,
-            final LoanRepaymentScheduleInstallmentRepository repaymentScheduleInstallmentRepository,
-            final LoanAccrualWritePlatformService accrualWritePlatformService) {
+            final AccountTransferRepository accountTransferRepository) {
         this.loanAccountAssembler = loanAccountAssembler;
         this.loanRepository = loanRepository;
         this.loanTransactionRepository = loanTransactionRepository;
@@ -98,11 +76,6 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
         this.applicationCurrencyRepositoryWrapper = applicationCurrencyRepositoryWrapper;
         this.journalEntryWritePlatformService = journalEntryWritePlatformService;
         this.accountTransferRepository = accountTransferRepository;
-        this.loanScheduleFactory = loanScheduleFactory;
-        this.applicationCurrencyRepository = applicationCurrencyRepository;
-        this.calendarInstanceRepository = calendarInstanceRepository;
-        this.repaymentScheduleInstallmentRepository = repaymentScheduleInstallmentRepository;
-        this.accrualWritePlatformService = accrualWritePlatformService;
     }
 
     @Transactional
@@ -145,67 +118,10 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
         final WorkingDays workingDays = this.workingDaysRepository.findOne();
         final boolean allowTransactionsOnNonWorkingDay = this.configurationDomainService.allowTransactionsOnNonWorkingDayEnabled();
 
-        CalendarInstance restCalendarInstance = null;
-        ApplicationCurrency applicationCurrency = null;
-        LocalDate calculatedRepaymentsStartingFromDate = null;
-        boolean isHolidayEnabled = false;
-        if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
-            restCalendarInstance = calendarInstanceRepository.findCalendarInstaneByEntityId(loan.loanInterestRecalculationDetailId(),
-                    CalendarEntityType.LOAN_RECALCULATION_DETAIL.getValue());
-
-            final MonetaryCurrency currency = loan.getCurrency();
-            applicationCurrency = this.applicationCurrencyRepository.findOneWithNotFoundDetection(currency);
-            final CalendarInstance calendarInstance = this.calendarInstanceRepository.findCalendarInstaneByEntityId(loan.getId(),
-                    CalendarEntityType.LOANS.getValue());
-            calculatedRepaymentsStartingFromDate = getCalculatedRepaymentsStartingFromDate(loan.getDisbursementDate(), loan,
-                    calendarInstance);
-
-            isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
-        }
-
         final ChangedTransactionDetail changedTransactionDetail = loan.makeRepayment(newRepaymentTransaction,
                 defaultLoanLifecycleStateMachine(), existingTransactionIds, existingReversedTransactionIds, allowTransactionsOnHoliday,
-                holidays, workingDays, allowTransactionsOnNonWorkingDay, isHolidayEnabled, isRecoveryRepayment, this.loanScheduleFactory,
-                applicationCurrency, calculatedRepaymentsStartingFromDate, restCalendarInstance);
+                holidays, workingDays, allowTransactionsOnNonWorkingDay, isRecoveryRepayment);
 
-        saveLoanTransactionWithDataIntegrityViolationChecks(newRepaymentTransaction);
-
-        /***
-         * TODO Vishwas Batch save is giving me a
-         * HibernateOptimisticLockingFailureException, looping and saving for
-         * the time being, not a major issue for now as this loop is entered
-         * only in edge cases (when a payment is made before the latest payment
-         * recorded against the loan)
-         ***/
-
-        saveAndFlushLoanWithDataIntegrityViolationChecks(loan);
-
-        if (changedTransactionDetail != null) {
-            for (Map.Entry<Long, LoanTransaction> mapEntry : changedTransactionDetail.getNewTransactionMappings().entrySet()) {
-                saveLoanTransactionWithDataIntegrityViolationChecks(mapEntry.getValue());
-                // update loan with references to the newly created transactions
-                loan.getLoanTransactions().add(mapEntry.getValue());
-                updateLoanTransaction(mapEntry.getKey(), mapEntry.getValue());
-            }
-        }
-
-        if (StringUtils.isNotBlank(noteText)) {
-            final Note note = Note.loanTransactionNote(loan, newRepaymentTransaction, noteText);
-            this.noteRepository.save(note);
-        }
-
-        postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer);
-
-        recalculateAccruals(loan);
-        builderResult.withEntityId(newRepaymentTransaction.getId()) //
-                .withOfficeId(loan.getOfficeId()) //
-                .withClientId(loan.getClientId()) //
-                .withGroupId(loan.getGroupId()); //
-
-        return newRepaymentTransaction;
-    }
-
-    private void saveLoanTransactionWithDataIntegrityViolationChecks(LoanTransaction newRepaymentTransaction) {
         try {
             this.loanTransactionRepository.save(newRepaymentTransaction);
         } catch (DataIntegrityViolationException e) {
@@ -219,27 +135,39 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
             if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
                     "Validation errors exist.", dataValidationErrors); }
         }
-    }
 
-    private void saveAndFlushLoanWithDataIntegrityViolationChecks(final Loan loan) {
-        try {
-            List<LoanRepaymentScheduleInstallment> installments = loan.fetchRepaymentScheduleInstallments();
-            for (LoanRepaymentScheduleInstallment installment : installments) {
-                if (installment.getId() == null) {
-                    this.repaymentScheduleInstallmentRepository.save(installment);
-                }
+        /***
+         * TODO Vishwas Batch save is giving me a
+         * HibernateOptimisticLockingFailureException, looping and saving for
+         * the time being, not a major issue for now as this loop is entered
+         * only in edge cases (when a payment is made before the latest payment
+         * recorded against the loan)
+         ***/
+
+        this.loanRepository.saveAndFlush(loan);
+
+        if (changedTransactionDetail != null) {
+            for (Map.Entry<Long, LoanTransaction> mapEntry : changedTransactionDetail.getNewTransactionMappings().entrySet()) {
+                this.loanTransactionRepository.save(mapEntry.getValue());
+                // update loan with references to the newly created transactions
+                loan.getLoanTransactions().add(mapEntry.getValue());
+                updateLoanTransaction(mapEntry.getKey(), mapEntry.getValue());
             }
-            this.loanRepository.saveAndFlush(loan);
-        } catch (final DataIntegrityViolationException e) {
-            final Throwable realCause = e.getCause();
-            final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-            final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("loan.transaction");
-            if (realCause.getMessage().toLowerCase().contains("external_id_unique")) {
-                baseDataValidator.reset().parameter("externalId").failWithCode("value.must.be.unique");
-            }
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                    "Validation errors exist.", dataValidationErrors); }
         }
+
+        if (StringUtils.isNotBlank(noteText)) {
+            final Note note = Note.loanTransactionNote(loan, newRepaymentTransaction, noteText);
+            this.noteRepository.save(note);
+        }
+
+        postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer);
+
+        builderResult.withEntityId(newRepaymentTransaction.getId()) //
+                .withOfficeId(loan.getOfficeId()) //
+                .withClientId(loan.getClientId()) //
+                .withGroupId(loan.getGroupId()); //
+
+        return newRepaymentTransaction;
     }
 
     @Override
@@ -271,8 +199,8 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
                     allowTransactionsOnHoliday, holidays, workingDays, allowTransactionsOnNonWorkingDay, newPaymentTransaction,
                     installmentNumber);
         }
-        saveLoanTransactionWithDataIntegrityViolationChecks(newPaymentTransaction);
-        saveAndFlushLoanWithDataIntegrityViolationChecks(loan);
+        this.loanTransactionRepository.save(newPaymentTransaction);
+        this.loanRepository.saveAndFlush(loan);
 
         if (StringUtils.isNotBlank(noteText)) {
             final Note note = Note.loanTransactionNote(loan, newPaymentTransaction, noteText);
@@ -280,7 +208,6 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
         }
 
         postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer);
-        recalculateAccruals(loan);
         return newPaymentTransaction;
     }
 
@@ -334,7 +261,7 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
         loan.makeRefund(newRefundTransaction, defaultLoanLifecycleStateMachine(), existingTransactionIds, existingReversedTransactionIds,
                 allowTransactionsOnHoliday, holidays, workingDays, allowTransactionsOnNonWorkingDay);
 
-        saveLoanTransactionWithDataIntegrityViolationChecks(newRefundTransaction);
+        this.loanTransactionRepository.save(newRefundTransaction);
         this.loanRepository.save(loan);
 
         if (StringUtils.isNotBlank(noteText)) {
@@ -366,8 +293,20 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
                 txnExternalId);
         disbursementTransaction.updateLoan(loan);
         loan.getLoanTransactions().add(disbursementTransaction);
-        saveLoanTransactionWithDataIntegrityViolationChecks(disbursementTransaction);
-        saveAndFlushLoanWithDataIntegrityViolationChecks(loan);
+        try {
+            this.loanTransactionRepository.save(disbursementTransaction);
+        } catch (DataIntegrityViolationException e) {
+            final Throwable realCause = e.getCause();
+            final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
+            final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("loan.transaction");
+            if (realCause.getMessage().toLowerCase().contains("external_id_unique")) {
+                baseDataValidator.reset().parameter("externalId").value(disbursementTransaction.getExternalId())
+                        .failWithCode("value.must.be.unique");
+            }
+            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
+                    "Validation errors exist.", dataValidationErrors); }
+        }
+        this.loanRepository.saveAndFlush(loan);
 
         if (StringUtils.isNotBlank(noteText)) {
             final Note note = Note.loanTransactionNote(loan, disbursementTransaction, noteText);
@@ -375,104 +314,14 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
         }
 
         postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer);
+
         return disbursementTransaction;
     }
 
     @Override
     public void reverseTransfer(final LoanTransaction loanTransaction) {
         loanTransaction.reverse();
-        saveLoanTransactionWithDataIntegrityViolationChecks(loanTransaction);
-    }
-
-    @Override
-    public LocalDate getCalculatedRepaymentsStartingFromDate(final LocalDate actualDisbursementDate, final Loan loan,
-            final CalendarInstance calendarInstance) {
-        final Calendar calendar = calendarInstance == null ? null : calendarInstance.getCalendar();
-        LocalDate calculatedRepaymentsStartingFromDate = loan.getExpectedFirstRepaymentOnDate();
-        if (calendar != null) {// sync repayments
-
-            // TODO: AA - user provided first repayment date takes precedence
-            // over recalculated meeting date
-            if (calculatedRepaymentsStartingFromDate == null) {
-                // FIXME: AA - Possibility of having next meeting date
-                // immediately after disbursement date,
-                // need to have minimum number of days gap between disbursement
-                // and first repayment date.
-                final LoanProductRelatedDetail repaymentScheduleDetails = loan.repaymentScheduleDetail();
-                if (repaymentScheduleDetails != null) {// Not expecting to be
-                                                       // null
-                    final Integer repayEvery = repaymentScheduleDetails.getRepayEvery();
-                    final String frequency = CalendarUtils.getMeetingFrequencyFromPeriodFrequencyType(repaymentScheduleDetails
-                            .getRepaymentPeriodFrequencyType());
-                    calculatedRepaymentsStartingFromDate = CalendarUtils.getFirstRepaymentMeetingDate(calendar, actualDisbursementDate,
-                            repayEvery, frequency);
-                }
-            }
-        }
-        return calculatedRepaymentsStartingFromDate;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.mifosplatform.portfolio.loanaccount.domain.LoanAccountDomainService
-     * #recalculateAccruals(org.mifosplatform.portfolio.loanaccount.domain.Loan)
-     */
-    @Override
-    public void recalculateAccruals(Loan loan) {
-        LocalDate accruedTill = loan.getAccruedTill();
-        if (!loan.repaymentScheduleDetail().isInterestRecalculationEnabled() || accruedTill == null || loan.isAccrualsPresent()) { return; }
-        Collection<LoanScheduleAccrualData> loanScheduleAccrualDatas = new ArrayList<>();
-        List<LoanRepaymentScheduleInstallment> installments = loan.fetchRepaymentScheduleInstallments();
-        Long loanId = loan.getId();
-        Long officeId = loan.getOfficeId();
-        LocalDate accrualStartDate = null;
-        PeriodFrequencyType repaymentFrequency = loan.repaymentScheduleDetail().getRepaymentPeriodFrequencyType();
-        Integer repayEvery = loan.repaymentScheduleDetail().getRepayEvery();
-        LocalDate interestCalculatedFrom = loan.getInterestChargedFromDate();
-        Long loanProductId = loan.productId();
-        MonetaryCurrency currency = loan.getCurrency();
-        ApplicationCurrency applicationCurrency = this.applicationCurrencyRepository.findOneWithNotFoundDetection(currency);
-        CurrencyData currencyData = applicationCurrency.toData();
-        Set<LoanCharge> loanCharges = loan.charges();
-        BigDecimal accruedInterestIncome = null;
-        BigDecimal accruedFeeIncome = null;
-        BigDecimal accruedPenaltyIncome = null;
-
-        for (LoanRepaymentScheduleInstallment installment : installments) {
-            if (!accruedTill.isBefore(installment.getDueDate())
-                    || (accruedTill.isAfter(installment.getFromDate()) && !accruedTill.isAfter(installment.getDueDate()))) {
-                BigDecimal dueDateFeeIncome = BigDecimal.ZERO;
-                BigDecimal dueDatePenaltyIncome = BigDecimal.ZERO;
-                LocalDate chargesTillDate = installment.getDueDate();
-                if (!accruedTill.isAfter(installment.getDueDate())) {
-                    chargesTillDate = accruedTill;
-                }
-
-                for (final LoanCharge loanCharge : loanCharges) {
-                    if (loanCharge.isDueForCollectionFromAndUpToAndIncluding(installment.getFromDate(), chargesTillDate)) {
-                        if (loanCharge.isFeeCharge()) {
-                            dueDateFeeIncome = dueDateFeeIncome.add(loanCharge.amount());
-                        } else if (loanCharge.isPenaltyCharge()) {
-                            dueDatePenaltyIncome = dueDatePenaltyIncome.add(loanCharge.amount());
-                        }
-                    }
-                }
-                LoanScheduleAccrualData accrualData = new LoanScheduleAccrualData(loanId, officeId, installment.getInstallmentNumber(),
-                        accrualStartDate, repaymentFrequency, repayEvery, installment.getDueDate(), installment.getFromDate(),
-                        installment.getId(), loanProductId, installment.getInterestCharged(currency).getAmount(), installment
-                                .getFeeChargesCharged(currency).getAmount(), installment.getPenaltyChargesCharged(currency).getAmount(),
-                        accruedInterestIncome, accruedFeeIncome, accruedPenaltyIncome, currencyData, interestCalculatedFrom, installment
-                                .getInterestWaived(currency).getAmount());
-                loanScheduleAccrualDatas.add(accrualData);
-
-            }
-        }
-
-        if (!loanScheduleAccrualDatas.isEmpty()) {
-            this.accrualWritePlatformService.addPeriodicAccruals(accruedTill, loanScheduleAccrualDatas);
-        }
+        this.loanTransactionRepository.save(loanTransaction);
     }
 
     private void updateLoanTransaction(final Long loanTransactionId, final LoanTransaction newLoanTransaction) {

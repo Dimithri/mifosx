@@ -8,12 +8,15 @@ package org.mifosplatform.portfolio.savings;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * An enumeration of supported calendar periods used in savings.
  */
 public enum RecurringDepositType {
-    INVALID(0, "recurringDepositType.invalid"), VOLUNTARY(1, "recurringDepositType.voluntary"), //
+    INVALID(0, "recurringDepositType.invalid"),
+    VOLUNTARY(1, "recurringDepositType.voluntary"), //
     MANDATORY(2, "recurringDepositType.mandatory"); //
+    
 
     private final Integer value;
     private final String code;
@@ -45,7 +48,7 @@ public enum RecurringDepositType {
         }
         return rdType;
     }
-
+    
     public static Object[] integerValues() {
         final List<Integer> values = new ArrayList<>();
         for (final RecurringDepositType enumType : values()) {
@@ -56,8 +59,8 @@ public enum RecurringDepositType {
 
         return values.toArray();
     }
-
-    public boolean isInvalid() {
+    
+    public boolean isInvalid(){
         return this.value.equals(RecurringDepositType.INVALID.value);
     }
 }

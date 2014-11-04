@@ -5,10 +5,6 @@
  */
 package org.mifosplatform.portfolio.loanproduct.domain;
 
-import java.math.BigDecimal;
-
-import org.mifosplatform.organisation.monetary.domain.MonetaryCurrency;
-import org.mifosplatform.organisation.monetary.domain.Money;
 import org.mifosplatform.portfolio.common.domain.PeriodFrequencyType;
 
 /**
@@ -17,35 +13,9 @@ import org.mifosplatform.portfolio.common.domain.PeriodFrequencyType;
  */
 public interface LoanProductMinimumRepaymentScheduleRelatedDetail {
 
-	MonetaryCurrency getCurrency();
-	
-	Money getPrincipal();
-	
-	Integer graceOnInterestCharged();
-	
-	Integer graceOnInterestPayment();
-	
-	Integer graceOnPrincipalPayment();
-	
-	Money getInArrearsTolerance();
-	
-	BigDecimal getNominalInterestRatePerPeriod();
-	
-	PeriodFrequencyType getInterestPeriodFrequencyType();
-	
-	BigDecimal getAnnualNominalInterestRate();
-	
-	InterestMethod getInterestMethod();
-	
-	InterestCalculationPeriodMethod getInterestCalculationPeriodMethod();
-	
     Integer getRepayEvery();
 
     PeriodFrequencyType getRepaymentPeriodFrequencyType();
 
     Integer getNumberOfRepayments();
-    
-    AmortizationMethod getAmortizationMethod();
-    
-    Integer getGraceOnDueDate();
 }

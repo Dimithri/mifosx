@@ -1,8 +1,3 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
- */
 package org.mifosplatform.batch.command.internal;
 
 import javax.ws.rs.core.UriInfo;
@@ -56,7 +51,8 @@ public class ActivateClientCommandStrategy implements CommandStrategy {
         // Try-catch blocks to map exceptions to appropriate status codes
         try {
 
-            // Calls 'activate' function from 'ClientsApiResource' to activate a client
+            // Calls 'activate' function from 'ClientsApiResource' to create a new
+            // client
             responseBody = clientsApiResource.activate(clientId, "activate", request.getBody());
 
             response.setStatusCode(200);

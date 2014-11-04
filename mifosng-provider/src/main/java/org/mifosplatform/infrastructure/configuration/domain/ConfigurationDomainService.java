@@ -35,8 +35,4 @@ public interface ConfigurationDomainService {
 
     Long retrieveGraceOnPenaltyPostingPeriod();
     
-    boolean isSavingsInterestPostingAtCurrentPeriodEnd();
-    
-    Integer retrieveFinancialYearBeginningMonth();
-    
 }

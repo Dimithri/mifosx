@@ -206,16 +206,13 @@ public class RecurringDepositAccount extends SavingsAccount {
         return applicableInterestRate.divide(BigDecimal.valueOf(100l), mc);
     }
 
-    public void updateMaturityDateAndAmount(final MathContext mc, final boolean isPreMatureClosure,
-    		final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-    		final Integer financialYearBeginningMonth) {
+    public void updateMaturityDateAndAmount(final MathContext mc, final boolean isPreMatureClosure) {
         final LocalDate maturityDate = calculateMaturityDate();
         final LocalDate interestCalculationUpto = maturityDate.minusDays(1);
         final List<SavingsAccountTransaction> allTransactions = generateIncludingFutureTransactions(interestCalculationUpto);
 
         final List<PostingPeriod> postingPeriods = calculateInterestPayable(mc, interestCalculationUpto, allTransactions,
-                isPreMatureClosure, isSavingsInterestPostingAtCurrentPeriodEnd,
-                financialYearBeginningMonth);
+                isPreMatureClosure);
         Money totalInterestPayable = Money.zero(getCurrency());
         Money totalDepositAmount = Money.zero(getCurrency());
         for (PostingPeriod postingPeriod : postingPeriods) {
@@ -226,8 +223,7 @@ public class RecurringDepositAccount extends SavingsAccount {
         this.accountTermAndPreClosure.updateMaturityDetails(totalDepositAmount.getAmount(), totalInterestPayable.getAmount(), maturityDate);
     }
 
-    public void updateMaturityStatus(final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-    		final Integer financialYearBeginningMonth) {
+    public void updateMaturityStatus() {
         final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
         final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors)
                 .resource(RECURRING_DEPOSIT_ACCOUNT_RESOURCE_NAME + SavingsApiConstants.updateMaturityDetailsAction);
@@ -242,8 +238,7 @@ public class RecurringDepositAccount extends SavingsAccount {
         if (!this.maturityDate().isAfter(todayDate)) {
             // update account status
             this.status = SavingsAccountStatusType.MATURED.getValue();
-            postMaturityInterest(isSavingsInterestPostingAtCurrentPeriodEnd,
-            		financialYearBeginningMonth);
+            postMaturityInterest();
         }
     }
 
@@ -273,9 +268,7 @@ public class RecurringDepositAccount extends SavingsAccount {
     }
 
     private List<PostingPeriod> calculateInterestPayable(final MathContext mc, final LocalDate maturityDate,
-            final List<SavingsAccountTransaction> transactions, final boolean isPreMatureClosure,
-            final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-            final Integer financialYearBeginningMonth) {
+            final List<SavingsAccountTransaction> transactions, final boolean isPreMatureClosure) {
 
         // 1. default to calculate interest based on entire history OR
         // 2. determine latest 'posting period' and find interest credited to
@@ -291,7 +284,7 @@ public class RecurringDepositAccount extends SavingsAccount {
                 .fromInt(this.interestCalculationDaysInYearType);
 
         final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(depositStartDate(),
-                maturityDate, postingPeriodType, financialYearBeginningMonth);
+                maturityDate, postingPeriodType);
 
         final List<PostingPeriod> allPostingPeriods = new ArrayList<>();
 
@@ -305,8 +298,7 @@ public class RecurringDepositAccount extends SavingsAccount {
         for (final LocalDateInterval periodInterval : postingPeriodIntervals) {
             final PostingPeriod postingPeriod = PostingPeriod.createFrom(periodInterval, periodStartingBalance, transactions,
                     this.currency, compoundingPeriodType, interestCalculationType, interestRateAsFraction, daysInYearType.getValue(),
-                    maturityDate, interestPostTransactions, isInterestTransfer, minBalanceForInterestCalculation,
-                    isSavingsInterestPostingAtCurrentPeriodEnd);
+                    maturityDate, interestPostTransactions, isInterestTransfer, minBalanceForInterestCalculation);
 
             periodStartingBalance = postingPeriod.closingBalance();
 
@@ -568,14 +560,11 @@ public class RecurringDepositAccount extends SavingsAccount {
         this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
     }
 
-    public void postMaturityInterest(final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-    		final Integer financialYearBeginningMonth) {
+    public void postMaturityInterest() {
         final LocalDate interestPostingUpToDate = maturityDate();
         final MathContext mc = MathContext.DECIMAL64;
         boolean isInterestTransfer = false;
-        final List<PostingPeriod> postingPeriods = calculateInterestUsing(mc, interestPostingUpToDate,
-        		isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd,
-        		financialYearBeginningMonth);
+        final List<PostingPeriod> postingPeriods = calculateInterestUsing(mc, interestPostingUpToDate, isInterestTransfer);
 
         Money interestPostedToDate = Money.zero(this.currency);
 
@@ -617,17 +606,13 @@ public class RecurringDepositAccount extends SavingsAccount {
         this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
     }
 
-    public void postPreMaturityInterest(final LocalDate accountCloseDate, final boolean isPreMatureClosure,
-    		final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-    		final Integer financialYearBeginningMonth) {
+    public void postPreMaturityInterest(final LocalDate accountCloseDate, final boolean isPreMatureClosure) {
 
         final Money interestPostedToDate = totalInterestPosted();
         // calculate interest before one day of closure date
         final LocalDate interestCalculatedToDate = accountCloseDate.minusDays(1);
         final Money interestOnMaturity = calculatePreMatureInterest(interestCalculatedToDate,
-                retreiveOrderedNonInterestPostingTransactions(), isPreMatureClosure,
-                isSavingsInterestPostingAtCurrentPeriodEnd,
-                financialYearBeginningMonth);
+                retreiveOrderedNonInterestPostingTransactions(), isPreMatureClosure);
 
         boolean recalucateDailyBalance = false;
 
@@ -650,15 +635,12 @@ public class RecurringDepositAccount extends SavingsAccount {
         this.accountTermAndPreClosure.updateMaturityDetails(this.getAccountBalance(), accountCloseDate);
     }
 
-    public BigDecimal calculatePreMatureAmount(final LocalDate preMatureDate, final boolean isPreMatureClosure,
-    		final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-    		final Integer financialYearBeginningMonth) {
+    public BigDecimal calculatePreMatureAmount(final LocalDate preMatureDate, final boolean isPreMatureClosure) {
 
         final Money interestPostedToDate = totalInterestPosted().copy();
 
         final Money interestEarnedTillDate = calculatePreMatureInterest(preMatureDate, retreiveOrderedNonInterestPostingTransactions(),
-                isPreMatureClosure, isSavingsInterestPostingAtCurrentPeriodEnd,
-                financialYearBeginningMonth);
+                isPreMatureClosure);
 
         final Money accountBalance = Money.of(getCurrency(), getAccountBalance());
         final Money maturityAmount = accountBalance.minus(interestPostedToDate).plus(interestEarnedTillDate);
@@ -667,12 +649,9 @@ public class RecurringDepositAccount extends SavingsAccount {
     }
 
     private Money calculatePreMatureInterest(final LocalDate preMatureDate, final List<SavingsAccountTransaction> transactions,
-            final boolean isPreMatureClosure, final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-            final Integer financialYearBeginningMonth) {
+            final boolean isPreMatureClosure) {
         final MathContext mc = MathContext.DECIMAL64;
-        final List<PostingPeriod> postingPeriods = calculateInterestPayable(mc, preMatureDate, transactions,
-        		isPreMatureClosure, isSavingsInterestPostingAtCurrentPeriodEnd,
-        		financialYearBeginningMonth);
+        final List<PostingPeriod> postingPeriods = calculateInterestPayable(mc, preMatureDate, transactions, isPreMatureClosure);
 
         Money interestOnMaturity = Money.zero(this.currency);
 
@@ -685,20 +664,15 @@ public class RecurringDepositAccount extends SavingsAccount {
     }
 
     @Override
-    public void postInterest(final MathContext mc, final LocalDate postingDate, final boolean isInterestTransfer,
-    		final boolean isSavingsInterestPostingAtCurrentPeriodEnd, final Integer financialYearBeginningMonth) {
+    public void postInterest(final MathContext mc, final LocalDate postingDate, final boolean isInterestTransfer) {
         final LocalDate interestPostingUpToDate = interestPostingUpToDate(postingDate);
-        super.postInterest(mc, interestPostingUpToDate, isInterestTransfer,
-        		isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
+        super.postInterest(mc, interestPostingUpToDate, isInterestTransfer);
     }
 
     @Override
-    public List<PostingPeriod> calculateInterestUsing(final MathContext mc, final LocalDate postingDate,
-    		boolean isInterestTransfer, final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-    		final Integer financialYearBeginningMonth) {
+    public List<PostingPeriod> calculateInterestUsing(final MathContext mc, final LocalDate postingDate, boolean isInterestTransfer) {
         final LocalDate interestPostingUpToDate = interestPostingUpToDate(postingDate);
-        return super.calculateInterestUsing(mc, interestPostingUpToDate, isInterestTransfer,
-        		isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
+        return super.calculateInterestUsing(mc, interestPostingUpToDate, isInterestTransfer);
     }
 
     private LocalDate interestPostingUpToDate(final LocalDate interestPostingDate) {
@@ -1032,7 +1006,7 @@ public class RecurringDepositAccount extends SavingsAccount {
 
         newAccountTermAndPreClosure.updateExpectedFirstDepositDate(now);
 
-        RecurringDepositAccount rdAccount = RecurringDepositAccount.createNewActivatedAccount(client, group, product, savingsOfficer,
+        RecurringDepositAccount rdAccount = RecurringDepositAccount.createNewActivatedAccount(client, group, product, fieldOfficer,
                 accountNumber, externalId, accountType, getClosedOnDate(), closedBy, interestRate, compoundingPeriodType,
                 postingPeriodType, interestCalculationType, daysInYearType, minRequiredOpeningBalance, lockinPeriodFrequency,
                 lockinPeriodFrequencyType, withdrawalFeeApplicableForTransfer, savingsAccountCharges, newAccountTermAndPreClosure,

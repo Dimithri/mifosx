@@ -75,8 +75,6 @@ import org.mifosplatform.portfolio.charge.exception.SavingsAccountChargeNotFound
 import org.mifosplatform.portfolio.client.domain.Client;
 import org.mifosplatform.portfolio.common.domain.PeriodFrequencyType;
 import org.mifosplatform.portfolio.group.domain.Group;
-import org.mifosplatform.portfolio.savings.exception.SavingsOfficerAssignmentDateException;
-import org.mifosplatform.portfolio.savings.domain.SavingsOfficerAssignmentHistory;
 import org.mifosplatform.portfolio.savings.DepositAccountType;
 import org.mifosplatform.portfolio.savings.SavingsApiConstants;
 import org.mifosplatform.portfolio.savings.SavingsCompoundingInterestPeriodType;
@@ -89,7 +87,6 @@ import org.mifosplatform.portfolio.savings.domain.interest.PostingPeriod;
 import org.mifosplatform.portfolio.savings.exception.InsufficientAccountBalanceException;
 import org.mifosplatform.portfolio.savings.exception.SavingsAccountTransactionNotFoundException;
 import org.mifosplatform.portfolio.savings.exception.SavingsActivityPriorToClientTransferException;
-import org.mifosplatform.portfolio.savings.exception.SavingsOfficerUnassignmentDateException;
 import org.mifosplatform.portfolio.savings.exception.SavingsTransferTransactionsCannotBeUndoneException;
 import org.mifosplatform.portfolio.savings.service.SavingsEnumerations;
 import org.mifosplatform.useradministration.domain.AppUser;
@@ -126,7 +123,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
 
     @ManyToOne
     @JoinColumn(name = "field_officer_id", nullable = true)
-    protected Staff savingsOfficer;
+    protected Staff fieldOfficer;
 
     @Column(name = "status_enum", nullable = false)
     protected Integer status;
@@ -250,10 +247,6 @@ public class SavingsAccount extends AbstractPersistable<Long> {
     @Column(name = "min_required_balance", scale = 6, precision = 19, nullable = true)
     private BigDecimal minRequiredBalance;
 
-    @Temporal(TemporalType.DATE)
-    @Column(name = "start_interest_calculation_date")
-    protected Date startInterestCalculationDate;
-
     @Embedded
     protected SavingsAccountSummary summary;
 
@@ -266,10 +259,6 @@ public class SavingsAccount extends AbstractPersistable<Long> {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "savingsAccount", orphanRemoval = true)
     protected Set<SavingsAccountCharge> charges = new HashSet<>();
 
-    @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "savingsAccount", orphanRemoval = true)
-    private Set<SavingsOfficerAssignmentHistory> savingsOfficerHistory;
-    
     @Transient
     protected boolean accountNumberRequiresAutoGeneration = false;
     @Transient
@@ -286,7 +275,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
     protected SavingsAccount() {
         //
     }
- 
+
     public static SavingsAccount createNewApplicationForSubmittal(final Client client, final Group group, final SavingsProduct product,
             final Staff fieldOfficer, final String accountNo, final String externalId, final AccountType accountType,
             final LocalDate submittedOnDate, final AppUser submittedBy, final BigDecimal interestRate,
@@ -321,7 +310,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
                 withdrawalFeeApplicableForTransfer, savingsAccountCharges, allowOverdraft, overdraftLimit, false, null);
     }
 
-    protected SavingsAccount(final Client client, final Group group, final SavingsProduct product, final Staff savingsOfficer,
+    protected SavingsAccount(final Client client, final Group group, final SavingsProduct product, final Staff fieldOfficer,
             final String accountNo, final String externalId, final SavingsAccountStatusType status, final AccountType accountType,
             final LocalDate submittedOnDate, final AppUser submittedBy, final BigDecimal nominalAnnualInterestRate,
             final SavingsCompoundingInterestPeriodType interestCompoundingPeriodType,
@@ -334,7 +323,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         this.client = client;
         this.group = group;
         this.product = product;
-        this.savingsOfficer = savingsOfficer;
+        this.fieldOfficer = fieldOfficer;
         if (StringUtils.isBlank(accountNo)) {
             this.accountNumber = new RandomPasswordGenerator(19).generate();
             this.accountNumberRequiresAutoGeneration = true;
@@ -371,7 +360,6 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         this.enforceMinRequiredBalance = enforceMinRequiredBalance;
         this.minRequiredBalance = minRequiredBalance;
         this.minBalanceForInterestCalculation = product.minBalanceForInterestCalculation();
-        this.savingsOfficerHistory = null;
     }
 
     /**
@@ -417,14 +405,9 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         return SavingsAccountStatusType.fromInt(this.status).isClosed();
     }
 
-	public void postInterest(final MathContext mc,
-			final LocalDate interestPostingUpToDate,
-			final boolean isInterestTransfer,
-			final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-			final Integer financialYearBeginningMonth) {
+    public void postInterest(final MathContext mc, final LocalDate interestPostingUpToDate, final boolean isInterestTransfer) {
 
-        final List<PostingPeriod> postingPeriods = calculateInterestUsing(mc, interestPostingUpToDate, isInterestTransfer,
-        		isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
+        final List<PostingPeriod> postingPeriods = calculateInterestUsing(mc, interestPostingUpToDate, isInterestTransfer);
 
         Money interestPostedToDate = Money.zero(this.currency);
 
@@ -486,21 +469,6 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         return postingTransation;
     }
 
-    // Determine the last transaction for given day
-    protected SavingsAccountTransaction findLastTransaction(final LocalDate date) {
-
-        SavingsAccountTransaction savingsTransaction = null;
-
-        for (final SavingsAccountTransaction transaction : this.transactions) {
-            if (transaction.isNotReversed() && transaction.occursOn(date)) {
-                savingsTransaction = transaction;
-                break;
-            }
-        }
-
-        return savingsTransaction;
-    }
-
     /**
      * All interest calculation based on END-OF-DAY-BALANCE.
      * 
@@ -519,8 +487,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
      *            TODO
      */
     public List<PostingPeriod> calculateInterestUsing(final MathContext mc, final LocalDate upToInterestCalculationDate,
-            boolean isInterestTransfer, final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-            final Integer financialYearBeginningMonth) {
+            boolean isInterestTransfer) {
 
         // no openingBalance concept supported yet but probably will to allow
         // for migrations.
@@ -543,35 +510,12 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         final SavingsInterestCalculationDaysInYearType daysInYearType = SavingsInterestCalculationDaysInYearType
                 .fromInt(this.interestCalculationDaysInYearType);
 
-        final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(
-                getStartInterestCalculationDate(), upToInterestCalculationDate, postingPeriodType,
-                financialYearBeginningMonth);
+        final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(getActivationLocalDate(),
+                upToInterestCalculationDate, postingPeriodType);
 
         final List<PostingPeriod> allPostingPeriods = new ArrayList<>();
 
-        Money periodStartingBalance;
-        if (this.startInterestCalculationDate != null) {
-            LocalDate startInterestCalculationDate = new LocalDate(this.startInterestCalculationDate);
-            final SavingsAccountTransaction transaction = findLastTransaction(startInterestCalculationDate);
-
-            if (transaction == null) {
-                final String defaultUserMessage = "No transactions were found on the specified date "
-                        + getStartInterestCalculationDate().toString() + " for account number " + this.accountNumber.toString()
-                        + " and resource id " + getId();
-
-                final ApiParameterError error = ApiParameterError.parameterError(
-                        "error.msg.savingsaccount.transaction.incorrect.start.interest.calculation.date", defaultUserMessage,
-                        "transactionDate", getStartInterestCalculationDate().toString());
-
-                final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-                dataValidationErrors.add(error);
-
-                throw new PlatformApiDataValidationException(dataValidationErrors);
-            }
-
-            periodStartingBalance = transaction.getRunningBalance(this.currency);
-        } else
-            periodStartingBalance = Money.zero(this.currency);
+        Money periodStartingBalance = Money.zero(this.currency);
 
         final SavingsInterestCalculationType interestCalculationType = SavingsInterestCalculationType.fromInt(this.interestCalculationType);
         final BigDecimal interestRateAsFraction = getEffectiveInterestRateAsFraction(mc, upToInterestCalculationDate);
@@ -583,7 +527,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
             final PostingPeriod postingPeriod = PostingPeriod.createFrom(periodInterval, periodStartingBalance,
                     retreiveOrderedNonInterestPostingTransactions(), this.currency, compoundingPeriodType, interestCalculationType,
                     interestRateAsFraction, daysInYearType.getValue(), upToInterestCalculationDate, interestPostTransactions,
-                    isInterestTransfer, minBalanceForInterestCalculation, isSavingsInterestPostingAtCurrentPeriodEnd);
+                    isInterestTransfer, minBalanceForInterestCalculation);
 
             periodStartingBalance = postingPeriod.closingBalance();
 
@@ -757,17 +701,6 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         return activationLocalDate;
     }
 
-    // startInterestCalculationDate is set during migration so that there is no
-    // interference with interest posting of previous system
-    public LocalDate getStartInterestCalculationDate() {
-        LocalDate startInterestCalculationLocalDate = null;
-        if (this.startInterestCalculationDate != null) {
-            startInterestCalculationLocalDate = new LocalDate(this.startInterestCalculationDate);
-        } else
-            startInterestCalculationLocalDate = getActivationLocalDate();
-        return startInterestCalculationLocalDate;
-    }
-
     public SavingsAccountTransaction withdraw(final SavingsAccountTransactionDTO transactionDTO, final boolean applyWithdrawFee) {
 
         if (!isTransactionsAllowed()) {
@@ -860,19 +793,18 @@ public class SavingsAccount extends AbstractPersistable<Long> {
     public void validateAccountBalanceDoesNotBecomeNegative(final BigDecimal transactionAmount, final boolean isWithdrawBalance) {
         final List<SavingsAccountTransaction> transactionsSortedByDate = retreiveListOfTransactions();
         Money runningBalance = Money.zero(this.currency);
+
         for (final SavingsAccountTransaction transaction : transactionsSortedByDate) {
             if (transaction.isNotReversed() && transaction.isCredit()) {
                 runningBalance = runningBalance.plus(transaction.getAmount(this.currency));
             } else if (transaction.isNotReversed() && transaction.isDebit()) {
                 runningBalance = runningBalance.minus(transaction.getAmount(this.currency));
-            } else {
-                continue;
             }
 
             final BigDecimal withdrawalFee = null;
             // deal with potential minRequiredBalance and
             // enforceMinRequiredBalance
-            if (!isWithdrawBalance && this.minRequiredBalance != null && this.enforceMinRequiredBalance && transaction.isWithdrawal()) {
+            if (!isWithdrawBalance && this.minRequiredBalance != null && this.enforceMinRequiredBalance) {
                 if (runningBalance.minus(this.minRequiredBalance).isLessThanZero()) { throw new InsufficientAccountBalanceException(
                         "transactionAmount", getAccountBalance(), withdrawalFee, transactionAmount); }
             }
@@ -1006,7 +938,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
             actualChanges.put(SavingsApiConstants.productIdParamName, newValue);
         }
 
-        if (command.isChangeInLongParameterNamed(SavingsApiConstants.fieldOfficerIdParamName, hasSavingsOfficerId())) {
+        if (command.isChangeInLongParameterNamed(SavingsApiConstants.fieldOfficerIdParamName, fieldOfficerId())) {
             final Long newValue = command.longValueOfParameterNamed(SavingsApiConstants.fieldOfficerIdParamName);
             actualChanges.put(SavingsApiConstants.fieldOfficerIdParamName, newValue);
         }
@@ -1211,8 +1143,8 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         this.minBalanceForInterestCalculation = product.minBalanceForInterestCalculation();
     }
 
-    public void update(final Staff savingsOfficer) {
-        this.savingsOfficer = savingsOfficer;
+    public void update(final Staff fieldOfficer) {
+        this.fieldOfficer = fieldOfficer;
     }
 
     public void updateAccountNo(final String newAccountNo) {
@@ -1256,18 +1188,6 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         return office;
     }
 
-    public Staff getSavingsOfficer() {
-        return this.savingsOfficer;
-    }
-
-    public void unassignSavingsOfficer() {
-        this.savingsOfficer = null;
-    }
-
-    public void assignSavingsOfficer(final Staff fieldOfficer) {
-        this.savingsOfficer = fieldOfficer;
-    }
-
     public Long clientId() {
         Long id = null;
         if (this.client != null) {
@@ -1284,149 +1204,14 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         return id;
     }
 
-    public Long hasSavingsOfficerId() {
+    public Long fieldOfficerId() {
         Long id = null;
-        if (this.savingsOfficer != null) {
-            id = this.savingsOfficer.getId();
+        if (this.fieldOfficer != null) {
+            id = this.fieldOfficer.getId();
         }
         return id;
     }
-    
-        
-    public boolean hasSavingsOfficer(final Staff fromSavingsOfficer) {
 
-        boolean matchesCurrentSavingsOfficer = false;
-        if (this.savingsOfficer != null) {
-            matchesCurrentSavingsOfficer = this.savingsOfficer.identifiedBy(fromSavingsOfficer);
-        } else {
-            matchesCurrentSavingsOfficer = fromSavingsOfficer == null;
-        }
-        return matchesCurrentSavingsOfficer;
-    }
-  
-    public void reassignSavingsOfficer(final Staff newSavingsOfficer,final LocalDate assignmentDate) {     
-    	final SavingsOfficerAssignmentHistory latestHistoryRecord = findLatestIncompleteHistoryRecord();
-        final SavingsOfficerAssignmentHistory lastAssignmentRecord = findLastAssignmentHistoryRecord(newSavingsOfficer);
-
-        // assignment date should not be less than savings account submitted date
-        if (isSubmittedOnDateAfter(assignmentDate)) {
-
-            final String errorMessage = "The Savings Officer assignment date (" + assignmentDate.toString()
-                    + ") cannot be before savings submitted date (" + getSubmittedOnDate().toString() + ").";
-
-            throw new SavingsOfficerAssignmentDateException("cannot.be.before.savings.submitted.date", errorMessage, assignmentDate,
-                    getSubmittedOnDate());
-
-        } else if (lastAssignmentRecord != null && lastAssignmentRecord.isEndDateAfter(assignmentDate)) {
-
-            final String errorMessage = "The Savings Officer assignment date (" + assignmentDate
-                    + ") cannot be before previous Savings Officer unassigned date (" + lastAssignmentRecord.getEndDate() + ").";
-
-            throw new SavingsOfficerAssignmentDateException("cannot.be.before.previous.unassignement.date", errorMessage, assignmentDate,
-                    lastAssignmentRecord.getEndDate());
-
-        } else if (DateUtils.getLocalDateOfTenant().isBefore(assignmentDate)) {
-
-            final String errorMessage = "The Savings Officer assignment date (" + assignmentDate + ") cannot be in the future.";
-
-            throw new SavingsOfficerAssignmentDateException("cannot.be.a.future.date", errorMessage, assignmentDate);
-
-        } else if (latestHistoryRecord != null && this.savingsOfficer.identifiedBy(newSavingsOfficer)) {
-            latestHistoryRecord.updateStartDate(assignmentDate);
-        } else if (latestHistoryRecord != null && latestHistoryRecord.matchesStartDateOf(assignmentDate)) {
-            latestHistoryRecord.updateSavingsOfficer(newSavingsOfficer);
-            this.savingsOfficer = newSavingsOfficer;
-        } else if (latestHistoryRecord != null && latestHistoryRecord.hasStartDateBefore(assignmentDate)) {
-            final String errorMessage = "Savings account with identifier " + getId() + " was already assigned before date " + assignmentDate;
-            throw new SavingsOfficerAssignmentDateException("is.before.last.assignment.date", errorMessage, getId(), assignmentDate);
-        } else {
-            if (latestHistoryRecord != null) {
-                // savings officer correctly changed from previous savings officer to
-                // new savings officer
-                latestHistoryRecord.updateEndDate(assignmentDate);
-            }
-    		this.savingsOfficer = newSavingsOfficer;
-            if (isNotSubmittedAndPendingApproval()) {
-                final SavingsOfficerAssignmentHistory savingsOfficerAssignmentHistory = 
-                		SavingsOfficerAssignmentHistory.createNew(this,this.savingsOfficer,assignmentDate);
-                this.savingsOfficerHistory.add(savingsOfficerAssignmentHistory);
-            }
-        }
-    }
-    
-    
-    private SavingsOfficerAssignmentHistory findLastAssignmentHistoryRecord(final Staff newSavingsOfficer) {
-
-        SavingsOfficerAssignmentHistory lastAssignmentRecordLatestEndDate = null;
-        for (final SavingsOfficerAssignmentHistory historyRecord : this.savingsOfficerHistory) {
-
-            if (historyRecord.isCurrentRecord() && !historyRecord.isSameSavingsOfficer(newSavingsOfficer)) {
-                lastAssignmentRecordLatestEndDate = historyRecord;
-                break;
-            }
-
-            if (lastAssignmentRecordLatestEndDate == null) {
-                lastAssignmentRecordLatestEndDate = historyRecord;
-            } else if (historyRecord.isEndDateAfter(lastAssignmentRecordLatestEndDate.getEndDate())
-                    && !historyRecord.isSameSavingsOfficer(newSavingsOfficer)) {
-                lastAssignmentRecordLatestEndDate = historyRecord;
-            }
-        }
-        return lastAssignmentRecordLatestEndDate;
-    }
-    
-        public boolean isSubmittedOnDateAfter(final LocalDate compareDate) {
-            return this.submittedOnDate == null ? false : new LocalDate(this.submittedOnDate).isAfter(compareDate);
-        }
-
-        public LocalDate getSubmittedOnDate() {
-            return (LocalDate) ObjectUtils.defaultIfNull(new LocalDate(this.submittedOnDate), null);
-        }
-
-        
-    public void removeSavingsOfficer(final LocalDate unassignDate) {
-
-    	final SavingsOfficerAssignmentHistory latestHistoryRecord = findLatestIncompleteHistoryRecord();
-
-        if (latestHistoryRecord != null) {
-            validateUnassignDate(latestHistoryRecord, unassignDate);
-            latestHistoryRecord.updateEndDate(unassignDate);
-        }
-        this.savingsOfficer = null;
-    }
-    
-    private SavingsOfficerAssignmentHistory findLatestIncompleteHistoryRecord() {
-
-        SavingsOfficerAssignmentHistory latestRecordWithNoEndDate = null;
-        for (final SavingsOfficerAssignmentHistory historyRecord : this.savingsOfficerHistory) {
-            if (historyRecord.isCurrentRecord()) {
-                latestRecordWithNoEndDate = historyRecord;
-                break;
-            }
-        }
-        return latestRecordWithNoEndDate;
-    }
-
-    private void validateUnassignDate(final SavingsOfficerAssignmentHistory latestHistoryRecord, final LocalDate unassignDate) {
-
-        final LocalDate today = DateUtils.getLocalDateOfTenant();
-
-        if (latestHistoryRecord.getStartDate().isAfter(unassignDate)) {
-
-            final String errorMessage = "The Savings officer Unassign date(" + unassignDate + ") cannot be before its assignment date ("
-                    + latestHistoryRecord.getStartDate() + ").";
-
-            throw new SavingsOfficerUnassignmentDateException("cannot.be.before.assignment.date", errorMessage, getId(), getSavingsOfficer()
-                    .getId(), latestHistoryRecord.getStartDate(), unassignDate);
-
-        } else if (unassignDate.isAfter(today)) {
-
-            final String errorMessage = "The Savings Officer Unassign date (" + unassignDate + ") cannot be in the future.";
-
-            throw new SavingsOfficerUnassignmentDateException("cannot.be.a.future.date", errorMessage, unassignDate);
-        }
-    }
-    
     public MonetaryCurrency getCurrency() {
         return this.currency;
     }
@@ -1832,9 +1617,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         return actualChanges;
     }
 
-	public void processAccountUponActivation(
-			final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-			final Integer financialYearBeginningMonth) {
+    public void processAccountUponActivation() {
 
         // update annual fee due date
         for (SavingsAccountCharge charge : this.charges()) {
@@ -1842,8 +1625,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         }
 
         // auto pay the activation time charges
-        this.payActivationCharges(isSavingsInterestPostingAtCurrentPeriodEnd,
-        		financialYearBeginningMonth);
+        this.payActivationCharges();
         // TODO : AA add activation charges to actual changes list
     }
 
@@ -1866,8 +1648,7 @@ public class SavingsAccount extends AbstractPersistable<Long> {
         this.lockedInUntilDate = calculateDateAccountIsLockedUntil(getActivationLocalDate());
     }
 
-    private void payActivationCharges(final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
-    		final Integer financialYearBeginningMonth) {
+    private void payActivationCharges() {
         boolean isSavingsChargeApplied = false;
         for (SavingsAccountCharge savingsAccountCharge : this.charges()) {
             if (savingsAccountCharge.isSavingsActivation()) {
@@ -1881,12 +1662,10 @@ public class SavingsAccount extends AbstractPersistable<Long> {
             boolean isInterestTransfer = false;
             if (this.isBeforeLastPostingPeriod(getActivationLocalDate())) {
                 final LocalDate today = DateUtils.getLocalDateOfTenant();
-                this.postInterest(mc, today, isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd,
-                		financialYearBeginningMonth);
+                this.postInterest(mc, today, isInterestTransfer);
             } else {
                 final LocalDate today = DateUtils.getLocalDateOfTenant();
-                this.calculateInterestUsing(mc, today, isInterestTransfer,
-                		isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
+                this.calculateInterestUsing(mc, today, isInterestTransfer);
             }
         }
     }

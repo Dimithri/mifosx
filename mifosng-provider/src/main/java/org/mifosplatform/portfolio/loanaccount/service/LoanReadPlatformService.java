@@ -18,9 +18,7 @@ import org.mifosplatform.portfolio.loanaccount.data.LoanScheduleAccrualData;
 import org.mifosplatform.portfolio.loanaccount.data.LoanTermVariationsData;
 import org.mifosplatform.portfolio.loanaccount.data.LoanTransactionData;
 import org.mifosplatform.portfolio.loanaccount.data.RepaymentScheduleRelatedLoanData;
-import org.mifosplatform.portfolio.loanaccount.domain.LoanTransactionType;
 import org.mifosplatform.portfolio.loanaccount.loanschedule.data.LoanScheduleData;
-import org.mifosplatform.portfolio.loanaccount.loanschedule.data.LoanSchedulePeriodData;
 import org.mifosplatform.portfolio.loanaccount.loanschedule.data.OverdueLoanScheduleData;
 
 public interface LoanReadPlatformService {
@@ -28,7 +26,7 @@ public interface LoanReadPlatformService {
     LoanAccountData retrieveOne(Long loanId);
 
     LoanScheduleData retrieveRepaymentSchedule(Long loanId, RepaymentScheduleRelatedLoanData repaymentScheduleRelatedData,
-            Collection<DisbursementData> disbursementData, boolean isInterestRecalculationEnabled);
+            Collection<DisbursementData> disbursementData);
 
     Collection<LoanTransactionData> retrieveLoanTransactions(Long loanId);
 
@@ -89,12 +87,4 @@ public interface LoanReadPlatformService {
     LoanTransactionData retrieveLoanWriteoffTemplate(Long loanId);
 
     Collection<LoanScheduleAccrualData> retrivePeriodicAccrualData(LocalDate tillDate);
-
-    Collection<Long> fetchArrearLoans();
-
-    LoanTransactionData retrieveLoanPrePaymentTemplate(Long loanId);
-
-    Collection<LoanTransactionData> retrieveWaiverLoanTransactions(Long loanId);
-
-    Collection<LoanSchedulePeriodData> fetchWaiverInterestRepaymentData(Long loanId);
 }

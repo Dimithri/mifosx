@@ -1,8 +1,3 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
- */
 package org.mifosplatform.portfolio.account.service;
 
 import java.sql.ResultSet;
@@ -74,10 +69,8 @@ public class AccountAssociationsReadPlatformServiceImpl implements AccountAssoci
 
         final List<Integer> statusList = this.jdbcTemplate.queryForList(sql, Integer.class, savingsId);
         for (final Integer status : statusList) {
-            if(status !=null){
-                final LoanStatus loanStatus = LoanStatus.fromInt(status);
-                if (loanStatus.isActiveOrAwaitingApprovalOrDisbursal() || loanStatus.isUnderTransfer()) { return true; }
-            }
+            final LoanStatus loanStatus = LoanStatus.fromInt(status);
+            if (loanStatus.isActiveOrAwaitingApprovalOrDisbursal() || loanStatus.isUnderTransfer()) { return true; }
         }
 
         final String savsql = "select savingAccount.status_enum as status from m_portfolio_account_associations aa "
@@ -86,11 +79,10 @@ public class AccountAssociationsReadPlatformServiceImpl implements AccountAssoci
 
         final List<Integer> savstatusList = this.jdbcTemplate.queryForList(savsql, Integer.class, savingsId);
         for (final Integer status : savstatusList) {
-            if(status !=null){
-                final SavingsAccountStatusType saveStatus = SavingsAccountStatusType.fromInt(status);
-                if (saveStatus.isActiveOrAwaitingApprovalOrDisbursal() || saveStatus.isUnderTransfer()) { return true; }
-            }
+            final SavingsAccountStatusType saveStatus = SavingsAccountStatusType.fromInt(status);
+            if (saveStatus.isActiveOrAwaitingApprovalOrDisbursal() || saveStatus.isUnderTransfer()) { return true; }
         }
+
         return hasActiveAccount;
     }
 

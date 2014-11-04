@@ -24,7 +24,6 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -122,10 +121,6 @@ public class LoanProduct extends AbstractPersistable<Long> {
     @Column(name = "overdue_days_for_npa", nullable = true)
     private Integer overdueDaysForNPA;
 
-    @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "loanProduct", optional = true, orphanRemoval = true)
-    private LoanProductInterestRecalculationDetails productInterestRecalculationDetails;
-
     public static LoanProduct assembleFromJson(final Fund fund, final LoanTransactionProcessingStrategy loanTransactionProcessingStrategy,
             final List<Charge> productCharges, final JsonCommand command, final AprCalculator aprCalculator) {
 
@@ -192,33 +187,13 @@ public class LoanProduct extends AbstractPersistable<Long> {
 
         final Integer overdueDaysForNPA = command.integerValueOfParameterNamed(LoanProductConstants.overdueDaysForNPAParameterName);
 
-        // Interest recalculation settings
-        final boolean isInterestRecalculationEnabled = command
-                .booleanPrimitiveValueOfParameterNamed(LoanProductConstants.isInterestRecalculationEnabledParameterName);
-        final DaysInMonthType daysInMonthType = DaysInMonthType.fromInt(command
-                .integerValueOfParameterNamed(LoanProductConstants.daysInMonthTypeParameterName));
-
-        final DaysInYearType daysInYearType = DaysInYearType.fromInt(command
-                .integerValueOfParameterNamed(LoanProductConstants.daysInYearTypeParameterName));
-
-        LoanProductInterestRecalculationDetails interestRecalculationSettings = null;
-
-        if (isInterestRecalculationEnabled) {
-            interestRecalculationSettings = LoanProductInterestRecalculationDetails.createFrom(command);
-        }
         return new LoanProduct(fund, loanTransactionProcessingStrategy, name, shortName, description, currency, principal, minPrincipal,
                 maxPrincipal, interestRatePerPeriod, minInterestRatePerPeriod, maxInterestRatePerPeriod, interestFrequencyType,
                 annualInterestRate, interestMethod, interestCalculationPeriodMethod, repaymentEvery, repaymentFrequencyType,
                 numberOfRepayments, minNumberOfRepayments, maxNumberOfRepayments, graceOnPrincipalPayment, graceOnInterestPayment,
                 graceOnInterestCharged, amortizationMethod, inArrearsTolerance, productCharges, accountingRuleType, includeInBorrowerCycle,
                 startDate, closeDate, externalId, useBorrowerCycle, loanProductBorrowerCycleVariations, multiDisburseLoan, maxTrancheCount,
-                outstandingLoanBalance, graceOnArrearsAgeing, overdueDaysForNPA, daysInMonthType, daysInYearType,
-                isInterestRecalculationEnabled, interestRecalculationSettings);
-
-    }
-
-    public void updateLoanProductForInterestRecalculationDetails() {
-        this.productInterestRecalculationDetails.updateProduct(this);
+                outstandingLoanBalance, graceOnArrearsAgeing, overdueDaysForNPA);
     }
 
     /**
@@ -429,8 +404,7 @@ public class LoanProduct extends AbstractPersistable<Long> {
             final LocalDate closeDate, final String externalId, final boolean useBorrowerCycle,
             final Set<LoanProductBorrowerCycleVariations> loanProductBorrowerCycleVariations, final boolean multiDisburseLoan,
             final Integer maxTrancheCount, final BigDecimal outstandingLoanBalance, final Integer graceOnArrearsAgeing,
-            final Integer overdueDaysForNPA, final DaysInMonthType daysInMonthType, final DaysInYearType daysInYearType,
-            final boolean isInterestRecalculationEnabled, final LoanProductInterestRecalculationDetails productInterestRecalculationDetails) {
+            final Integer overdueDaysForNPA) {
         this.fund = fund;
         this.transactionProcessingStrategy = transactionProcessingStrategy;
         this.name = name.trim();
@@ -448,8 +422,7 @@ public class LoanProduct extends AbstractPersistable<Long> {
         this.loanProductRelatedDetail = new LoanProductRelatedDetail(currency, defaultPrincipal, defaultNominalInterestRatePerPeriod,
                 interestPeriodFrequencyType, defaultAnnualNominalInterestRate, interestMethod, interestCalculationPeriodMethod, repayEvery,
                 repaymentFrequencyType, defaultNumberOfInstallments, graceOnPrincipalPayment, graceOnInterestPayment,
-                graceOnInterestCharged, amortizationMethod, inArrearsTolerance, graceOnArrearsAgeing, daysInMonthType.getValue(),
-                daysInYearType.getValue(), isInterestRecalculationEnabled);
+                graceOnInterestCharged, amortizationMethod, inArrearsTolerance, graceOnArrearsAgeing);
 
         this.loanProductRelatedDetail.validateRepaymentPeriodWithGraceSettings();
 
@@ -478,7 +451,6 @@ public class LoanProduct extends AbstractPersistable<Long> {
         }
         this.loanProducTrancheDetails = new LoanProductTrancheDetails(multiDisburseLoan, maxTrancheCount, outstandingLoanBalance);
         this.overdueDaysForNPA = overdueDaysForNPA;
-        this.productInterestRecalculationDetails = productInterestRecalculationDetails;
     }
 
     public MonetaryCurrency getCurrency() {
@@ -650,29 +622,6 @@ public class LoanProduct extends AbstractPersistable<Long> {
             this.overdueDaysForNPA = newValue;
         }
 
-        /**
-         * Update interest recalculation settings
-         */
-        final boolean isInterestRecalculationEnabledChanged = actualChanges
-                .containsKey(LoanProductConstants.isInterestRecalculationEnabledParameterName);
-
-        if (isInterestRecalculationEnabledChanged) {
-            if (this.isInterestRecalculationEnabled()) {
-                this.productInterestRecalculationDetails = LoanProductInterestRecalculationDetails.createFrom(command);
-                this.productInterestRecalculationDetails.updateProduct(this);
-                actualChanges.put(LoanProductConstants.interestRecalculationCompoundingMethodParameterName,
-                        command.integerValueOfParameterNamed(LoanProductConstants.interestRecalculationCompoundingMethodParameterName));
-                actualChanges.put(LoanProductConstants.rescheduleStrategyMethodParameterName,
-                        command.integerValueOfParameterNamed(LoanProductConstants.rescheduleStrategyMethodParameterName));
-            } else {
-                this.productInterestRecalculationDetails = null;
-            }
-        }
-
-        if (!isInterestRecalculationEnabledChanged && this.isInterestRecalculationEnabled()) {
-            this.productInterestRecalculationDetails.update(command, actualChanges, localeAsInput);
-        }
-
         return actualChanges;
     }
 
@@ -789,10 +738,6 @@ public class LoanProduct extends AbstractPersistable<Long> {
         return this.loanProducTrancheDetails.maxTrancheCount();
     }
 
-    public boolean isInterestRecalculationEnabled() {
-        return this.loanProductRelatedDetail.isInterestRecalculationEnabled();
-    }
-
     public LoanProductBorrowerCycleVariations fetchLoanProductBorrowerCycleVariationById(Long id) {
         LoanProductBorrowerCycleVariations borrowerCycleVariation = null;
         for (LoanProductBorrowerCycleVariations cycleVariation : this.borrowerCycleVariations) {
@@ -905,7 +850,4 @@ public class LoanProduct extends AbstractPersistable<Long> {
         return this.loanProductRelatedDetail.fetchDaysInYearType();
     }
 
-    public LoanProductInterestRecalculationDetails getProductInterestRecalculationDetails() {
-        return this.productInterestRecalculationDetails;
-    }
 }

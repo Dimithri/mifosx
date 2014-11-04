@@ -10,13 +10,8 @@ import java.util.Map;
 
 public enum CalendarEntityType {
 
-    INVALID(0, "calendarEntityType.invalid"), //
-    CLIENTS(1, "calendarEntityType.clients"), //
-    GROUPS(2, "calendarEntityType.groups"), //
-    LOANS(3, "calendarEntityType.loans"), //
-    CENTERS(4, "calendarEntityType.centers"), //
-    SAVINGS(5, "calendarEntityType.savings"), //
-    LOAN_RECALCULATION_DETAIL(6, "calendarEntityType.loan.recalculation.detail");
+    INVALID(0, "calendarEntityType.invalid"), CLIENTS(1, "calendarEntityType.clients"), GROUPS(2, "calendarEntityType.groups"), LOANS(3,
+            "calendarEntityType.loans"), CENTERS(4, "calendarEntityType.centers"), SAVINGS(5, "calendarEntityType.savings");
 
     private final Integer value;
     private final String code;

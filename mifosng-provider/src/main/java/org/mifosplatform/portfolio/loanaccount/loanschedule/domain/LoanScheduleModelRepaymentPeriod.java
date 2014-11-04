@@ -26,19 +26,18 @@ public final class LoanScheduleModelRepaymentPeriod implements LoanScheduleModel
     private Money feeChargesDue;
     private Money penaltyChargesDue;
     private Money totalDue;
-    private final boolean recalculatedInterestComponent;
 
     public static LoanScheduleModelRepaymentPeriod repayment(final int periodNumber, final LocalDate startDate,
             final LocalDate scheduledDueDate, final Money principalDue, final Money outstandingLoanBalance, final Money interestDue,
-            final Money feeChargesDue, final Money penaltyChargesDue, final Money totalDue, boolean recalculatedInterestComponent) {
+            final Money feeChargesDue, final Money penaltyChargesDue, final Money totalDue) {
 
         return new LoanScheduleModelRepaymentPeriod(periodNumber, startDate, scheduledDueDate, principalDue, outstandingLoanBalance,
-                interestDue, feeChargesDue, penaltyChargesDue, totalDue, recalculatedInterestComponent);
+                interestDue, feeChargesDue, penaltyChargesDue, totalDue);
     }
 
     public LoanScheduleModelRepaymentPeriod(final int periodNumber, final LocalDate fromDate, final LocalDate dueDate,
             final Money principalDue, final Money outstandingLoanBalance, final Money interestDue, final Money feeChargesDue,
-            final Money penaltyChargesDue, final Money totalDue, final boolean recalculatedInterestComponent) {
+            final Money penaltyChargesDue, final Money totalDue) {
         this.periodNumber = periodNumber;
         this.fromDate = fromDate;
         this.dueDate = dueDate;
@@ -48,7 +47,6 @@ public final class LoanScheduleModelRepaymentPeriod implements LoanScheduleModel
         this.feeChargesDue = feeChargesDue;
         this.penaltyChargesDue = penaltyChargesDue;
         this.totalDue = totalDue;
-        this.recalculatedInterestComponent = recalculatedInterestComponent;
     }
 
     @Override
@@ -123,10 +121,5 @@ public final class LoanScheduleModelRepaymentPeriod implements LoanScheduleModel
         this.feeChargesDue = this.feeChargesDue.plus(feeCharge);
         this.penaltyChargesDue = this.penaltyChargesDue.plus(penaltyCharge);
         this.totalDue = this.totalDue.plus(feeCharge).plus(penaltyCharge);
-    }
-
-    @Override
-    public boolean isRecalculatedInterestComponent() {
-        return this.recalculatedInterestComponent;
     }
 }

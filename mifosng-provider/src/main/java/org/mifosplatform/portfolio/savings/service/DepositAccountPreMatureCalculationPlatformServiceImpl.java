@@ -12,7 +12,6 @@ import java.util.Collection;
 import org.joda.time.LocalDate;
 import org.mifosplatform.infrastructure.codes.data.CodeValueData;
 import org.mifosplatform.infrastructure.codes.service.CodeValueReadPlatformService;
-import org.mifosplatform.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.mifosplatform.infrastructure.core.api.JsonQuery;
 import org.mifosplatform.infrastructure.core.data.EnumOptionData;
 import org.mifosplatform.infrastructure.core.serialization.FromJsonHelper;
@@ -42,20 +41,17 @@ public class DepositAccountPreMatureCalculationPlatformServiceImpl implements De
     private final DepositAccountAssembler depositAccountAssembler;
     private final CodeValueReadPlatformService codeValueReadPlatformService;
     private final SavingsAccountReadPlatformService savingsAccountReadPlatformService;
-    private final ConfigurationDomainService configurationDomainService;
 
     @Autowired
     public DepositAccountPreMatureCalculationPlatformServiceImpl(final FromJsonHelper fromJsonHelper,
             final DepositAccountTransactionDataValidator depositAccountTransactionDataValidator,
             final DepositAccountAssembler depositAccountAssembler, final CodeValueReadPlatformService codeValueReadPlatformService,
-            final SavingsAccountReadPlatformService savingsAccountReadPlatformService,
-            final ConfigurationDomainService configurationDomainService) {
+            final SavingsAccountReadPlatformService savingsAccountReadPlatformService) {
         this.fromJsonHelper = fromJsonHelper;
         this.depositAccountTransactionDataValidator = depositAccountTransactionDataValidator;
         this.depositAccountAssembler = depositAccountAssembler;
         this.codeValueReadPlatformService = codeValueReadPlatformService;
         this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
-        this.configurationDomainService = configurationDomainService;
 
     }
 
@@ -63,12 +59,6 @@ public class DepositAccountPreMatureCalculationPlatformServiceImpl implements De
     @Override
     public DepositAccountData calculatePreMatureAmount(final Long accountId, final JsonQuery query,
             final DepositAccountType depositAccountType) {
-    	
-    	final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
-				.isSavingsInterestPostingAtCurrentPeriodEnd();
-    	final Integer financialYearBeginningMonth = this.configurationDomainService
-    			.retrieveFinancialYearBeginningMonth();
-    	
         this.depositAccountTransactionDataValidator.validatePreMatureAmountCalculation(query.json(), depositAccountType);
         final SavingsAccount account = this.depositAccountAssembler.assembleFrom(accountId, depositAccountType);
 
@@ -89,15 +79,13 @@ public class DepositAccountPreMatureCalculationPlatformServiceImpl implements De
         if (depositAccountType.isFixedDeposit()) {
             final FixedDepositAccount fd = (FixedDepositAccount) account;
             accountData = FixedDepositAccountData.preClosureDetails(account.getId(),
-                    fd.calculatePreMatureAmount(interestCalculatedToDate, isPreMatureClosure,
-                    		isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth),
-                    		onAccountClosureOptions, paymentTypeOptions, savingsAccountDatas);
+                    fd.calculatePreMatureAmount(interestCalculatedToDate, isPreMatureClosure), onAccountClosureOptions, paymentTypeOptions,
+                    savingsAccountDatas);
         } else if (depositAccountType.isRecurringDeposit()) {
             final RecurringDepositAccount rd = (RecurringDepositAccount) account;
             accountData = RecurringDepositAccountData.preClosureDetails(account.getId(),
-                    rd.calculatePreMatureAmount(interestCalculatedToDate, isPreMatureClosure,
-                    		isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth),
-                    		onAccountClosureOptions, paymentTypeOptions, savingsAccountDatas);
+                    rd.calculatePreMatureAmount(interestCalculatedToDate, isPreMatureClosure), onAccountClosureOptions, paymentTypeOptions,
+                    savingsAccountDatas);
         }
 
         return accountData;

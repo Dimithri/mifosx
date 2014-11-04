@@ -28,7 +28,6 @@ public class RecurringDepositAccountApplicationApprovalUndoCommandHandler implem
     @Transactional
     @Override
     public CommandProcessingResult processCommand(final JsonCommand command) {
-        return this.depositAccountWritePlatformService.undoApplicationApproval(command.entityId(), command,
-                DepositAccountType.RECURRING_DEPOSIT);
+        return this.depositAccountWritePlatformService.undoApplicationApproval(command.entityId(), command, DepositAccountType.RECURRING_DEPOSIT);
     }
 }

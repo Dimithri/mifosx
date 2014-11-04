@@ -1,8 +1,3 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
- */
 package org.mifosplatform.infrastructure.jobs.service;
 
 import java.util.ArrayList;
@@ -35,8 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
@@ -48,7 +41,7 @@ import org.springframework.stereotype.Service;
  * {@link CronTriggerFactoryBean}
  */
 @Service
-public class JobRegisterServiceImpl implements JobRegisterService, ApplicationListener<ContextClosedEvent> {
+public class JobRegisterServiceImpl implements JobRegisterService {
 
     private final static Logger logger = LoggerFactory.getLogger(JobRegisterServiceImpl.class);
 
@@ -230,17 +223,6 @@ public class JobRegisterServiceImpl implements JobRegisterService, ApplicationLi
         return !this.schedularWritePlatformService.retriveSchedulerDetail().isSuspended();
     }
 
-    /**
-     * Need to use ContextClosedEvent instead of ContextStoppedEvent because in
-     * case Spring Boot fails to start-up (e.g. because Tomcat port is already
-     * in use) then org.springframework.boot.SpringApplication.run(String...)
-     * does a context.close(); and not a context.stop();
-     */
-    @Override
-    public void onApplicationEvent(@SuppressWarnings("unused") ContextClosedEvent event) {
-        this.stopAllSchedulers();
-    }
-
     private void scheduleJob(final ScheduledJobDetail scheduledJobDetails) {
         if (!scheduledJobDetails.isActiveSchedular()) {
             scheduledJobDetails.updateNextRunTime(null);
@@ -262,17 +244,6 @@ public class JobRegisterServiceImpl implements JobRegisterService, ApplicationLi
             logger.error("Could not schedule job: " + scheduledJobDetails.getJobName(), throwable);
         }
         scheduledJobDetails.updateCurrentlyRunningStatus(false);
-    }
-
-    @Override
-    public void stopAllSchedulers() {
-        for (Scheduler scheduler : this.schedulers.values()) {
-            try {
-                scheduler.shutdown();
-            } catch (final SchedulerException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
     }
 
     private Scheduler getScheduler(final ScheduledJobDetail scheduledJobDetail) throws Exception {
@@ -326,9 +297,6 @@ public class JobRegisterServiceImpl implements JobRegisterService, ApplicationLi
     private JobDetail createJobDetail(final ScheduledJobDetail scheduledJobDetail) throws Exception {
         final MifosPlatformTenant tenant = ThreadLocalContextUtil.getTenant();
         final ClassMethodNamesPair jobDetails = CronMethodParser.findTargetMethodDetails(scheduledJobDetail.getJobName());
-        if (jobDetails == null) { throw new IllegalArgumentException(
-                "Code has no @CronTarget with this job name (@see JobName); seems like DB/code are not in line: "
-                        + scheduledJobDetail.getJobName()); }
         final Object targetObject = getBeanObject(Class.forName(jobDetails.className));
         final MethodInvokingJobDetailFactoryBean jobDetailFactoryBean = new MethodInvokingJobDetailFactoryBean();
         jobDetailFactoryBean.setName(scheduledJobDetail.getJobName() + "JobDetail" + tenant.getId());

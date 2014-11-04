@@ -9,9 +9,7 @@ import java.util.Collection;
 
 import org.mifosplatform.portfolio.charge.data.ChargeData;
 import org.mifosplatform.portfolio.loanaccount.data.LoanChargeData;
-import org.mifosplatform.portfolio.loanaccount.data.LoanChargePaidByData;
 import org.mifosplatform.portfolio.loanaccount.data.LoanInstallmentChargeData;
-import org.mifosplatform.portfolio.loanaccount.domain.LoanTransactionType;
 
 public interface LoanChargeReadPlatformService {
 
@@ -26,8 +24,4 @@ public interface LoanChargeReadPlatformService {
     Collection<LoanInstallmentChargeData> retrieveInstallmentLoanCharges(Long loanChargeId, boolean onlyPaymentPendingCharges);
 
     Collection<Integer> retrieveOverdueInstallmentChargeFrequencyNumber(Long loanId, Long chargeId, Integer periodNumber);
-    
-    Collection<LoanChargeData> retrieveLoanChargesForAccural(Long loanId);
-
-    Collection<LoanChargePaidByData> retriveLoanChargesPaidBy(Long chargeId, LoanTransactionType transactionType, Integer installmentNumber);
 }

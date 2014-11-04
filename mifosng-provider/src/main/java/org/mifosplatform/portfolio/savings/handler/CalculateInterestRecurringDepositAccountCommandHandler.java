@@ -20,8 +20,7 @@ public class CalculateInterestRecurringDepositAccountCommandHandler implements N
     private final DepositAccountWritePlatformService depositAccountWritePlatformService;
 
     @Autowired
-    public CalculateInterestRecurringDepositAccountCommandHandler(
-            final DepositAccountWritePlatformService depositAccountWritePlatformService) {
+    public CalculateInterestRecurringDepositAccountCommandHandler(final DepositAccountWritePlatformService depositAccountWritePlatformService) {
         this.depositAccountWritePlatformService = depositAccountWritePlatformService;
     }
 

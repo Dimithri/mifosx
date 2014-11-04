@@ -56,8 +56,40 @@ public class OfficeData implements Serializable {
     public boolean hasIdentifyOf(final Long officeId) {
         return this.id.equals(officeId);
     }
+    
+    public Long getId(){
+    	return this.id;
+    }
 
     public String name() {
         return this.name;
+    }
+    
+    public String getDecoratedName(){
+    	return this.nameDecorated;
+    }
+    
+    public String getExternalId(){
+    	return this.externalId;
+    }
+    
+    public LocalDate getOpeningDate(){
+    	return this.openingDate;
+    }
+    
+    public String getHierarchy(){
+    	return this.hierarchy;
+    }
+    
+    public Long getParentId(){
+    	return this.parentId;
+    }
+    
+    public String getParentName(){
+    	return this.parentName;
+    }
+    
+    public Collection<OfficeData> getAllowedParents(){
+    	return this.allowedParents;
     }
 }

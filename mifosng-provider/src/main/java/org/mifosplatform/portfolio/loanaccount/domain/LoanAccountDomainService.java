@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 
 import org.joda.time.LocalDate;
 import org.mifosplatform.infrastructure.core.data.CommandProcessingResultBuilder;
-import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
 import org.mifosplatform.portfolio.paymentdetail.domain.PaymentDetail;
 
 public interface LoanAccountDomainService {
@@ -28,15 +27,4 @@ public interface LoanAccountDomainService {
 
     LoanTransaction makeDisburseTransaction(Long loanId, LocalDate transactionDate, BigDecimal transactionAmount,
             PaymentDetail paymentDetail, String noteText, String txnExternalId);
-
-    LocalDate getCalculatedRepaymentsStartingFromDate(LocalDate actualDisbursementDate, Loan loan, CalendarInstance calendarInstance);
-
-    /**
-     * This method is to recalculate and accrue the income till the last accrued
-     * date. this method is used when the schedule changes due to interest
-     * recalculation
-     * 
-     * @param loan
-     */
-    void recalculateAccruals(Loan loan);
 }

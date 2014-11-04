@@ -269,10 +269,10 @@ public class FixedDepositProductsApiResource {
 
         // charges
         final boolean feeChargesOnly = true;
-        Collection<ChargeData> chargeOptions = this.chargeReadPlatformService.retrieveSavingsApplicableCharges(feeChargesOnly);
+        Collection<ChargeData> chargeOptions = this.chargeReadPlatformService.retrieveSavingsAccountApplicableCharges(feeChargesOnly);
         chargeOptions = CollectionUtils.isEmpty(chargeOptions) ? null : chargeOptions;
 
-        Collection<ChargeData> penaltyOptions = this.chargeReadPlatformService.retrieveSavingsApplicablePenalties();
+        Collection<ChargeData> penaltyOptions = this.chargeReadPlatformService.retrieveSavingsAccountApplicablePenalties();
         penaltyOptions = CollectionUtils.isEmpty(penaltyOptions) ? null : penaltyOptions;
 
         // interest rate chart template

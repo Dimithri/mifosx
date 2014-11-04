@@ -248,21 +248,12 @@ public class SavingsAccountsApiResource {
         } else if (is(commandParam, "close")) {
             final CommandWrapper commandRequest = builder.closeSavingsAccountApplication(accountId).build();
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        } else if (is(commandParam, "assignSavingsOfficer")) {
-            final CommandWrapper commandRequest = builder.assignSavingsOfficer(accountId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-            return this.toApiJsonSerializer.serialize(result);
-        } else if (is(commandParam, "unassignSavingsOfficer")) {
-            final CommandWrapper commandRequest = builder.unassignSavingsOfficer(accountId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-            return this.toApiJsonSerializer.serialize(result);
         }
 
         if (result == null) {
             //
-            throw new UnrecognizedQueryParamException("command", commandParam,
-                    new Object[] { "reject", "withdrawnByApplicant", "approve", "undoapproval", "activate", "calculateInterest",
-                            "postInterest", "close", "assignSavingsOfficer", "unassignSavingsOfficer" });
+            throw new UnrecognizedQueryParamException("command", commandParam, new Object[] { "reject", "withdrawnByApplicant", "approve",
+                    "undoapproval", "activate", "calculateInterest", "postInterest", "close" });
         }
 
         return this.toApiJsonSerializer.serialize(result);

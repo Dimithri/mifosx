@@ -351,7 +351,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
             final boolean feeChargesOnly = false;
             final Collection<ChargeData> chargeOptions = this.chargeReadPlatformService
-                    .retrieveSavingsApplicableCharges(feeChargesOnly);
+                    .retrieveSavingsAccountApplicableCharges(feeChargesOnly);
 
             Collection<StaffData> fieldOfficerOptions = null;
 
@@ -428,7 +428,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
             final boolean feeChargesOnly = true;
             final Collection<ChargeData> chargeOptions = this.chargeReadPlatformService
-                    .retrieveSavingsApplicableCharges(feeChargesOnly);
+                    .retrieveSavingsAccountApplicableCharges(feeChargesOnly);
 
             if (depositAccountType.isFixedDeposit()) {
 
@@ -1366,8 +1366,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
                     .transactionType(SavingsAccountTransactionType.DEPOSIT.getValue());
             final PaymentDetailData paymentDetailData = null;
             final AccountTransferData transfer = null;
-            final BigDecimal runningBalance = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "runningBalance");
-            ;
+            final BigDecimal runningBalance = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "runningBalance");;
             return SavingsAccountTransactionData.create(savingsId, transactionType, paymentDetailData, savingsId, accountNo, duedate,
                     currency, dueamount, runningBalance, false, transfer);
         }

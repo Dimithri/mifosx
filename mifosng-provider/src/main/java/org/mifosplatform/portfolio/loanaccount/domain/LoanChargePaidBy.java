@@ -1,8 +1,3 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
- */
 package org.mifosplatform.portfolio.loanaccount.domain;
 
 import java.math.BigDecimal;
@@ -30,19 +25,14 @@ public class LoanChargePaidBy extends AbstractPersistable<Long> {
     @Column(name = "amount", scale = 6, precision = 19, nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "installment_number", nullable = true)
-    private Integer installmentNumber;
-
     protected LoanChargePaidBy() {
 
     }
 
-    public LoanChargePaidBy(final LoanTransaction loanTransaction, final LoanCharge loanCharge, final BigDecimal amount,
-            Integer installmentNumber) {
+    public LoanChargePaidBy(final LoanTransaction loanTransaction, final LoanCharge loanCharge, final BigDecimal amount) {
         this.loanTransaction = loanTransaction;
         this.loanCharge = loanCharge;
         this.amount = amount;
-        this.installmentNumber = installmentNumber;
     }
 
     public LoanTransaction getLoanTransaction() {
@@ -67,10 +57,5 @@ public class LoanChargePaidBy extends AbstractPersistable<Long> {
 
     public void setAmount(final BigDecimal amount) {
         this.amount = amount;
-    }
-
-    
-    public Integer getInstallmentNumber() {
-        return this.installmentNumber;
     }
 }

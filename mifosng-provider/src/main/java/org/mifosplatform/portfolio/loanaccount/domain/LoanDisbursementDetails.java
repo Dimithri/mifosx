@@ -24,7 +24,6 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Table(name = "m_loan_disbursement_detail")
 public class LoanDisbursementDetails extends AbstractPersistable<Long> {
 
-    @SuppressWarnings("unused")
     @ManyToOne
     @JoinColumn(name = "loan_id", nullable = false)
     private Loan loan;
@@ -78,24 +77,12 @@ public class LoanDisbursementDetails extends AbstractPersistable<Long> {
         return this.expectedDisbursementDate;
     }
 
-    public LocalDate expectedDisbursementDateAsLocalDate() {
-        LocalDate expectedDisburseDate = null;
-        if (this.expectedDisbursementDate != null) {
-            expectedDisburseDate = new LocalDate(this.expectedDisbursementDate);
-        }
-        return expectedDisburseDate;
-    }
-
     public Date actualDisbursementDate() {
         return this.actualDisbursementDate;
     }
 
     public BigDecimal principal() {
         return this.principal;
-    }
-    
-    public BigDecimal approvedPrincipal() {
-    	return this.approvedPrincipal;
     }
 
     public void updatePrincipal(BigDecimal principal) {
@@ -111,10 +98,14 @@ public class LoanDisbursementDetails extends AbstractPersistable<Long> {
     }
 
     public DisbursementData toData() {
-        LocalDate expectedDisburseDate = expectedDisbursementDateAsLocalDate();
+        LocalDate expectedDisburseDate = null;
         LocalDate actualDisburseDate = null;
-        if (this.actualDisbursementDate != null) {
-            actualDisburseDate = new LocalDate(this.actualDisbursementDate);
+        if (this.expectedDisbursementDate != null) {
+            expectedDisburseDate = new LocalDate(this.expectedDisbursementDate);
+            actualDisburseDate = expectedDisburseDate;
+        }
+        if (getDisbursementDate() != null) {
+            actualDisburseDate = new LocalDate(getDisbursementDate());
         }
         return new DisbursementData(getId(), expectedDisburseDate, actualDisburseDate, this.principal, this.approvedPrincipal);
     }

@@ -5,7 +5,6 @@
  */
 package org.mifosplatform.infrastructure.core.data;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +12,7 @@ import java.util.Map;
  * Represents the successful result of an REST API call that results in
  * processing a command.
  */
-public class CommandProcessingResult implements Serializable {
+public class CommandProcessingResult {
 
     private Long commandId;
     private Long officeId;

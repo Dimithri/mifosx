@@ -446,7 +446,6 @@ public final class Client extends AbstractPersistable<Long> {
             actualChanges.put(ClientApiConstants.savingsProductIdParamName, newValue);
         }
 
-
         if (command.isChangeInLongParameterNamed(ClientApiConstants.genderIdParamName, genderId())) {
             final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.genderIdParamName);
             actualChanges.put(ClientApiConstants.genderIdParamName, newValue);
@@ -461,7 +460,6 @@ public final class Client extends AbstractPersistable<Long> {
             final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.clientClassificationIdParamName);
             actualChanges.put(ClientApiConstants.clientClassificationIdParamName, newValue);
         }
-
 
         final String dateFormatAsInput = command.dateFormat();
         final String localeAsInput = command.locale();
@@ -487,16 +485,6 @@ public final class Client extends AbstractPersistable<Long> {
             this.dateOfBirth = newValue.toDate();
         }
 
-        if (command.isChangeInLocalDateParameterNamed(ClientApiConstants.submittedOnDateParamName,getSubmittedOnDate())) {
-            final String valueAsInput = command.stringValueOfParameterNamed(ClientApiConstants.submittedOnDateParamName);
-            actualChanges.put(ClientApiConstants.submittedOnDateParamName, valueAsInput);
-            actualChanges.put(ClientApiConstants.dateFormatParamName, dateFormatAsInput);
-            actualChanges.put(ClientApiConstants.localeParamName, localeAsInput);
-
-            final LocalDate newValue = command.localDateValueOfParameterNamed(ClientApiConstants.submittedOnDateParamName);
-            this.submittedOnDate = newValue.toDate();
-        }
-
         validate();
 
         deriveDisplayName();
@@ -504,7 +492,6 @@ public final class Client extends AbstractPersistable<Long> {
         return actualChanges;
     }
 
-   
     private void validateNameParts(final List<ApiParameterError> dataValidationErrors) {
         final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("client");
 

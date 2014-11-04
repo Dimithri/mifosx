@@ -46,26 +46,20 @@ public final class LoanApplicationCommandFromApiJsonHelper {
     final Set<String> supportedParameters = new HashSet<>(Arrays.asList("dateFormat", "locale", "id", "clientId", "groupId", "loanType",
             "productId", "principal", "loanTermFrequency", "loanTermFrequencyType", "numberOfRepayments", "repaymentEvery",
             "repaymentFrequencyType", "interestRatePerPeriod", "amortizationType", "interestType", "interestCalculationPeriodType",
-            "expectedDisbursementDate", "repaymentsStartingFromDate", "graceOnPrincipalPayment",
-            "graceOnInterestPayment",
+            "expectedDisbursementDate", "repaymentsStartingFromDate", "graceOnPrincipalPayment", "graceOnInterestPayment",
             "graceOnInterestCharged",
             "interestChargedFromDate", //
             "submittedOnDate",
             "submittedOnNote", //
-            "accountNo",
-            "externalId",
-            "fundId",
+            "accountNo", "externalId", "fundId",
             "loanOfficerId", // optional
-            "loanPurposeId",
-            "inArrearsTolerance",
-            "charges",
+            "loanPurposeId", "inArrearsTolerance", "charges",
             "collateral", // optional
             "transactionProcessingStrategyId", // settings
             "calendarId", // optional
             "syncDisbursementWithMeeting",// optional
             "linkAccountId", LoanApiConstants.disbursementDataParameterName, LoanApiConstants.emiAmountParameterName,
-            LoanApiConstants.maxOutstandingBalanceParameterName, LoanProductConstants.graceOnArrearsAgeingParameterName,
-            LoanProductConstants.recalculationRestFrequencyDateParamName));
+            LoanApiConstants.maxOutstandingBalanceParameterName, LoanProductConstants.graceOnArrearsAgeingParameterName));
 
     private final FromJsonHelper fromApiJsonHelper;
     private final CalculateLoanScheduleQueryFromApiJsonHelper apiJsonHelper;
@@ -448,8 +442,7 @@ public final class LoanApplicationCommandFromApiJsonHelper {
             atLeastOneParameterPassedForUpdate = true;
             final BigDecimal inArrearsTolerance = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed(inArrearsToleranceParameterName,
                     element);
-            baseDataValidator.reset().parameter(inArrearsToleranceParameterName).value(inArrearsTolerance).ignoreIfNull()
-                    .zeroOrPositiveAmount();
+            baseDataValidator.reset().parameter(inArrearsToleranceParameterName).value(inArrearsTolerance).ignoreIfNull().zeroOrPositiveAmount();
         }
 
         final String loanTermFrequencyParameterName = "loanTermFrequency";
@@ -834,14 +827,6 @@ public final class LoanApplicationCommandFromApiJsonHelper {
 
         }
 
-    }
-
-    public void validateRecalcuationFrequency(final LocalDate recalculationFrequencyDate, final LocalDate expectedDisbursementDate) {
-        final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-        final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("loan");
-        baseDataValidator.reset().parameter(LoanProductConstants.recalculationRestFrequencyDateParamName).value(recalculationFrequencyDate)
-                .notNull().validateDateBeforeOrEqual(expectedDisbursementDate);
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
     }
 
 }

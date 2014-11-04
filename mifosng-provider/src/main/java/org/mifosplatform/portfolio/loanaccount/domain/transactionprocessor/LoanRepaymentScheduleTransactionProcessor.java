@@ -6,7 +6,6 @@
 package org.mifosplatform.portfolio.loanaccount.domain.transactionprocessor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.LocalDate;
@@ -15,7 +14,6 @@ import org.mifosplatform.portfolio.loanaccount.domain.ChangedTransactionDetail;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanCharge;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanTransaction;
-import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.RecalculationDetail;
 
 public interface LoanRepaymentScheduleTransactionProcessor {
 
@@ -27,17 +25,5 @@ public interface LoanRepaymentScheduleTransactionProcessor {
 
     void handleWriteOff(LoanTransaction loanTransaction, MonetaryCurrency loanCurrency,
             List<LoanRepaymentScheduleInstallment> repaymentScheduleInstallments);
-
-    List<RecalculationDetail> handleRepaymentSchedule(List<LoanTransaction> transactionsPostDisbursement, MonetaryCurrency currency,
-            List<LoanRepaymentScheduleInstallment> installments, LoanRepaymentScheduleInstallment currentInstallment,
-            Map<LocalDate, LocalDate> recalculationDates, LoanTransaction preCloseTransaction);
-    
-    /**
-     * Used in interest recalculation to introduce new interest only installment.
-     */
-    boolean isInterestFirstRepaymentScheduleTransactionProcessor();
-    
-    void applyTransaction(List<LoanTransaction> transactionsPostDisbursement, MonetaryCurrency currency,
-            List<LoanRepaymentScheduleInstallment> installments);
 
 }

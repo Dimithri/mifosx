@@ -45,7 +45,6 @@ import org.mifosplatform.organisation.monetary.data.CurrencyData;
 import org.mifosplatform.organisation.monetary.service.CurrencyReadPlatformService;
 import org.mifosplatform.portfolio.charge.data.ChargeData;
 import org.mifosplatform.portfolio.charge.service.ChargeReadPlatformService;
-import org.mifosplatform.portfolio.common.service.DropdownReadPlatformService;
 import org.mifosplatform.portfolio.fund.data.FundData;
 import org.mifosplatform.portfolio.fund.service.FundReadPlatformService;
 import org.mifosplatform.portfolio.loanproduct.data.LoanProductData;
@@ -76,8 +75,8 @@ public class LoanProductsApiResource {
             "transactionProcessingStrategyOptions", "chargeOptions", "accountingOptions", "accountingRuleOptions",
             "accountingMappingOptions"));
 
-    private final Set<String> PRODUCT_MIX_DATA_PARAMETERS = new HashSet<>(Arrays.asList("productId", "productName", "restrictedProducts",
-            "allowedProducts", "productOptions"));
+    private final Set<String> PRODUCT_MIX_DATA_PARAMETERS = new HashSet<>(Arrays.asList("productId", "productName",
+            "restrictedProducts", "allowedProducts", "productOptions"));
 
     private final String resourceNameForPermissions = "LOANPRODUCT";
 
@@ -95,7 +94,6 @@ public class LoanProductsApiResource {
     private final AccountingDropdownReadPlatformService accountingDropdownReadPlatformService;
     private final DefaultToApiJsonSerializer<ProductMixData> productMixDataApiJsonSerializer;
     private final ProductMixReadPlatformService productMixReadPlatformService;
-    private final DropdownReadPlatformService commonDropdownReadPlatformService;
 
     @Autowired
     public LoanProductsApiResource(final PlatformSecurityContext context, final LoanProductReadPlatformService readPlatformService,
@@ -108,8 +106,7 @@ public class LoanProductsApiResource {
             final CodeValueReadPlatformService codeValueReadPlatformService,
             final AccountingDropdownReadPlatformService accountingDropdownReadPlatformService,
             final DefaultToApiJsonSerializer<ProductMixData> productMixDataApiJsonSerializer,
-            final ProductMixReadPlatformService productMixReadPlatformService,
-            final DropdownReadPlatformService commonDropdownReadPlatformService) {
+            final ProductMixReadPlatformService productMixReadPlatformService) {
         this.context = context;
         this.loanProductReadPlatformService = readPlatformService;
         this.chargeReadPlatformService = chargeReadPlatformService;
@@ -124,7 +121,6 @@ public class LoanProductsApiResource {
         this.accountingDropdownReadPlatformService = accountingDropdownReadPlatformService;
         this.productMixDataApiJsonSerializer = productMixDataApiJsonSerializer;
         this.productMixReadPlatformService = productMixReadPlatformService;
-        this.commonDropdownReadPlatformService = commonDropdownReadPlatformService;
     }
 
     @POST
@@ -234,7 +230,8 @@ public class LoanProductsApiResource {
 
     private LoanProductData handleTemplate(final LoanProductData productData) {
 
-        Collection<ChargeData> chargeOptions = this.chargeReadPlatformService.retrieveLoanApplicableFees();
+        final boolean feeChargesOnly = true;
+        Collection<ChargeData> chargeOptions = this.chargeReadPlatformService.retrieveLoanApplicableCharges(feeChargesOnly, null);
         if (chargeOptions.isEmpty()) {
             chargeOptions = null;
         }
@@ -271,19 +268,10 @@ public class LoanProductsApiResource {
         final List<EnumOptionData> loanCycleValueConditionTypeOptions = this.dropdownReadPlatformService
                 .retrieveLoanCycleValueConditionTypeOptions();
 
-        final List<EnumOptionData> daysInMonthTypeOptions = commonDropdownReadPlatformService.retrieveDaysInMonthTypeOptions();
-        final List<EnumOptionData> daysInYearTypeOptions = commonDropdownReadPlatformService.retrieveDaysInYearTypeOptions();
-        final List<EnumOptionData> interestRecalculationCompoundingTypeOptions = dropdownReadPlatformService
-                .retrieveInterestRecalculationCompoundingTypeOptions();
-        final List<EnumOptionData> rescheduleStrategyTypeOptions = dropdownReadPlatformService.retrieveRescheduleStrategyTypeOptions();
-        final List<EnumOptionData> interestRecalculationFrequencyTypeOptions = dropdownReadPlatformService
-                .retrieveInterestRecalculationFrequencyTypeOptions();
-
         return new LoanProductData(productData, chargeOptions, penaltyOptions, paymentTypeOptions, currencyOptions,
                 amortizationTypeOptions, interestTypeOptions, interestCalculationPeriodTypeOptions, repaymentFrequencyTypeOptions,
                 interestRateFrequencyTypeOptions, fundOptions, transactionProcessingStrategyOptions, accountOptions,
-                accountingRuleTypeOptions, loanCycleValueConditionTypeOptions, daysInMonthTypeOptions, daysInYearTypeOptions,
-                interestRecalculationCompoundingTypeOptions, rescheduleStrategyTypeOptions, interestRecalculationFrequencyTypeOptions);
+                accountingRuleTypeOptions, loanCycleValueConditionTypeOptions);
     }
 
 }

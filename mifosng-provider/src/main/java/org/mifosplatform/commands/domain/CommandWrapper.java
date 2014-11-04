@@ -5,8 +5,6 @@
  */
 package org.mifosplatform.commands.domain;
 
-import org.mifosplatform.portfolio.loanaccount.rescheduleloan.RescheduleLoansApiConstants;
-
 public class CommandWrapper {
 
     private final Long commandId;
@@ -233,39 +231,12 @@ public class CommandWrapper {
         return this.entityName.equalsIgnoreCase("USER");
     }
 
-    public boolean isHookResource() {
-        return this.entityName.equalsIgnoreCase("HOOK");
-    }
-
     public boolean isCurrencyResource() {
         return this.entityName.equalsIgnoreCase("CURRENCY");
     }
 
     public boolean isSmsResource() {
         return this.entityName.equalsIgnoreCase("SMS");
-    }
-
-    public boolean isSmsCampaignResource(){
-        return this.entityName.equals("SMS_CAMPAIGN");
-    }
-    
-    public boolean isLoanRescheduleResource() {
-    	return this.entityName.equals(RescheduleLoansApiConstants.ENTITY_NAME);
-    }
-    
-    public boolean isApprove() {
-    	return this.actionName.equalsIgnoreCase("APPROVE");
-    }
-    
-    public boolean isReject() {
-    	return this.actionName.equalsIgnoreCase("REJECT");
-    }
-
-    public boolean isSmsCampaignActivation() {
-        return this.actionName.equalsIgnoreCase("ACTIVATE") && this.entityName.equalsIgnoreCase("SMS_CAMPAIGN");
-    }
-    public boolean isSmsCampaignClosure() {
-        return this.actionName.equalsIgnoreCase("CLOSE") && this.entityName.equalsIgnoreCase("SMS_CAMPAIGN");
     }
 
     public boolean isCodeResource() {
@@ -354,14 +325,6 @@ public class CommandWrapper {
 
     public boolean isCenterClose() {
         return this.actionName.equalsIgnoreCase("CLOSE") && this.entityName.equalsIgnoreCase("CENTER");
-    }
-
-    public boolean isCenterAssociateGroups() {
-        return this.actionName.equalsIgnoreCase("ASSOCIATEGROUPS") && this.entityName.equalsIgnoreCase("CENTER");
-    }
-
-    public boolean isCenterDisassociateGroups() {
-        return this.actionName.equalsIgnoreCase("DISASSOCIATEGROUPS") && this.entityName.equalsIgnoreCase("CENTER");
     }
 
     public boolean isClientIdentifierResource() {
@@ -588,15 +551,7 @@ public class CommandWrapper {
     public boolean isAdjustSavingsAccountTransaction() {
         return this.actionName.equalsIgnoreCase("ADJUSTTRANSACTION") && this.entityName.equalsIgnoreCase("SAVINGSACCOUNT");
     }
-    
-    public boolean isUpdateSavingsOfficer(){
-    	return this.actionName.equalsIgnoreCase("UPDATESAVINGSOFFICER") && this.entityName.equalsIgnoreCase("SAVINGSACCOUNT");
-    }
 
-    public boolean isRemoveSavingsOfficer(){
-    	return this.actionName.equalsIgnoreCase("REMOVESAVINGSOFFICER") && this.entityName.equalsIgnoreCase("SAVINGSACCOUNT");
-    }
-    
     public boolean isSavingsAccountChargeResource() {
         return this.entityName.equalsIgnoreCase("SAVINGSACCOUNTCHARGE");
     }

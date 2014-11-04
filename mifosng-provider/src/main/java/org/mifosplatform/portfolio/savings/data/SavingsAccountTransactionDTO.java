@@ -1,8 +1,3 @@
-/**
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
- */
 package org.mifosplatform.portfolio.savings.data;
 
 import java.math.BigDecimal;
@@ -30,10 +25,8 @@ public class SavingsAccountTransactionDTO {
         this.createdDate = createdDate;
         this.savingsAccountId = null;
     }
-
-    /**
-     * This constructor is used for bulk deposit transactions
-     * 
+    
+    /** This constructor is used for bulk deposit transactions
      * @param formatter
      * @param transactionDate
      * @param transactionAmount
@@ -50,6 +43,8 @@ public class SavingsAccountTransactionDTO {
         this.createdDate = createdDate;
         this.savingsAccountId = savingsAccountId;
     }
+
+
 
     public DateTimeFormatter getFormatter() {
         return this.formatter;
@@ -70,9 +65,9 @@ public class SavingsAccountTransactionDTO {
     public Date getCreatedDate() {
         return this.createdDate;
     }
-
+    
     public Long getSavingsAccountId() {
         return this.savingsAccountId;
     }
-
+    
 }
